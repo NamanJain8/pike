@@ -1,6 +1,7 @@
 from ply import lex
 from ply.lex import TOKEN
 import json
+import optparse
 
 """
 CITE:
@@ -161,7 +162,7 @@ t_LBRACE    = r"\{"
 t_COMMA     = r"," 
 t_PERIOD    = r"\."
 
-t_RPAREN    = r"\}"
+t_RPAREN    = r"\)"
 t_RBRACK    = r"\]"
 t_RBRACE    = r"\}"
 t_SEMICOLON = r";"
@@ -194,7 +195,7 @@ def t_IDENT(t):
     return t
 
 def t_STRING(t):
-    r"\"[.]+\""
+    r"(\"(.|\n)*?)\""
     return t
 
 def t_TAB(t):
@@ -217,14 +218,8 @@ def t_SPACE(t):
     pass
 
 def t_COMMENT(t):
-    r"//.*"
-    data = "<font color=" + colors[t.type] + ">" + t.value + "</font>\n"
-    out_file.write(data)
-    pass
-
-def t_MULTI_COMMENT(t):
-    r"(/\*(.|\n)*?)\*/"
-    data = "<font color=" + colors[t.type] + ">" + t.value + "</font>\n"
+    r"(//.*)|(/\*(.|\n)*?)\*/"
+    data = "<font color=" + colors.get(t.type,"BLACK") + ">" + t.value + "</font>\n"
     out_file.write(data)
     pass
 
@@ -232,6 +227,14 @@ def t_MULTI_COMMENT(t):
 def t_error(t):
     print("[ERROR] Invalid token:",t.value[0])
     t.lexer.skip(1) #skip ahead 1 character
+
+# if __name__ == "__main__":
+#     parser = optparse.OptionParser()
+#     parser.add_option('-cfg', '--cfg',
+#         action="store", dest="config_file",
+#         help="load ", default="spam")
+
+
 
 # Build lexer
 lexer = lex.lex()
@@ -244,14 +247,15 @@ with open("../../config/color.json") as config:
 
 # Open output file
 out_file = open("output.html","w+")
-out_file.write("<html>\n<body>\n")
+out_file.write("<html>\n<body bgcolor='white'>\n")
 
 # Read input file
 in_file = open('input.go','r')
 data = in_file.read()
 
 lexer.input(data)
-ignored_tokens = ["MULTI_COMMENT","COMMENT","NL","SPACE","TAB"]
+ignored_tokens = ["COMMENT","NL","SPACE","TAB"]
+
 # Iterate to get tokens
 while True:
     tok = lexer.token()
@@ -259,8 +263,12 @@ while True:
         break
     if tok.type in ignored_tokens:
         continue
+    if tok.type in reserved.values():
+        out_file.write("<b>")
     data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
-    out_file.write(data)
+    out_file.write(data) 
+    if tok.type in reserved.values():
+        out_file.write("</b>")
     print(tok)
 
 # Close file
