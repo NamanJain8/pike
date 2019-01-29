@@ -162,7 +162,7 @@ lexer = lex.lex()
 # lexer.abcde = 0   # custom global varibales for lexer
 
 # Load config file for colors
-with open("color_config.json") as config:
+with open("../../config/color.json") as config:
     colors = json.load(config)
 # print(colors["ID"])
 
