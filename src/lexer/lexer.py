@@ -1,6 +1,5 @@
 from ply import lex
 from ply.lex import TOKEN
-import sys
 import json
 
 """
@@ -110,48 +109,125 @@ tokens = [
 
 ] + list(reserved.values())
 
-# Regex defining
-t_ignore_COMMENT = r'\#.*'
-t_PLUS = r'\+'
-t_MINUS = r'-'
-t_TIMES = r'\*'
-t_DIVIDE = r'/'
-t_EXPO = r'\*\*'
-t_LBRAC = r'\('
-t_RBRAC = r'\)'
-t_EQUAL = r'='
-t_ASSIGN = r'=='
+# Mathematical operators
+t_ADD   = r"\+"
+t_SUB   = r"-"
+t_MUL   = r"\*"
+t_QUO   = r"/"
+t_REM   = r"%"
 
-digit = r'[0-9]'
-nondigit = r'[_A-Za-z]'
-identifier = r'(' + nondigit + r'(' + digit + r'|' + nondigit + r')*)'
+t_ADD_ASSIGN    = r"\+="
+t_SUB_ASSIGN    = r"-="
+t_MUL_ASSIGN    = r"\*="
+t_QUO_ASSIGN    = r"/="
+t_REM_ASSIGN    = r"%="
+    
+# bitwise operators
+t_AND   = r"&"
+t_OR    = r"\|"
+t_XOR   = r"\^"
+t_SHL   = r"<<"
+t_SHR   = r">>"
+t_AND_NOT   = r"&\^"
+
+AND_ASSIGN  = r"&="
+OR_ASSIGN   = r"!="
+XOR_ASSIGN  = r"\^="
+SHL_ASSIGN  = r"<<="
+SHR_ASSIGN  = r">>="
+AND_NOT_ASSIGN  = r"&\^="
+
+t_LAND  = r"&&"
+t_LOR   = r"\|\|"
+t_ARROW = r"<-"
+t_INC   = r"\+\+"
+t_DEC   = r"--"
+
+t_EQL   = r"=="
+t_LSS   = r"<"
+t_GTR   = r">"
+t_ASSIGN    = r"="
+t_NOT   = "!"
+
+t_NEQ   = r"!="
+t_LEQ   = r"<="
+t_GEQ   = r">="
+t_DEFINE    = r":="
+t_ELLIPSIS  = r"\.\.\."
+
+t_LPAREN    = r"\("
+t_LBRACK    = r"\["
+t_LBRACE    = r"\{"
+t_COMMA     = r"," 
+t_PERIOD    = r"\."
+
+t_RPAREN    = r"\}"
+t_RBRACK    = r"\]"
+t_RBRACE    = r"\}"
+t_SEMICOLON = r";"
+t_COLON     = r":"
+
+letter = r"[_A-Za-z]"
+decimal_digit   = r"[0-9]"
+octal_digit = r"[0-7]"
+hexa_digit  = r"[0-9a-fA-F]"
+
+identifier = letter + r"(" + letter + r"|" + decimal_digit + r")*"
+
+octal_literal = r"0[0-7]*"
+hexa_literal = r"0[xX][0-9a-fA-F]+"
+decimal_literal = r"[1-9][0-9]*"
+t_INT   = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
+
+decimals = decimal_digit + r"(" + decimal_digit + r")*"
+exponent = r"(e|E)" + r"(\+|-)?" + decimals
+t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + decimals + exponent + r")|(" + r"\." + decimals + exponent + r")" 
+
+t_IMAG  = r"(" + decimals + r"|" + t_FLOAT + r")" + r"i"
+
+# t_STRING = r"\"[.]+\""
 
 # Definig functions for each token
 @TOKEN(identifier)
-def t_ID(t):
-    data = "<font color=" + colors["ID"] + ">" + t.value + "</font>\n"
-    out_file.write(data)
+def t_IDENT(t):
+    t.type = reserved.get(t.value,"IDENT")
     return t
 
-def t_NL(t):
-    r'\n'
-    out_file.write("\n")
-    t.lexer.lineno += 1
-
-def t_SPACE(t):
-    r'\ '
-    out_file.write("&nbsp;\n")
-    return
+def t_STRING(t):
+    r"\"[.]+\""
+    return t
 
 def t_TAB(t):
-    r'\t'
-    out_file.write("&nbsp;&nbsp;&nbsp;&nbsp;")
-    return
+    r"\t"
+    data = "&nbsp;&nbsp;&nbsp;&nbsp;"
+    out_file.write(data)
+    pass
 
-def t_NUMBER(t):
-    r'[0-9]+'
-    t.value = int(t.value)
-    return t
+def t_NL(t):
+    r"\n+"
+    data = "<br>"*len(t.value)
+    t.lexer.lineno += len(t.value)
+    out_file.write(data)
+    pass
+
+def t_SPACE(t):
+    r"\ "
+    data = "&nbsp;"
+    out_file.write(data)
+    pass
+
+def t_COMMENT(t):
+    r"//.*"
+    data = "<font color=" + colors[t.type] + ">" + t.value + "</font>\n"
+    out_file.write(data)
+    pass
+
+def t_MULTI_COMMENT(t):
+    r"(/\*(.|\n)*?)\*/"
+    data = "<font color=" + colors[t.type] + ">" + t.value + "</font>\n"
+    out_file.write(data)
+    pass
+
 
 def t_error(t):
     print("[ERROR] Invalid token:",t.value[0])
@@ -171,16 +247,20 @@ out_file = open("output.html","w+")
 out_file.write("<html>\n<body>\n")
 
 # Read input file
-in_file = open('input','r')
+in_file = open('input.go','r')
 data = in_file.read()
 
 lexer.input(data)
-
+ignored_tokens = ["MULTI_COMMENT","COMMENT","NL","SPACE","TAB"]
 # Iterate to get tokens
 while True:
     tok = lexer.token()
     if not tok:
         break
+    if tok.type in ignored_tokens:
+        continue
+    data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
+    out_file.write(data)
     print(tok)
 
 # Close file

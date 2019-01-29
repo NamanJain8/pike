@@ -28,7 +28,7 @@
     "IDENT":           "#24292e",
     "INT":             "#005cc5",
     "FLOAT":           "#005cc5",
-    "IMG":             "#005cc5",
+    "IMAG":             "#005cc5",
     "CHAR":            "#032f62",
     "STRING":          "#032f62",
 
@@ -87,5 +87,7 @@
     "RBRACK":          "#24292e",
     "RBRACE":          "#24292e",
     "SEMICOLON":       "#24292e",
-    "COLON":           "#24292e"
+    "COLON":           "#24292e",
+    "COMMENT":         "gray",
+    "MULTI_COMMENT":    "gray"
 }
