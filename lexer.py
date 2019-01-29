@@ -3,6 +3,13 @@ from ply.lex import TOKEN
 import sys
 import json
 
+"""
+CITE:
+    Most of the token definations are taken from documentation
+    of golang(go docs), and some from the token (go/token)
+    package of golang: https://golang.org/src/go/token/token.go
+"""
+
 # reserved words in language
 reserved = {
     'break'        :    'BREAK',
