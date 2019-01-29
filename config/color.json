@@ -88,6 +88,5 @@
     "RBRACE":          "#24292e",
     "SEMICOLON":       "#24292e",
     "COLON":           "#24292e",
-    "COMMENT":         "gray",
-    "MULTI_COMMENT":    "gray"
+    "COMMENT":         "gray"
 }

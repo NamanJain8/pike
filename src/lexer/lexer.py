@@ -1,7 +1,6 @@
 from ply import lex
 from ply.lex import TOKEN
 import json
-import optparse
 
 """
 CITE:
@@ -228,29 +227,22 @@ def t_error(t):
     print("[ERROR] Invalid token:",t.value[0])
     t.lexer.skip(1) #skip ahead 1 character
 
-# if __name__ == "__main__":
-#     parser = optparse.OptionParser()
-#     parser.add_option('-cfg', '--cfg',
-#         action="store", dest="config_file",
-#         help="load ", default="spam")
-
-
 
 # Build lexer
 lexer = lex.lex()
 # lexer.abcde = 0   # custom global varibales for lexer
 
 # Load config file for colors
-with open("../../config/color.json") as config:
+with open("../../config/color3.json") as config:
     colors = json.load(config)
 # print(colors["ID"])
 
 # Open output file
-out_file = open("output.html","w+")
-out_file.write("<html>\n<body bgcolor='white'>\n")
+out_file = open("../../tests/output.html","w+")
+out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#x000000") + ">\n")
 
 # Read input file
-in_file = open('input.go','r')
+in_file = open('../../tests/input1.go','r')
 data = in_file.read()
 
 lexer.input(data)
