@@ -1,6 +1,7 @@
 from ply import lex
 from ply.lex import TOKEN
 import json
+import argparse
 
 """
 CITE:
@@ -48,7 +49,7 @@ tokens = [
     'IMAG',             # 123.4i
     'CHAR',             # 'a'
     'STRING',           # "abc"
-    
+
     # operator
     'ADD',              # +
     'SUB',              # -
@@ -61,7 +62,7 @@ tokens = [
     'MUL_ASSIGN',       # *=
     'QUO_ASSIGN',       # %=
     'REM_ASSIGN',       # %=
-    
+
     # bitwise operators
     'AND',              # &
     'OR',               # |
@@ -100,7 +101,7 @@ tokens = [
     'LBRACE',           # {
     'COMMA',            # ,
     'PERIOD',           # .
-    
+
     'RPAREN',           # )
     'RBRACK',           # ]
     'RBRACE',           # }
@@ -121,7 +122,7 @@ t_SUB_ASSIGN    = r"-="
 t_MUL_ASSIGN    = r"\*="
 t_QUO_ASSIGN    = r"/="
 t_REM_ASSIGN    = r"%="
-    
+
 # bitwise operators
 t_AND   = r"&"
 t_OR    = r"\|"
@@ -158,7 +159,7 @@ t_ELLIPSIS  = r"\.\.\."
 t_LPAREN    = r"\("
 t_LBRACK    = r"\["
 t_LBRACE    = r"\{"
-t_COMMA     = r"," 
+t_COMMA     = r","
 t_PERIOD    = r"\."
 
 t_RPAREN    = r"\)"
@@ -181,7 +182,7 @@ t_INT   = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
 
 decimals = decimal_digit + r"(" + decimal_digit + r")*"
 exponent = r"(e|E)" + r"(\+|-)?" + decimals
-t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + decimals + exponent + r")|(" + r"\." + decimals + exponent + r")" 
+t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
 
 t_IMAG  = r"(" + decimals + r"|" + t_FLOAT + r")" + r"i"
 
@@ -228,21 +229,35 @@ def t_error(t):
     t.lexer.skip(1) #skip ahead 1 character
 
 
+parser = argparse.ArgumentParser(description='Does Lexical Analysis and breaks the code down into tokens')
+
+parser.add_argument('--cfg', dest='config_file_location', help='Location of the input .go file', required=True)
+
+parser.add_argument('--output', dest='out_file_location', help='Location of the output .html file', required=True)
+
+parser.add_argument('--input', dest='in_file_location', help='Location of the output .html file', required=True)
+
+result = parser.parse_args()
+config_file_location = str(result.config_file_location)
+out_file_location = str(result.out_file_location)
+in_file_location = str(result.in_file_location)
+
+
 # Build lexer
 lexer = lex.lex()
 # lexer.abcde = 0   # custom global varibales for lexer
 
 # Load config file for colors
-with open("../../config/color3.json") as config:
+with open(config_file_location) as config:
     colors = json.load(config)
 # print(colors["ID"])
 
 # Open output file
-out_file = open("../../tests/output.html","w+")
+out_file = open(out_file_location,"w+")
 out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#x000000") + ">\n")
 
 # Read input file
-in_file = open('../../tests/input1.go','r')
+in_file = open(in_file_location,'r')
 data = in_file.read()
 
 lexer.input(data)
@@ -258,7 +273,7 @@ while True:
     if tok.type in reserved.values():
         out_file.write("<b>")
     data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
-    out_file.write(data) 
+    out_file.write(data)
     if tok.type in reserved.values():
         out_file.write("</b>")
     print(tok)
