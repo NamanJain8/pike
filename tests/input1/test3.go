@@ -1,6 +1,30 @@
 // Single line comment
 /* Multi-
     line comment */
+hello()
+/* type 2*/
+
+/*
+ * Common multi-line comment style.
+ */
+/* Second comment */
+
+/****
+ * Common multi-line comment style.
+ ****/
+more_code()
+/*
+ * Another common multi-line comment style.
+ */
+
+/****
+ * Common multi-line comment style.
+ ****/
+/****
+ * Another common multi-line comment style.
+ */
+
+
 
 // A package clause starts every source file.
 // Main is a special name declaring an executable rather than a library.

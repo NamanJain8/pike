@@ -194,10 +194,6 @@ def t_IDENT(t):
     t.type = reserved.get(t.value,"IDENT")
     return t
 
-def t_STRING(t):
-    r"(\"(.|\n)*?)\""
-    return t
-
 def t_TAB(t):
     r"\t"
     data = "&nbsp;&nbsp;&nbsp;&nbsp;"
@@ -220,8 +216,14 @@ def t_SPACE(t):
 def t_COMMENT(t):
     r"(//.*)|(/\*(.|\n)*?)\*/"
     data = "<font color=" + colors.get(t.type,"BLACK") + ">" + t.value + "</font>\n"
+    data = data.rstrip()
+    data = "<br />".join(data.split("\n"))
     out_file.write(data)
     pass
+
+def t_STRING(t):
+    r"(\"(.|\n)*?)\""
+    return t
 
 
 def t_error(t):
@@ -254,7 +256,7 @@ with open(config_file_location) as config:
 
 # Open output file
 out_file = open(out_file_location,"w+")
-out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#x000000") + ">\n")
+out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#000000") + ">\n")
 
 # Read input file
 in_file = open(in_file_location,'r')
@@ -273,6 +275,8 @@ while True:
     if tok.type in reserved.values():
         out_file.write("<b>")
     data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
+    data = data.rstrip("\n")
+    data = "<br />".join(data.split("\n"))
     out_file.write(data)
     if tok.type in reserved.values():
         out_file.write("</b>")
