@@ -253,7 +253,6 @@ def p_cond(p):
 
 def p_stmt(p):
 	"stmt : IDENT ASSIGN IDENT SEMICOLON"
-	print(p[1].type)
 	p[0] = ('stmt', p[1], p[2], p[3])
 
 def p_error(p):

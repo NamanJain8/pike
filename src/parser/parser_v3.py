@@ -248,7 +248,6 @@ def p_ForLoop(p):
 	global ctr
 
 	gendot(p[0],ctr-1)
-	print(myout)
 	out_file.write(myout)	
 
 def p_cond(p):

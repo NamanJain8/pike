@@ -27,7 +27,7 @@ for _k, _v in _lr_goto_items.items():
 del _lr_goto_items
 _lr_productions = [
   ("S' -> ForLoop","S'",1,None,None,None),
-  ('ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE','ForLoop',7,'p_ForLoop','my.py',221),
-  ('cond -> IDENT EQL INT','cond',3,'p_cond','my.py',226),
-  ('stmt -> IDENT ASSIGN IDENT SEMICOLON','stmt',4,'p_stmt','my.py',230),
+  ('ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE','ForLoop',7,'p_ForLoop','parser_v2.py',239),
+  ('cond -> IDENT EQL INT','cond',3,'p_cond','parser_v2.py',251),
+  ('stmt -> IDENT ASSIGN IDENT SEMICOLON','stmt',4,'p_stmt','parser_v2.py',255),
 ]
