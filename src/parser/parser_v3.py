@@ -629,11 +629,182 @@ def p_ParameterDeclHead(p):
 
 
 
+############### 
+
+def p_VarDecl(p):
+	''' VarDecl     : VAR VarSpecTopList '''
+	p[1] = Node([],"VAR")
+	p[0] = Node([p[1],p[2]],'VarDecl')
+
+def p_VarSpecTopList(p):
+	'''VarSpecTopList : VarSpec 
+			| LPAREN VarSpecList RPAREN '''
+	if p[1] == "(":
+		p[0] = Node([p[2]],'VarSpecTopList')
+	else:
+		p[0] = Node([p[1]],'VarSpecTopList')
 
 
+def p_VarSpecList(p):
+	'''VarSpecList : empty 
+				| VarSpecList VarSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'VarSpecList')
+
+def p_VarSpec(p):
+	'''VarSpec  : IdentifierList VarSpecTail '''
+	p[0] = Nde([p[1],p[2]],'VarSpec')
+
+def p_VarSpecTail(p):
+	'''VarSpecTail : Type VarSpecMid 
+					| ASSIGN ExpressionList '''
+	if p[1] == "=":
+		p[1] = Node([],ASSIGN)
+		p[0] = Node([p[1],p[2]],'VarSpecTail')
+	else:
+		p[0] = Node([p[1],p[2]],'VarSpecList')
 
 
+def p_VarSpecMid(p):
+	'''VarSpecMid : empty 
+			| ASSIGN ExpressionList '''
+	if p[0] == "":
+		p[0] = None
+	else:
+		p[1] = Node([],ASSIGN)
+		p[0] = Node([p[1],p[2]],'VarSpecMid')
 
+
+#############################
+
+def p_FunctionDecl(p):
+	''' FunctionDecl : FUNC FunctionName FunctionDeclTail '''
+	p[1] = Node([],'FUNC')
+	p[0] = Node([p[1],p[2],p[3]],'FunctionDecl')
+
+def p_FunctionDeclTail(p):
+	'''FunctionDeclTail : Function 
+				| Signature'''
+	p[0] = Node([p[1]],'Function')
+
+def p_FunctionName(p):
+	'''FunctionName : IDENT'''
+	p[0] = Node([], 'FunctionName: ' + p[1])
+
+def p_Function(p):
+	'''Function     : Signature FunctionBody '''
+	p[0] = Node([p[1],p[2]], 'Function')
+
+def p_FunctionBody(p):
+	'''FunctionBody : Block '''
+	p[0] = Node([p[1]],'FunctionBody')
+
+###########
+
+def p_MethodDecl(p):
+	'''MethodDecl : FUNC Receiver MethodName FunctionDeclTail '''
+	p[1] = Node([],'func')
+	p[0] = Node([p[1],p[2],p[3],p[4]], 'MethodDecl')
+
+def p_Receiver(p):
+	'''Receiver   : Parameters '''
+	p[0] = Node([p[1]],'Receiver')
+
+##############
+
+def p_SimpleStmt(p):
+	'''SimpleStmt = ExpressionStmt | Assignment | ShortVarDecl '''
+	p[0] = Node([p[1]],'SimpleStmt')
+
+def p_ExpressionStmt(p):
+	'''ExpressionStmt : Expression '''
+	p[0] = Node([p[1]], 'ExpressionStmt')
+
+def p_ShortVarDecl(p):
+	'''ShortVarDecl : IdentifierList DEFINE ExpressionList '''
+	p[0] = Node([p[1],p[2]],'ShortVarDecl: ' + DEFINE)
+
+def p_Assignment(p):
+	'''Assignment : ExpressionList assign_op ExpressionList '''
+	p[0] = Node([p[1],p[2],p[3]], 'Assignment')
+
+def p_assign_op(p):
+	'''assign_op : addmul_op ASSIGN '''
+	p[0] = Node([p[1],p[2]],'assign_op')
+
+def p_addmul_op(p):
+	'''addmul_op : empty 
+			| add_op 
+			| mul_op '''
+	if p[1] == "":
+		p[0] = None
+	else
+		p[0] = Node([p[1]],'addmul_op')
+
+def p_IfStmt(p):
+	'''IfStmt : IF SimpleStmtBot Expression Block elseBot '''
+	p[1] = Node([],'if')
+	p[0] = Node([p[1],p[2],p[3],p[4],p[5]],'IfStmt')
+
+def p_SimpleStmtBot(p):
+	'''SimpleStmtBot : empty 
+			| SimpleStmt SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([p[1]],'SimpleStmtBot')
+
+def p_elseBot(p):
+	'''elseBot : empty 
+			| ELSE elseTail '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([],'else')
+		p[0] = Node([p[1],p[2]],'elseBot')
+
+def p_elseTail(p):
+	'''elseTail : IfStmt 
+			| Block '''
+	p[0] = Node([p[1]],'elseTail')
+
+def p_SwitchStmt(p):
+	'''SwitchStmt : ExprSwitchStmt '''
+	p[0] = Node([p[1]],'SwitchStmt')
+
+def p_ExprSwitchStmt(p):
+	''' ExprSwitchStmt : SWITCH SimpleStmtBot ExpressionBot LBRACE ExprCaseClauseList RBRACE '''
+	p[1] = Node([],'switch')
+	p[0] = Node([p[1],p[2],p[3],p[5]], 'ExprSwitchStmt')
+
+def p_ExprCaseClause(p):
+	'''ExprCaseClause : ExprSwitchCase COLON StatementList '''
+	p[0] = Node([p[1],p[3]],'ExprCaseClause')
+
+def p_ExprSwitchCase(p):
+	''' ExprSwitchCase : CASE ExpressionList 
+						| DEFAULT '''
+	if p[1] == "case":
+		p[1] = Node([],'case')
+		p[0] = Node([p[1],p[2]],'ExprSwitchCase')
+	else:
+		p[1] = Node([],'default')
+		p[0] = Node([p[1]],'ExprSwitchCase')
+
+def p_ForStmt(p):
+	'''ForStmt : FOR ExpressionBot Block '''
+	p[1] = Node([],'for')
+	p[0] = Node([p[1],p[2],p[3]],'ForStmt')
+
+def p_ExpressionBot(p):
+	'''ExpressionBot : empty 
+				| Expression '''
+	if p[1]=="":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]],'ExpressionBot')
 
 
 def p_empty(p):
