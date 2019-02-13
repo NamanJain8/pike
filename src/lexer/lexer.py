@@ -1,7 +1,6 @@
 from ply import lex
 from ply.lex import TOKEN
 import json
-import argparse
 
 """
 CITE:
@@ -168,25 +167,24 @@ t_RBRACE    = r"\}"
 t_SEMICOLON = r";"
 t_COLON     = r":"
 
-letter = r"[_A-Za-z]"
+letter          = r"[_A-Za-z]"
 decimal_digit   = r"[0-9]"
-octal_digit = r"[0-7]"
-hexa_digit  = r"[0-9a-fA-F]"
+octal_digit     = r"[0-7]"
+hexa_digit      = r"[0-9a-fA-F]"
 
 identifier = letter + r"(" + letter + r"|" + decimal_digit + r")*"
 
-octal_literal = r"0[0-7]*"
-hexa_literal = r"0[xX][0-9a-fA-F]+"
+octal_literal   = r"0[0-7]*"
+hexa_literal    = r"0[xX][0-9a-fA-F]+"
 decimal_literal = r"[1-9][0-9]*"
-t_INT   = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
+t_INT           = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
 
 decimals = decimal_digit + r"(" + decimal_digit + r")*"
 exponent = r"(e|E)" + r"(\+|-)?" + decimals
-t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
+t_FLOAT  = r"(" + decimals + r"\." + decimals + exponent + r")|(" + \
+                     decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
 
 t_IMAG  = r"(" + decimals + r"|" + t_FLOAT + r")" + r"i"
-
-# t_STRING = r"\"[.]+\""
 
 # Definig functions for each token
 @TOKEN(identifier)
@@ -231,58 +229,47 @@ def t_error(t):
     t.lexer.skip(1) #skip ahead 1 character
 
 
-parser = argparse.ArgumentParser(description='Does Lexical Analysis and breaks the code down into tokens')
+# Just to make above functions happy :P
+out_file = None
+colors   = None
 
-parser.add_argument('--cfg', dest='config_file_location', help='Location of the input .go file', required=True)
+# Main lexer function
+def Lexer(html_config, input_file, output_file):
 
-parser.add_argument('--output', dest='out_file_location', help='Location of the output .html file', required=True)
+    global out_file, colors # to modify global varaibles
 
-parser.add_argument('--input', dest='in_file_location', help='Location of the output .html file', required=True)
+    lexer = lex.lex()
+    with open(html_config) as config:
+        colors = json.load(config)
 
-result = parser.parse_args()
-config_file_location = str(result.config_file_location)
-out_file_location = str(result.out_file_location)
-in_file_location = str(result.in_file_location)
+    out_file = open(output_file, "w+")
+    out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#000000") + ">\n")
 
+    in_file = open(input_file,'r')
+    data = in_file.read()
 
-# Build lexer
-lexer = lex.lex()
-# lexer.abcde = 0   # custom global varibales for lexer
+    lexer.input(data)
+    ignored_tokens = ["COMMENT","NL","SPACE","TAB"]
 
-# Load config file for colors
-with open(config_file_location) as config:
-    colors = json.load(config)
-# print(colors["ID"])
+    # Iterate to get tokens
+    while True:
+        tok = lexer.token()
+        if not tok: 
+            break      # No more input
+        if tok.type in ignored_tokens:
+            continue
+        if tok.type in reserved.values():
+            out_file.write("<b>")
 
-# Open output file
-out_file = open(out_file_location,"w+")
-out_file.write("<html>\n<body bgcolor=" + colors.get("BODY","#000000") + ">\n")
+        data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
+        data = data.rstrip("\n")
+        data = "<br />".join(data.split("\n"))
 
-# Read input file
-in_file = open(in_file_location,'r')
-data = in_file.read()
+        out_file.write(data)
+        if tok.type in reserved.values():
+            out_file.write("</b>")
+        # print(tok)
 
-lexer.input(data)
-ignored_tokens = ["COMMENT","NL","SPACE","TAB"]
-
-# Iterate to get tokens
-while True:
-    tok = lexer.token()
-    if not tok:
-        break
-    if tok.type in ignored_tokens:
-        continue
-    if tok.type in reserved.values():
-        out_file.write("<b>")
-    data = "<font color=" + colors[tok.type] + ">" + tok.value + "</font>\n"
-    data = data.rstrip("\n")
-    data = "<br />".join(data.split("\n"))
-    out_file.write(data)
-    if tok.type in reserved.values():
-        out_file.write("</b>")
-    print(tok)
-
-# Close file
-in_file.close()
-out_file.write("</body>\n</html>\n")
-out_file.close()
+    in_file.close()
+    out_file.write("</body>\n</html>\n")
+    out_file.close()
