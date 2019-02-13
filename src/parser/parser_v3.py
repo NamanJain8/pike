@@ -461,7 +461,7 @@ def p_AliasDecl(p):
 	p[0] = Node([p[1], p[2]], 'AliasDecl: ' + ASSIGN)
 
 def p_TypeDef(p):
-	"TypeDef = IDENT Type"
+	"TypeDef : IDENT Type"
 	p[1] = Node([], 'identifier: ' + p[1])
 	p[2] = Node([], 'type: ' + p[2])
 	p[0] = Node([p[1], p[2]], 'TypeDef')
@@ -471,7 +471,7 @@ def p_TypeDef(p):
 
 
 def p_Type(p):
-	'''Type = TypeName
+	'''Type : TypeName
 			| TypeLit
 			| LPAREN Type RPAREN'''
 	if p[1] == '(':
@@ -480,41 +480,41 @@ def p_Type(p):
 		p[0] = Node([p[1]], 'Type')
 
 def p_TypeName(p):
-	'''TypeName  = identifier
+	'''TypeName  : identifier
 				| QualifiedIdent'''
 	p[0] = Node([p[1]], 'TypeName')
 
 def p_QualifiedIdent(p):
-	"QualifiedIdent = identifier PERIOD identifier"
+	"QualifiedIdent : identifier PERIOD identifier"
 	p[1] = Node([], 'identifier: ' + p[1])
 	p[3] = Node([], 'identifier: ' + p[3])
 	p[0] = ([p[1], p[3]], 'QualifiedIdent')
 
 def p_TypeLit(p):
-	'''TypeLit   = ArrayType
+	'''TypeLit   : ArrayType
 				| StructType
 				| FunctionType'''
 	p[0] = Node([p[1]], 'TypeLit')
 
 def p_ArrayType(p):
-	"ArrayType   = LBRACK ArrayLength RBRACK ElementType"
+	"ArrayType   : LBRACK ArrayLength RBRACK ElementType"
 	p[0] = Node([p[1], p[2]], 'ArrayType')
 
 def p_ArrayLength(p):
-	"ArrayLength = Expression"
+	"ArrayLength : Expression"
 	p[0] = Node([p[1]], 'ArrayLength')
 
 def p_ElementType(p):
-	"ElementType = Type"
+	"ElementType : Type"
 	p[0] = Node([p[1]], 'ElementType')
 
 def p_StructType(p):
-	"StructType    = STRUCT LBRACE FieldDeclList RBRACE"
+	"StructType    : STRUCT LBRACE FieldDeclList RBRACE"
 	p[1] = Node([], 'struct')
 	p[0] = Node([p[1], p[3]], 'StructType')
 
 def p_FieldDeclList(p):
-	'''FieldDeclList = empty
+	'''FieldDeclList : empty
 					| FieldDeclList FieldDecl SEMICOLON'''
 	if p[1] == "":
 		p[0] = None
@@ -522,11 +522,11 @@ def p_FieldDeclList(p):
 		p[0] = Node([p[1], p[2]], 'FieldDeclList')
 
 def p_FieldDecl(p):
-	"FieldDecl     = FieldDeclHead TagTop"
+	"FieldDecl     : FieldDeclHead TagTop"
 	p[0] = Node([p[1], p[2]], 'FieldDecl')
 
 def p_TagTop(p):
-	'''TagTop = empty
+	'''TagTop : empty
 			| Tag'''
 	if p[1] == "":
 		p[0] = None
@@ -534,15 +534,15 @@ def p_TagTop(p):
 		p[0] = Node([p[1]], 'TagTop')
 
 def p_FieldDeclHead(p):
-	'''FieldDeclHead = IdentifierList Type
+	'''FieldDeclHead : IdentifierList Type
 						| EmbeddedField'''
 
 def p_EmbeddedField(p):
-	"EmbeddedField = starTop TypeName"
+	"EmbeddedField : starTop TypeName"
 	p[0] = Node([p[1], p[2]], 'EmbeddedField')
 
 def p_starTop(p):
-	'''starTop = empty
+	'''starTop : empty
 				| MUL '''
 	if p[1] = "":
 		p[0] = None
@@ -550,37 +550,38 @@ def p_starTop(p):
 		p[0] = Node([], 'starTop: ' + MUL)
 
 def p_Tag(p):
-	"Tag           = string_lit"
+	"Tag           : string_lit"
 	p[0] = Node([p[1]], 'Tag')
 
 def p_FunctionType(p):
-	"FunctionType   = FUNC Signature"
+	"FunctionType   : FUNC Signature"
 	p[1] = Node([], p[1])
 	p[0] = Node([p[1], p[2]], 'FunctionType')
 
 def p_Signature(p):
-	"Signature      = Parameters ResultTop"
+	"Signature      : Parameters ResultTop"
 	p[0] = Node([p[1], p[2]], 'Signature')
 
 
 def p_ResultTop(p):
-	"ResultTop = empty | Result"
+	'''ResultTop : empty
+				| Result'''
 	if p[1] == "":
 		p[0] = None
 	else:
 		p[0] = Node([p[1]], 'ResultTop')
 
 def p_Result(p):
-	'''Result         = Parameters
+	'''Result         : Parameters
 						| Type'''
 	p[0] = Node([p[1]], 'Result')
 
 def p_Parameters(p):
-	'''Parameters     = LPAREN ParameterListTop RPAREN'''
+	'''Parameters     : LPAREN ParameterListTop RPAREN'''
 	p[0] = Node([p[1]], 'Parameters')
 
 def p_ParameterListTop(p):
-	'''ParameterListTop = empty
+	'''ParameterListTop : empty
 						| ParameterList commaTop'''
 	if p[1] = "":
 		p[0] = None
@@ -588,7 +589,7 @@ def p_ParameterListTop(p):
 		p[0] = Node([p[1], p[2]], 'ParameterListTop')
 
 def p_commaTop(p):
-	'''commaTop = empty
+	'''commaTop : empty
 				| COMMA'''
 	if p[1] = "":
 		p[0] = None
@@ -596,11 +597,11 @@ def p_commaTop(p):
 		p[0] = Node([], 'commaTop: ' + COMMA)
 
 def p_ParameterList(p):
-	'''ParameterList  = ParameterDecl ParameterDeclList'''
+	'''ParameterList  : ParameterDecl ParameterDeclList'''
 	p[0] = Node([p[1], p[2]], 'ParameterList')
 
 def p_ParameterDeclList(p):
-	'''ParameterDeclList = empty
+	'''ParameterDeclList : empty
 						| ParameterDeclList COMMA ParameterDecl'''
 	if p[1] == "":
 		p[0] = None
@@ -608,11 +609,11 @@ def p_ParameterDeclList(p):
 		p[0] = Node([p[1], p[3]], 'ParameterDeclList')
 
 def p_ParameterDecl(p):
-	"ParameterDecl  = ParameterDeclHead tripledotTop Type"
+	"ParameterDecl  : ParameterDeclHead tripledotTop Type"
 	p[0] = Node([p[1], p[2], p[3]], 'ParameterDecl')
 
 def p_tripledotTop(p):
-	'''tripledotTop = empty
+	'''tripledotTop : empty
 					| ELLIPSIS'''
 	if p[1] == "":
 		p[0] = None
@@ -620,7 +621,7 @@ def p_tripledotTop(p):
 		p[0] = Node([], 'tripledotTop: ' + ELLIPSIS)
 
 def p_ParameterDeclHead(p):
-	'''ParameterDeclHead = empty
+	'''ParameterDeclHead : empty
 						| IdentifierList'''
 	if p[1] == "":
 		p[0] = None
@@ -891,7 +892,7 @@ def p_unary_op(p):
 
 
 def p_PrimaryExpr(p):
-	'''PrimaryExpr =
+	'''PrimaryExpr :
 		Operand |
 		PrimaryExpr Selector |
 		PrimaryExpr Index |
@@ -905,7 +906,7 @@ def p_PrimaryExpr(p):
 
 
 def p_Operand(p):
-	'''Operand     = Literal
+	'''Operand     : Literal
 					| OperandName
 					| MethodExpr
 					| LPAREN Expression RPAREN'''
@@ -915,22 +916,30 @@ def p_Operand(p):
 		p[0] = Node([p[1]], 'Operand')
 
 def p_Literal(p):
-	'''Literal     = BasicLit
+	'''Literal     : BasicLit
 					| FunctionLit'''
 	p[0] = Node([p[1]], 'Literal')
 
 def p_BasicLit(p):
-	'''BasicLit    = INT
-					| FLOAT
+	'''BasicLit    : int_lit
+					| float_lit
 					| string_lit'''
 	p[0] = Node([p[1]], 'BasicLit')
 
 
 # 129 to 137 not required
 
+def p_int_lit(p):
+	'''int_lit             : INT'''
+	p[0] = Node([], 'int_lit: ' + p[1])
+
+def p_float_lit(p):
+	'''float_lit             : FLOAT'''
+	p[0] = Node([], 'float_lit: ' + p[1])
+
 
 def p_string_lit(p):
-	'''string_lit             = STRING'''
+	'''string_lit             : STRING'''
 	p[0] = Node([], 'string_lit: ' + p[1])
 
 
