@@ -236,24 +236,32 @@ def gendot(x, parent):
 			ctr += 1
 
 def p_ForLoop(p):
-	"ForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACE"
+	'ForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACE'
 	p[0]=('forLoop', p[1], p[3], p[6])
 	global myout
 	global ctr
 
 	myout += str(ctr) + ' [label="' + 'start' + '"];\n'
-	ctr += 1
+	ctr += 10
 	gendot(p[0],ctr-1)
 	# print(myout)
 	out_file.write(myout)	
 
 def p_cond(p):
-	"cond : IDENT EQL INT"
-	p[0] = ('cond', p[1], p[2], p[3])
+	'''cond : IDENT EQL INT 
+		| empty'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = ('cond', p[1], p[2], p[3])
 
 def p_stmt(p):
 	"stmt : IDENT ASSIGN IDENT SEMICOLON"
 	p[0] = ('stmt', p[1], p[2], p[3])
+
+def p_empty(p):
+	"empty : "
+	pass
 
 def p_error(p):
 	print("Error in parsing!")

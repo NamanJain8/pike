@@ -6,9 +6,9 @@ _tabversion = '3.10'
 
 _lr_method = 'LALR'
 
-_lr_signature = 'ADD ADD_ASSIGN AND AND_ASSIGN AND_NOT AND_NOT_ASSIGN ARROW ASSIGN BREAK CASE CHAN CHAR COLON COMMA CONST CONTINUE DEC DEFAULT DEFER DEFINE ELLIPSIS ELSE EQL FALLTHROUGH FLOAT FOR FUNC GEQ GO GOTO GTR IDENT IF IMAG IMPORT INC INT INTERFACE LAND LBRACE LBRACK LEQ LOR LPAREN LSS MAP MUL MUL_ASSIGN NEQ NOT OR OR_ASSIGN PACKAGE PERIOD QUO QUO_ASSIGN RANGE RBRACE RBRACK REM REM_ASSIGN RETURN RPAREN SELECT SEMICOLON SHL SHL_ASSIGN SHR SHR_ASSIGN STRING STRUCT SUB SUB_ASSIGN SWITCH TYPE VAR XOR XOR_ASSIGNForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACEcond : IDENT EQL INTstmt : IDENT ASSIGN IDENT SEMICOLON'
+_lr_signature = 'ADD ADD_ASSIGN AND AND_ASSIGN AND_NOT AND_NOT_ASSIGN ARROW ASSIGN BREAK CASE CHAN CHAR COLON COMMA CONST CONTINUE DEC DEFAULT DEFER DEFINE ELLIPSIS ELSE EQL FALLTHROUGH FLOAT FOR FUNC GEQ GO GOTO GTR IDENT IF IMAG IMPORT INC INT INTERFACE LAND LBRACE LBRACK LEQ LOR LPAREN LSS MAP MUL MUL_ASSIGN NEQ NOT OR OR_ASSIGN PACKAGE PERIOD QUO QUO_ASSIGN RANGE RBRACE RBRACK REM REM_ASSIGN RETURN RPAREN SELECT SEMICOLON SHL SHL_ASSIGN SHR SHR_ASSIGN STRING STRUCT SUB SUB_ASSIGN SWITCH TYPE VAR XOR XOR_ASSIGNForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACEcond : IDENT EQL INT \n\t\t| emptystmt : IDENT ASSIGN IDENT SEMICOLONempty : '
     
-_lr_action_items = {'FOR':([0,],[2,]),'$end':([1,12,],[0,-1,]),'LPAREN':([2,],[3,]),'IDENT':([3,8,13,],[5,11,14,]),'RPAREN':([4,9,],[6,-2,]),'EQL':([5,],[7,]),'LBRACE':([6,],[8,]),'INT':([7,],[9,]),'RBRACE':([10,15,],[12,-3,]),'ASSIGN':([11,],[13,]),'SEMICOLON':([14,],[15,]),}
+_lr_action_items = {'FOR':([0,],[2,]),'$end':([1,13,],[0,-1,]),'LPAREN':([2,],[3,]),'IDENT':([3,9,14,],[5,12,15,]),'RPAREN':([3,4,6,10,],[-5,7,-3,-2,]),'EQL':([5,],[8,]),'LBRACE':([7,],[9,]),'INT':([8,],[10,]),'RBRACE':([11,16,],[13,-4,]),'ASSIGN':([12,],[14,]),'SEMICOLON':([15,],[16,]),}
 
 _lr_action = {}
 for _k, _v in _lr_action_items.items():
@@ -17,7 +17,7 @@ for _k, _v in _lr_action_items.items():
       _lr_action[_x][_k] = _y
 del _lr_action_items
 
-_lr_goto_items = {'ForLoop':([0,],[1,]),'cond':([3,],[4,]),'stmt':([8,],[10,]),}
+_lr_goto_items = {'ForLoop':([0,],[1,]),'cond':([3,],[4,]),'empty':([3,],[6,]),'stmt':([9,],[11,]),}
 
 _lr_goto = {}
 for _k, _v in _lr_goto_items.items():
@@ -29,5 +29,7 @@ _lr_productions = [
   ("S' -> ForLoop","S'",1,None,None,None),
   ('ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE','ForLoop',7,'p_ForLoop','parser_v2.py',239),
   ('cond -> IDENT EQL INT','cond',3,'p_cond','parser_v2.py',251),
-  ('stmt -> IDENT ASSIGN IDENT SEMICOLON','stmt',4,'p_stmt','parser_v2.py',255),
+  ('cond -> empty','cond',1,'p_cond','parser_v2.py',252),
+  ('stmt -> IDENT ASSIGN IDENT SEMICOLON','stmt',4,'p_stmt','parser_v2.py',259),
+  ('empty -> <empty>','empty',0,'p_empty','parser_v2.py',263),
 ]

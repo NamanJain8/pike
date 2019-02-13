@@ -220,8 +220,7 @@ def t_error(t):
 myout = ""
 
 class Node:
-	def __init__(self, type, children=None, leaf=None):
-		self.type = type
+	def __init__(self, children=None, leaf=None):
 		if children:
 			self.children = children
 		else:
@@ -235,32 +234,175 @@ def gendot(x, parent):
 	if x.children == None:
 		return 
 	for i in x.children:
-		myout += str(ctr) + ' [label="' + i.type + ':' + i.leaf + '"];\n'
+		if i == None:
+			continue
+		myout += str(ctr) + ' [label="' + i.leaf + '"];\n'
 		myout += str(parent) +  ' -> ' + str(ctr) + ';\n'
 		ctr += 1
 		gendot(i,ctr-1)
 
-def p_ForLoop(p):
-	"ForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACE"
-	p[0] = Node('forLoop', [p[3],p[6]],p[1])
+
+def p_SourceFile(p):
+	'SourceFile : PackageClause SEMICOLON ImportDeclList TopLevelDeclList '
+	p[0] = Node([p[1],p[3],p[4]],'SourceFile')
+
+def p_ImportDeclList(p):
+	'''ImportDeclList : empty 
+				| ImportDeclList ImportDecl SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ImportDeclList')
+
+def p_TopLevelDecList(p):
+	'''TopLevelDeclList : empty 
+				| TopLevelDeclList TopLevelDecl SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]], 'TopLevelDecl')
+
+
+
+
+def p_PackageClause(p):
+	'PackageClause  : PACKAGE IDENT'
+	p[0] = Node([],'package: ' + p[1] )
+
+def p_TopLevelDecl(p):
+	'''TopLevelDecl  : Declaration 
+				| FunctionDecl 
+				| MethodDecl '''
+	p[0] = Node([p[1]], 'TopLevelDecl')
+
+
+
+def p_ImportDecl(p):
+	'ImportDecl  : IMPORT ImportSpecTopList'
+	p[1] = Node([],'import')
+	p[0] = Node([p[1],p[2]],'ImportDecl')
+
+def p_ImportSpecTopList(p):
+	'''ImportSpecTopList : ImportSpec 
+			| LPAREN ImportSpecList RPAREN '''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'ImportSpecList')
+	else:
+		p[0] = Node([p[1]], 'ImportSpecList')
+
+def p_ImportSpecList(p):
+	'''ImportSpecList : empty 
+				| ImportSpecList ImportSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ImportSpecList')
+
+def p_ImportSpec(p):
+	'ImportSpec  :  ImportSpecInit ImportPath '
+	p[0] = Node([p[1],p[2]],'ImportSpec')
+
+def p_ImportSpecInit(p):
+	'''ImportSpecInit : empty 
+			| PERIOD 
+			| IDENT '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'ImportSpecList: ' + p[1])
+
+def p_ImportPath(t):
+	'ImportPath  : STRING '
+	p[0] = Node([],"ImportPath: " + p[1])
+
+
+
+def p_Block(p):
+	'Block : LBRACE StatementList RBRACE'
+	p[0] = Node([p[1]], "Block")
+
+def p_StatementList(p):
+	'''StatementList : empty 
+				| StatementList Statement SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'StatementList')
+
+def p_Statement(p):
+	'''Statement : Declaration 
+				| SimpleStmt 
+				| ReturnStmt 
+				| Block 
+				| IfStmt 
+				| SwitchStmt 
+				| ForStmt '''
+	p[0] = Node([p[1]], 'Statement')
+
+
+
+def p_Declaration(p):
+	'''Declaration  : ConstDecl 
+					| TypeDecl 
+					| VarDecl '''
+	p[0] = Node([p[1]], 'Declaration')
+
+
+
+def p_ConstDecl(p):
+	' ConstDecl      : CONST ConstSpecTopList '
+	p[1] = Node([],"const")
+	p[0] = Node([p[1],p[2]], "ConstDecl")
+
+def p_ConstSpecTopList(p):
+	'''ConstSpecTopList : ConstSpec 
+					| LPAREN ConstSpecList RPAREN'''
+	if p[1] == '(':
+		p[0] = Node([p[2]], 'ConstSpecTopList')
+
+def p_ConstSpecList(p):
+	'''ConstSpecList : empty 
+					| ConstSpecList ConstSpec SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ConstSpecList')
+
+def p_ConstSpec(p):
+	'ConstSpec      : IdentifierList ConstSpecTail '
+	p[0] = Node([p[1],p[2]],'ConstSpec')
+
+def p_ConstSpecTail(p):
+	'''ConstSpecTail : empty 
+					| TypeTop ASSIGN ExpressionList '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[3]], "ConstSpecTail: " + ASSIGN)
+
+
+def p_TypeTop(p):
+	'''TypeTop : empty 
+				| Type '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node(p[1],'TypeTop')
+
+def p_empty(p):
+	"empty : "
+	pass
+
+
+# def p_ForLoop(p):
+# 	"ForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACE"
+# 	p[0] = Node('forLoop', [p[3],p[6]],p[1])
 	
-	global myout
-	global ctr
+# 	global myout
+# 	global ctr
 
-	gendot(p[0],ctr-1)
-	out_file.write(myout)	
-
-def p_cond(p):
-	"cond : IDENT EQL INT"
-	p[1] = Node('identifier',[],p[1])
-	p[3] = Node('integer',[],p[3])
-	p[0] = Node('cond', [p[1],p[3]],p[2])
-
-def p_stmt(p):
-	"stmt : IDENT ASSIGN IDENT SEMICOLON"
-	p[1] = Node('identifier',[],p[1])
-	p[3] = Node('identifier',[],p[3])
-	p[0] = Node('stmt', [p[1], p[3]], p[2])
+# 	gendot(p[0],ctr-1)
+# 	out_file.write(myout)	
 
 def p_error(p):
 	print("Error in parsing!")

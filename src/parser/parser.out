@@ -76,7 +76,9 @@ Grammar
 Rule 0     S' -> ForLoop
 Rule 1     ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE
 Rule 2     cond -> IDENT EQL INT
-Rule 3     stmt -> IDENT ASSIGN IDENT SEMICOLON
+Rule 3     cond -> empty
+Rule 4     stmt -> IDENT ASSIGN IDENT SEMICOLON
+Rule 5     empty -> <empty>
 
 Terminals, with rules where they appear
 
@@ -87,7 +89,7 @@ AND_ASSIGN           :
 AND_NOT              : 
 AND_NOT_ASSIGN       : 
 ARROW                : 
-ASSIGN               : 3
+ASSIGN               : 4
 BREAK                : 
 CASE                 : 
 CHAN                 : 
@@ -111,7 +113,7 @@ GEQ                  :
 GO                   : 
 GOTO                 : 
 GTR                  : 
-IDENT                : 2 3 3
+IDENT                : 2 4 4
 IF                   : 
 IMAG                 : 
 IMPORT               : 
@@ -144,7 +146,7 @@ REM_ASSIGN           :
 RETURN               : 
 RPAREN               : 1
 SELECT               : 
-SEMICOLON            : 3
+SEMICOLON            : 4
 SHL                  : 
 SHL_ASSIGN           : 
 SHR                  : 
@@ -164,6 +166,7 @@ Nonterminals, with rules where they appear
 
 ForLoop              : 0
 cond                 : 1
+empty                : 3
 stmt                 : 1
 
 Parsing method: LALR
@@ -194,93 +197,104 @@ state 3
 
     (1) ForLoop -> FOR LPAREN . cond RPAREN LBRACE stmt RBRACE
     (2) cond -> . IDENT EQL INT
+    (3) cond -> . empty
+    (5) empty -> .
 
     IDENT           shift and go to state 5
+    RPAREN          reduce using rule 5 (empty -> .)
 
     cond                           shift and go to state 4
+    empty                          shift and go to state 6
 
 state 4
 
     (1) ForLoop -> FOR LPAREN cond . RPAREN LBRACE stmt RBRACE
 
-    RPAREN          shift and go to state 6
+    RPAREN          shift and go to state 7
 
 
 state 5
 
     (2) cond -> IDENT . EQL INT
 
-    EQL             shift and go to state 7
+    EQL             shift and go to state 8
 
 
 state 6
 
-    (1) ForLoop -> FOR LPAREN cond RPAREN . LBRACE stmt RBRACE
+    (3) cond -> empty .
 
-    LBRACE          shift and go to state 8
+    RPAREN          reduce using rule 3 (cond -> empty .)
 
 
 state 7
 
-    (2) cond -> IDENT EQL . INT
+    (1) ForLoop -> FOR LPAREN cond RPAREN . LBRACE stmt RBRACE
 
-    INT             shift and go to state 9
+    LBRACE          shift and go to state 9
 
 
 state 8
 
-    (1) ForLoop -> FOR LPAREN cond RPAREN LBRACE . stmt RBRACE
-    (3) stmt -> . IDENT ASSIGN IDENT SEMICOLON
+    (2) cond -> IDENT EQL . INT
 
-    IDENT           shift and go to state 11
+    INT             shift and go to state 10
 
-    stmt                           shift and go to state 10
 
 state 9
+
+    (1) ForLoop -> FOR LPAREN cond RPAREN LBRACE . stmt RBRACE
+    (4) stmt -> . IDENT ASSIGN IDENT SEMICOLON
+
+    IDENT           shift and go to state 12
+
+    stmt                           shift and go to state 11
+
+state 10
 
     (2) cond -> IDENT EQL INT .
 
     RPAREN          reduce using rule 2 (cond -> IDENT EQL INT .)
 
 
-state 10
+state 11
 
     (1) ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt . RBRACE
 
-    RBRACE          shift and go to state 12
-
-
-state 11
-
-    (3) stmt -> IDENT . ASSIGN IDENT SEMICOLON
-
-    ASSIGN          shift and go to state 13
+    RBRACE          shift and go to state 13
 
 
 state 12
+
+    (4) stmt -> IDENT . ASSIGN IDENT SEMICOLON
+
+    ASSIGN          shift and go to state 14
+
+
+state 13
 
     (1) ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE .
 
     $end            reduce using rule 1 (ForLoop -> FOR LPAREN cond RPAREN LBRACE stmt RBRACE .)
 
 
-state 13
-
-    (3) stmt -> IDENT ASSIGN . IDENT SEMICOLON
-
-    IDENT           shift and go to state 14
-
-
 state 14
 
-    (3) stmt -> IDENT ASSIGN IDENT . SEMICOLON
+    (4) stmt -> IDENT ASSIGN . IDENT SEMICOLON
 
-    SEMICOLON       shift and go to state 15
+    IDENT           shift and go to state 15
 
 
 state 15
 
-    (3) stmt -> IDENT ASSIGN IDENT SEMICOLON .
+    (4) stmt -> IDENT ASSIGN IDENT . SEMICOLON
 
-    RBRACE          reduce using rule 3 (stmt -> IDENT ASSIGN IDENT SEMICOLON .)
+    SEMICOLON       shift and go to state 16
+
+
+state 16
+
+    (4) stmt -> IDENT ASSIGN IDENT SEMICOLON .
+
+    RBRACE          reduce using rule 4 (stmt -> IDENT ASSIGN IDENT SEMICOLON .)
 
