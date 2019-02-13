@@ -629,7 +629,7 @@ def p_ParameterDeclHead(p):
 
 
 
-############### 
+###############
 
 def p_VarDecl(p):
 	''' VarDecl     : VAR VarSpecTopList '''
@@ -637,7 +637,7 @@ def p_VarDecl(p):
 	p[0] = Node([p[1],p[2]],'VarDecl')
 
 def p_VarSpecTopList(p):
-	'''VarSpecTopList : VarSpec 
+	'''VarSpecTopList : VarSpec
 			| LPAREN VarSpecList RPAREN '''
 	if p[1] == "(":
 		p[0] = Node([p[2]],'VarSpecTopList')
@@ -646,7 +646,7 @@ def p_VarSpecTopList(p):
 
 
 def p_VarSpecList(p):
-	'''VarSpecList : empty 
+	'''VarSpecList : empty
 				| VarSpecList VarSpec SEMICOLON'''
 	if p[1] == "":
 		p[0] = None
@@ -658,7 +658,7 @@ def p_VarSpec(p):
 	p[0] = Nde([p[1],p[2]],'VarSpec')
 
 def p_VarSpecTail(p):
-	'''VarSpecTail : Type VarSpecMid 
+	'''VarSpecTail : Type VarSpecMid
 					| ASSIGN ExpressionList '''
 	if p[1] == "=":
 		p[1] = Node([],ASSIGN)
@@ -668,7 +668,7 @@ def p_VarSpecTail(p):
 
 
 def p_VarSpecMid(p):
-	'''VarSpecMid : empty 
+	'''VarSpecMid : empty
 			| ASSIGN ExpressionList '''
 	if p[0] == "":
 		p[0] = None
@@ -685,7 +685,7 @@ def p_FunctionDecl(p):
 	p[0] = Node([p[1],p[2],p[3]],'FunctionDecl')
 
 def p_FunctionDeclTail(p):
-	'''FunctionDeclTail : Function 
+	'''FunctionDeclTail : Function
 				| Signature'''
 	p[0] = Node([p[1]],'Function')
 
@@ -735,8 +735,8 @@ def p_assign_op(p):
 	p[0] = Node([p[1],p[2]],'assign_op')
 
 def p_addmul_op(p):
-	'''addmul_op : empty 
-			| add_op 
+	'''addmul_op : empty
+			| add_op
 			| mul_op '''
 	if p[1] == "":
 		p[0] = None
@@ -749,7 +749,7 @@ def p_IfStmt(p):
 	p[0] = Node([p[1],p[2],p[3],p[4],p[5]],'IfStmt')
 
 def p_SimpleStmtBot(p):
-	'''SimpleStmtBot : empty 
+	'''SimpleStmtBot : empty
 			| SimpleStmt SEMICOLON '''
 	if p[1] == "":
 		p[0] = None
@@ -757,7 +757,7 @@ def p_SimpleStmtBot(p):
 		p[1] = Node([p[1]],'SimpleStmtBot')
 
 def p_elseBot(p):
-	'''elseBot : empty 
+	'''elseBot : empty
 			| ELSE elseTail '''
 	if p[1] == "":
 		p[0] = None
@@ -766,7 +766,7 @@ def p_elseBot(p):
 		p[0] = Node([p[1],p[2]],'elseBot')
 
 def p_elseTail(p):
-	'''elseTail : IfStmt 
+	'''elseTail : IfStmt
 			| Block '''
 	p[0] = Node([p[1]],'elseTail')
 
@@ -784,7 +784,7 @@ def p_ExprCaseClause(p):
 	p[0] = Node([p[1],p[3]],'ExprCaseClause')
 
 def p_ExprSwitchCase(p):
-	''' ExprSwitchCase : CASE ExpressionList 
+	''' ExprSwitchCase : CASE ExpressionList
 						| DEFAULT '''
 	if p[1] == "case":
 		p[1] = Node([],'case')
@@ -799,12 +799,144 @@ def p_ForStmt(p):
 	p[0] = Node([p[1],p[2],p[3]],'ForStmt')
 
 def p_ExpressionBot(p):
-	'''ExpressionBot : empty 
+	'''ExpressionBot : empty
 				| Expression '''
 	if p[1]=="":
 		p[0] = None
 	else:
 		p[0] = Node([p[1]],'ExpressionBot')
+
+
+
+
+
+
+
+# After line 104
+
+def p_ReturnStmt(p):
+	"ReturnStmt : RETURN ExpressionListBot"
+	p[1] = Node([], 'return')
+
+def p_ExpressionListBot(p):
+	'''ExpressionListBot : empty
+						| ExpressionList'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'ExpressionListBot')
+
+
+
+
+
+def p_Expression(p):
+	'''Expression : UnaryExpr
+					| Expression binary_op Expression'''
+	# To be completed
+
+
+
+def p_UnaryExpr(p):
+	'''UnaryExpr  : PrimaryExpr
+				| unary_op UnaryExpr'''
+	# To be completed
+
+def p_binary_op(p):
+	'''binary_op  : LOR
+					| LAND
+					| rel_op
+					| add_op
+					| mul_op'''
+	if p[1] == "||" or p[1] == "&&":
+		p[0] = Node([], 'binary_op: ' + p[1])
+	else:
+		p[0] = Node([p[1]], 'binary_op')
+
+def p_rel_op(p):
+	'''rel_op     : EQL
+					| NEQ
+					| LSS
+					| LEQ
+					| GTR
+					| GEQ'''
+	p[0] = Node([], 'rel_op: ' + p[1])
+
+def p_add_op(p):
+	'''add_op     : ADD
+					| SUB
+					| OR
+					| XOR'''
+	p[0] = Node([], 'add_op: ' + p[1])
+
+def p_mul_op(p):
+	'''mul_op     : MUL
+					| QUO
+					| REM
+					| SHL
+					| SHR
+					| AND
+					| AND_NOT'''
+	p[0] = Node([], 'mul_op: ' + p[1])
+
+def p_unary_op(p):
+	'''unary_op   : "+"
+					| "-"
+					| "!"
+					| "^"
+					| "*"
+					| "&"
+					| "<-"'''
+	p[0] = Node([], 'unary_op: ' + p[1])
+
+
+def p_PrimaryExpr(p):
+	'''PrimaryExpr =
+		Operand |
+		PrimaryExpr Selector |
+		PrimaryExpr Index |
+		PrimaryExpr Arguments'''
+	p[0] = Node([p[1]], 'PrimaryExpr')
+
+
+
+
+
+
+
+def p_Operand(p):
+	'''Operand     = Literal
+					| OperandName
+					| MethodExpr
+					| LPAREN Expression RPAREN'''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'Operand')
+	else:
+		p[0] = Node([p[1]], 'Operand')
+
+def p_Literal(p):
+	'''Literal     = BasicLit
+					| FunctionLit'''
+	p[0] = Node([p[1]], 'Literal')
+
+def p_BasicLit(p):
+	'''BasicLit    = INT
+					| FLOAT
+					| string_lit'''
+	p[0] = Node([p[1]], 'BasicLit')
+
+
+# 129 to 137 not required
+
+
+def p_string_lit(p):
+	'''string_lit             = STRING'''
+	p[0] = Node([], 'string_lit: ' + p[1])
+
+
+
+
+
 
 
 def p_empty(p):
