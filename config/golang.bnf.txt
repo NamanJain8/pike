@@ -155,12 +155,15 @@ interpreted_string_litHead = empty | interpreted_string_litHead unicode_value | 
 OperandName = identifier .
 FunctionLit = "func" Function .
 MethodExpr    = ReceiverType "." MethodName .
+MethodName = identifier .
 ReceiverType  = TypeName | "(" "*" TypeName ")" | "(" ReceiverType ")" .
 Selector       = "." identifier .
 Index          = "[" Expression "]" .
 Arguments      = "(" ArgumentsHead ")" .
 ArgumentsHead = empty | ArgumentsHeadMid tripledotTop commaTop .
 ArgumentsHeadMid = ExpressionList | Type "," ExpressionList | Type.
+
+
 
 unicode_digit  = /* a Unicode code point classified as "Number, decimal digit" */ 
 unicode_letter = /* a Unicode code point classified as "Letter" */

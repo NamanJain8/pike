@@ -1,4 +1,5 @@
 *.o
+*.out
 *.html
 src/lexer/__pycache__
 src/parser/__pycache__
