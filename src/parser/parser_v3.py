@@ -1,6 +1,6 @@
 from ply import lex
 from ply.lex import TOKEN
-import ply.yacc as yacc 
+import ply.yacc as yacc
 import json
 import argparse
 import sys
@@ -232,7 +232,7 @@ def gendot(x, parent):
 	global ctr
 
 	if x.children == None:
-		return 
+		return
 	for i in x.children:
 		if i == None:
 			continue
@@ -247,7 +247,7 @@ def p_SourceFile(p):
 	p[0] = Node([p[1],p[3],p[4]],'SourceFile')
 
 def p_ImportDeclList(p):
-	'''ImportDeclList : empty 
+	'''ImportDeclList : empty
 				| ImportDeclList ImportDecl SEMICOLON '''
 	if p[1] == "":
 		p[0] = None
@@ -255,7 +255,7 @@ def p_ImportDeclList(p):
 		p[0] = Node([p[1],p[2]],'ImportDeclList')
 
 def p_TopLevelDecList(p):
-	'''TopLevelDeclList : empty 
+	'''TopLevelDeclList : empty
 				| TopLevelDeclList TopLevelDecl SEMICOLON '''
 	if p[1] == "":
 		p[0] = None
@@ -270,8 +270,8 @@ def p_PackageClause(p):
 	p[0] = Node([],'package: ' + p[1] )
 
 def p_TopLevelDecl(p):
-	'''TopLevelDecl  : Declaration 
-				| FunctionDecl 
+	'''TopLevelDecl  : Declaration
+				| FunctionDecl
 				| MethodDecl '''
 	p[0] = Node([p[1]], 'TopLevelDecl')
 
@@ -283,7 +283,7 @@ def p_ImportDecl(p):
 	p[0] = Node([p[1],p[2]],'ImportDecl')
 
 def p_ImportSpecTopList(p):
-	'''ImportSpecTopList : ImportSpec 
+	'''ImportSpecTopList : ImportSpec
 			| LPAREN ImportSpecList RPAREN '''
 	if p[1] == "(":
 		p[0] = Node([p[2]], 'ImportSpecList')
@@ -291,7 +291,7 @@ def p_ImportSpecTopList(p):
 		p[0] = Node([p[1]], 'ImportSpecList')
 
 def p_ImportSpecList(p):
-	'''ImportSpecList : empty 
+	'''ImportSpecList : empty
 				| ImportSpecList ImportSpec SEMICOLON'''
 	if p[1] == "":
 		p[0] = None
@@ -303,8 +303,8 @@ def p_ImportSpec(p):
 	p[0] = Node([p[1],p[2]],'ImportSpec')
 
 def p_ImportSpecInit(p):
-	'''ImportSpecInit : empty 
-			| PERIOD 
+	'''ImportSpecInit : empty
+			| PERIOD
 			| IDENT '''
 	if p[1] == "":
 		p[0] = None
@@ -322,7 +322,7 @@ def p_Block(p):
 	p[0] = Node([p[1]], "Block")
 
 def p_StatementList(p):
-	'''StatementList : empty 
+	'''StatementList : empty
 				| StatementList Statement SEMICOLON'''
 	if p[1] == "":
 		p[0] = None
@@ -330,20 +330,20 @@ def p_StatementList(p):
 		p[0] = Node([p[1],p[2]],'StatementList')
 
 def p_Statement(p):
-	'''Statement : Declaration 
-				| SimpleStmt 
-				| ReturnStmt 
-				| Block 
-				| IfStmt 
-				| SwitchStmt 
+	'''Statement : Declaration
+				| SimpleStmt
+				| ReturnStmt
+				| Block
+				| IfStmt
+				| SwitchStmt
 				| ForStmt '''
 	p[0] = Node([p[1]], 'Statement')
 
 
 
 def p_Declaration(p):
-	'''Declaration  : ConstDecl 
-					| TypeDecl 
+	'''Declaration  : ConstDecl
+					| TypeDecl
 					| VarDecl '''
 	p[0] = Node([p[1]], 'Declaration')
 
@@ -355,13 +355,13 @@ def p_ConstDecl(p):
 	p[0] = Node([p[1],p[2]], "ConstDecl")
 
 def p_ConstSpecTopList(p):
-	'''ConstSpecTopList : ConstSpec 
+	'''ConstSpecTopList : ConstSpec
 					| LPAREN ConstSpecList RPAREN'''
 	if p[1] == '(':
 		p[0] = Node([p[2]], 'ConstSpecTopList')
 
 def p_ConstSpecList(p):
-	'''ConstSpecList : empty 
+	'''ConstSpecList : empty
 					| ConstSpecList ConstSpec SEMICOLON '''
 	if p[1] == "":
 		p[0] = None
@@ -373,7 +373,7 @@ def p_ConstSpec(p):
 	p[0] = Node([p[1],p[2]],'ConstSpec')
 
 def p_ConstSpecTail(p):
-	'''ConstSpecTail : empty 
+	'''ConstSpecTail : empty
 					| TypeTop ASSIGN ExpressionList '''
 	if p[1] == "":
 		p[0] = None
@@ -382,27 +382,276 @@ def p_ConstSpecTail(p):
 
 
 def p_TypeTop(p):
-	'''TypeTop : empty 
+	'''TypeTop : empty
 				| Type '''
 	if p[1] == "":
 		p[0] = None
 	else:
 		p[0] = Node(p[1],'TypeTop')
 
+
+
+
+
+
+
+
+
+def p_IdentifierList(p):
+	"IdentifierList : IDENT IdentifierBotList"
+	p[1] = Node('identifier', [], p[1])
+	p[0] = Node('identifierList', [p[1], p[2]])
+
+def p_IdentifierBotList(p):
+	'''IdentifierBotList : empty
+						| IdentifierBotList COMMA IDENT'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[3] = Node([], 'identifier:' + p[3])
+		p[0] = Node([p[1], p[3]], 'IdentifierBotList')
+
+def p_ExpressionList(p):
+	"ExpressionList : Expression ExpressionBotList"
+	p[0] = Node([p[1], p[2]], 'ExpressionList')
+
+def p_ExpressionBotList(p):
+	'''ExpressionBotList : empty
+						| ExpressionBotList COMMA Expression'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'ExpressionBotList')
+
+# Line 32, 33, 34 not required
+
+
+
+
+def p_TypeDecl(p):
+	"TypeDecl : TYPE TypeSpecTopList"
+	p[1] = Node([], 'type')
+	p[0] = Node([p[1], p[2]], 'TypeDecl')
+
+def p_TypeSpecTopList(p):
+	'''TypeSpecTopList : TypeSpec
+						| LPAREN TypeSpecList RPAREN'''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'TypeSpecTopList')
+	else:
+		p[0] = Node([p[1]], 'TypeSpecTopList')
+
+def p_TypeSpecList(p):
+	'''TypeSpecList : empty
+					| TypeSpecList TypeSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'TypeSpecList')
+
+def p_TypeSpec(p):
+	'''TypeSpec : AliasDecl
+				| TypeDef'''
+	p[0] = Node([p[1]], 'TypeSpec')
+
+def p_AliasDecl(p):
+	"AliasDecl : IDENT ASSIGN Type"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[2] = Node([], 'type: ' + p[2])
+	p[0] = Node([p[1], p[2]], 'AliasDecl: ' + ASSIGN)
+
+def p_TypeDef(p):
+	"TypeDef = IDENT Type"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[2] = Node([], 'type: ' + p[2])
+	p[0] = Node([p[1], p[2]], 'TypeDef')
+
+
+
+
+
+def p_Type(p):
+	'''Type = TypeName
+			| TypeLit
+			| LPAREN Type RPAREN'''
+	if p[1] == '(':
+		p[0] = Node([p[2]], 'Type')
+	else:
+		p[0] = Node([p[1]], 'Type')
+
+def p_TypeName(p):
+	'''TypeName  = identifier
+				| QualifiedIdent'''
+	p[0] = Node([p[1]], 'TypeName')
+
+def p_QualifiedIdent(p):
+	"QualifiedIdent = identifier PERIOD identifier"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[3] = Node([], 'identifier: ' + p[3])
+	p[0] = ([p[1], p[3]], 'QualifiedIdent')
+
+def p_TypeLit(p):
+	'''TypeLit   = ArrayType
+				| StructType
+				| FunctionType'''
+	p[0] = Node([p[1]], 'TypeLit')
+
+def p_ArrayType(p):
+	"ArrayType   = LBRACK ArrayLength RBRACK ElementType"
+	p[0] = Node([p[1], p[2]], 'ArrayType')
+
+def p_ArrayLength(p):
+	"ArrayLength = Expression"
+	p[0] = Node([p[1]], 'ArrayLength')
+
+def p_ElementType(p):
+	"ElementType = Type"
+	p[0] = Node([p[1]], 'ElementType')
+
+def p_StructType(p):
+	"StructType    = STRUCT LBRACE FieldDeclList RBRACE"
+	p[1] = Node([], 'struct')
+	p[0] = Node([p[1], p[3]], 'StructType')
+
+def p_FieldDeclList(p):
+	'''FieldDeclList = empty
+					| FieldDeclList FieldDecl SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'FieldDeclList')
+
+def p_FieldDecl(p):
+	"FieldDecl     = FieldDeclHead TagTop"
+	p[0] = Node([p[1], p[2]], 'FieldDecl')
+
+def p_TagTop(p):
+	'''TagTop = empty
+			| Tag'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'TagTop')
+
+def p_FieldDeclHead(p):
+	'''FieldDeclHead = IdentifierList Type
+						| EmbeddedField'''
+
+def p_EmbeddedField(p):
+	"EmbeddedField = starTop TypeName"
+	p[0] = Node([p[1], p[2]], 'EmbeddedField')
+
+def p_starTop(p):
+	'''starTop = empty
+				| MUL '''
+	if p[1] = "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'starTop: ' + MUL)
+
+def p_Tag(p):
+	"Tag           = string_lit"
+	p[0] = Node([p[1]], 'Tag')
+
+def p_FunctionType(p):
+	"FunctionType   = FUNC Signature"
+	p[1] = Node([], p[1])
+	p[0] = Node([p[1], p[2]], 'FunctionType')
+
+def p_Signature(p):
+	"Signature      = Parameters ResultTop"
+	p[0] = Node([p[1], p[2]], 'Signature')
+
+
+def p_ResultTop(p):
+	"ResultTop = empty | Result"
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'ResultTop')
+
+def p_Result(p):
+	'''Result         = Parameters
+						| Type'''
+	p[0] = Node([p[1]], 'Result')
+
+def p_Parameters(p):
+	'''Parameters     = LPAREN ParameterListTop RPAREN'''
+	p[0] = Node([p[1]], 'Parameters')
+
+def p_ParameterListTop(p):
+	'''ParameterListTop = empty
+						| ParameterList commaTop'''
+	if p[1] = "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'ParameterListTop')
+
+def p_commaTop(p):
+	'''commaTop = empty
+				| COMMA'''
+	if p[1] = "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'commaTop: ' + COMMA)
+
+def p_ParameterList(p):
+	'''ParameterList  = ParameterDecl ParameterDeclList'''
+	p[0] = Node([p[1], p[2]], 'ParameterList')
+
+def p_ParameterDeclList(p):
+	'''ParameterDeclList = empty
+						| ParameterDeclList COMMA ParameterDecl'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[3]], 'ParameterDeclList')
+
+def p_ParameterDecl(p):
+	"ParameterDecl  = ParameterDeclHead tripledotTop Type"
+	p[0] = Node([p[1], p[2], p[3]], 'ParameterDecl')
+
+def p_tripledotTop(p):
+	'''tripledotTop = empty
+					| ELLIPSIS'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'tripledotTop: ' + ELLIPSIS)
+
+def p_ParameterDeclHead(p):
+	'''ParameterDeclHead = empty
+						| IdentifierList'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([p[1]], 'ParameterDeclHead')
+
+
+
+
+
+
+
+
+
+
 def p_empty(p):
 	"empty : "
 	pass
 
 
+
+
 # def p_ForLoop(p):
 # 	"ForLoop : FOR LPAREN cond RPAREN LBRACE stmt RBRACE"
 # 	p[0] = Node('forLoop', [p[3],p[6]],p[1])
-	
+
 # 	global myout
 # 	global ctr
 
 # 	gendot(p[0],ctr-1)
-# 	out_file.write(myout)	
+# 	out_file.write(myout)
 
 def p_error(p):
 	print("Error in parsing!")
