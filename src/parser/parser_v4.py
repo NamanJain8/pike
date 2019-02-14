@@ -1091,46 +1091,59 @@ def p_else_opt(p):
 def p_switch_statement(p):
 	''' SwitchStmt : ExprSwitchStmt
 								   | TypeSwitchStmt '''
-	p[0] = Node("", [])
+	p[0] = Node("SwitchStmt", [p[1]])
 
 
 def p_expr_switch_stmt(p):
 	''' ExprSwitchStmt : SWITCH ExpressionOpt LBRACE ExprCaseClauseRep RBRACE'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[3] = Node(p[3])
+	p[5] = Node(p[5])
+	p[0] = Node("ExpressionStmt", [p[1],p[2],p[3],p[4],p[5]])
 
 
 def p_expr_case_clause_rep(p):
 	''' ExprCaseClauseRep : ExprCaseClauseRep ExprCaseClause
 												  | epsilon'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[0] = Node("ExprCaseClauseRep", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_expr_case_clause(p):
 	''' ExprCaseClause : ExprSwitchCase COLON StatementList'''
-	p[0] = Node("", [])
+	p[2] = Node(p[2])
+	p[0] = Node("ExprCaseClause", [p[1],p[2],p[3]])
 
 
 def p_expr_switch_case(p):
 	''' ExprSwitchCase : CASE ExpressionList
 										   | DEFAULT '''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("ExprSwitchCase", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("ExprSwitchCase", [p[1]])
 
 
 def p_type_switch_stmt(p):
 	''' TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LBRACE TypeCaseClauseOpt RBRACE'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[4] = Node(p[4])
+	p[6] = Node(p[6])
+	p[0] = Node("TypeSwitchStmt", [p[1],p[2],p[3],p[4],p[5],p[6]])
 
 
 def p_type_switch_guard(p):
 	''' TypeSwitchGuard : IdentifierOpt PrimaryExpr PERIOD LPAREN TYPE RPAREN '''
 
-	p[0] = Node("", [])
+	p[3] = Node(p[3])
+	p[4] = Node(p[4])
+	p[5] = Node(p[5])
+	p[6] = Node(p[6])
+	p[0] = Node("TypeSwitchGuard", [p[1],p[2],p[3],p[4],p[5],p[6]])
 
 
 def p_identifier_opt(p):
@@ -1138,46 +1151,52 @@ def p_identifier_opt(p):
 										  | epsilon '''
 
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[2] = Node(p[2])
+		p[0] = Node("IdentifierOpt", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_type_case_clause_opt(p):
 	''' TypeCaseClauseOpt : TypeCaseClauseOpt TypeCaseClause
 												  | epsilon '''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[0] = Node("TypeCaseClauseOpt", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_type_case_clause(p):
 	''' TypeCaseClause : TypeSwitchCase COLON StatementList'''
-	p[0] = Node("", [])
+	p[2] = Node(p[2])
+	p[0] = Node("TypeCaseClause", [p[1],p[2],p[3]])
 
 
 def p_type_switch_case(p):
 	''' TypeSwitchCase : CASE TypeList
 										   | DEFAULT '''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("TypeSwitchCase", [p[1],p[2]])
 	else:
+		p[1] = Node(p[1])
 		p[0] = Node("", [])
 
 
 def p_type_list(p):
 	''' TypeList : Type TypeRep'''
-	p[0] = Node("", [])
+	p[0] = Node("TypeList", [p[1],p[2]])
 
 
 def p_type_rep(p):
 	''' TypeRep : TypeRep COMMA Type
 							| epsilon '''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("TypeRep", [p[1],p[2],p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 # -----------------------------------------------------------
 
@@ -1185,7 +1204,8 @@ def p_type_rep(p):
 # --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
 def p_for(p):
 	'''ForStmt : FOR ConditionBlockOpt Block'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("ForStmt", [p[1],p[2],p[3]])
 
 
 def p_conditionblockopt(p):
@@ -1193,17 +1213,22 @@ def p_conditionblockopt(p):
 						   | Condition
 						   | ForClause
 						   | RangeClause'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ConditionBlockOpt", [p[1]])
 
 
 def p_condition(p):
 	'''Condition : Expression '''
-	p[0] = Node("", [])
+	p[0] = Node("Condition", [p[1]])
 
 
 def p_forclause(p):
 	'''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
-	p[0] = Node("", [])
+	p[2] = Node(p[2])
+	p[4] = Node(p[4])
+	p[0] = Node("ForClause", [p[1],p[2],p[3],p[4],p[5]])
 
 # def p_initstmtopt(p):
 #   '''InitStmtOpt : epsilon
@@ -1218,7 +1243,10 @@ def p_forclause(p):
 def p_conditionopt(p):
 	'''ConditionOpt : epsilon
 					| Condition '''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ConditionOpt", [p[1]])
 
 # def p_poststmtopt(p):
 #   '''PostStmtOpt : epsilon
@@ -1232,75 +1260,80 @@ def p_conditionopt(p):
 
 def p_rageclause(p):
 	'''RangeClause : ExpressionIdentListOpt RANGE Expression'''
-	p[0] = Node("", [])
+	p[2] = Node(p[2])
+	p[0] = Node("RangeClause", [p[1],p[2],p[3]])
 
 
 def p_expression_ident_listopt(p):
 	'''ExpressionIdentListOpt : epsilon
 						   | ExpressionIdentifier'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ExpressionIdentListOpt", [p[1]])
 
 
 def p_expressionidentifier(p):
 	'''ExpressionIdentifier : ExpressionList ASSIGN'''
-	if p[2] == "=":
-		p[0] = Node("", [])
-	else:
-		p[0] = Node("", [])
+	p[2] = Node(p[2])
+	p[0] = Node("ExpressionIdentifier", [p[1],p[2]])
 
 
 def p_return(p):
 	'''ReturnStmt : RETURN ExpressionListPureOpt'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("ReturnStmt", [p[1],p[2]])
 
 
 def p_expressionlist_pure_opt(p):
 	'''ExpressionListPureOpt : ExpressionList
 						   | epsilon'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	p[0] = Node("ExpressionListPureOpt", [p[1]])
 
 
 def p_break(p):
 	'''BreakStmt : BREAK LabelOpt'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("BreakStmt", [p[1],p[2]])
 
 
 def p_continue(p):
 	'''ContinueStmt : CONTINUE LabelOpt'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("ContinueStmt", [p[1],p[2]])
 
 
 def p_labelopt(p):
 	'''LabelOpt : Label
 				  | epsilon '''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("LabelOpt", [p[1]])
 
 
 def p_goto(p):
 	'''GotoStmt : GOTO Label '''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("GotoStmt", [p[1],p[2]])
 # -----------------------------------------------------------
 
 
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
 	'''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
-	if p[1] == None and p[3] == None and p[4] == None:
-		p[0] = None
-	else:
-		p[0] = Node("SourceFile", [p[1],p[3],p[4]])
+	p[2] = Node(p[2])
+	p[0] = Node("SourceFile", [p[1],p[2],p[3],p[4]])	
 
 
 def p_import_decl_rep(p):
 	'''ImportDeclRep : epsilon
 					 | ImportDeclRep ImportDecl SEMICOLON'''
 	if len(p) == 4:
-		if p[1] == None and p[2] == None:
-			p[0] = None
-		else:
-			mylist = p[1].children
-			mylist.append(p[2].children)
-			p[0] = Node("", mylist)
+		p[3] = Node(p[3])
+		p[0] = Node("ImportDeclRep",[p[1],p[2],p[3]])
 	else:
 		p[0] = None
 
