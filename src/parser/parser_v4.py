@@ -929,7 +929,7 @@ def p_unary_expr(p):
 	'''UnaryExpr : PrimaryExpr
 							 | UnaryOp UnaryExpr
 							 | NOT UnaryExpr'''
-	if len(p) == 2:
+	if len(p) == 3 and p[1] != "!":
 		p[0] = Node("UnaryExpr", [p[1], p[2]])
 	elif p[1] == "!":
 		p[1] = Node(p[1])
@@ -1340,7 +1340,7 @@ def p_goto(p):
 def p_source_file(p):
 	'''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
 	p[2] = Node(p[2])
-	p[0] = Node("SourceFile", [p[1],p[2],p[3],p[4]])	
+	p[0] = Node("SourceFile", [p[1],p[2],p[3],p[4]])
 
 
 def p_import_decl_rep(p):
