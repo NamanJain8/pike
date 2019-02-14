@@ -2,6 +2,7 @@ Created by PLY version 3.10 (http://www.dabeaz.com/ply)
 
 Unused terminals:
 
+    IMAG
     CHAR
     AND_NOT
     AND_NOT_ASSIGN
@@ -26,9 +27,9 @@ Rule 5     TypeName -> TypeToken
 Rule 6     TypeName -> QualifiedIdent
 Rule 7     TypeToken -> INT
 Rule 8     TypeToken -> FLOAT
-Rule 9     TypeToken -> IMAG
-Rule 10    TypeToken -> STRING
-Rule 11    TypeToken -> BOOL
+Rule 9     TypeToken -> STRING
+Rule 10    TypeToken -> BOOL
+Rule 11    TypeToken -> COMPLEX
 Rule 12    TypeToken -> TYPE IDENT
 Rule 13    TypeLit -> ArrayType
 Rule 14    TypeLit -> StructType
@@ -286,13 +287,14 @@ AND_NOT              :
 AND_NOT_ASSIGN       : 
 ARROW                : 
 ASSIGN               : 59 73 80 81 193 232
-BOOL                 : 11
+BOOL                 : 10
 BREAK                : 236
 CASE                 : 206 215
 CHAN                 : 
 CHAR                 : 
 COLON                : 108 124 125 125 176 205 214
 COMMA                : 41 42 62 65 106 130 218
+COMPLEX              : 11
 CONST                : 54 55
 CONTINUE             : 237
 DEC                  : 180
@@ -313,7 +315,7 @@ GOTO                 : 240
 GTR                  : 146
 IDENT                : 12 61 62 73 74 83 86 96 97 113 122 177 210 247
 IF                   : 194
-IMAG                 : 9
+IMAG                 : 
 IMPORT               : 248 249
 INC                  : 179
 INT                  : 7
@@ -350,7 +352,7 @@ SHL                  : 154
 SHL_ASSIGN           : 191
 SHR                  : 155
 SHR_ASSIGN           : 192
-STRING               : 10
+STRING               : 9
 STRING_LITERAL       : 27 95 256
 STRUCT               : 21
 SUB                  : 157
@@ -904,9 +906,9 @@ state 36
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -918,9 +920,9 @@ state 36
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -950,9 +952,9 @@ state 37
     LPAREN          reduce using rule 257 (epsilon -> .)
     INT             reduce using rule 257 (epsilon -> .)
     FLOAT           reduce using rule 257 (epsilon -> .)
-    IMAG            reduce using rule 257 (epsilon -> .)
     STRING          reduce using rule 257 (epsilon -> .)
     BOOL            reduce using rule 257 (epsilon -> .)
+    COMPLEX         reduce using rule 257 (epsilon -> .)
     TYPE            reduce using rule 257 (epsilon -> .)
     IDENT           reduce using rule 257 (epsilon -> .)
     LBRACK          reduce using rule 257 (epsilon -> .)
@@ -1012,9 +1014,9 @@ state 42
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1025,9 +1027,9 @@ state 42
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1077,9 +1079,9 @@ state 45
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1090,9 +1092,9 @@ state 45
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1192,9 +1194,9 @@ state 52
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1206,9 +1208,9 @@ state 52
     LPAREN          shift and go to state 98
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1252,9 +1254,9 @@ state 53
     (44) ParameterDecl -> . Type
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1266,9 +1268,9 @@ state 53
     IDENT           shift and go to state 105
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     LBRACK          shift and go to state 75
     STRUCT          shift and go to state 76
@@ -1379,9 +1381,9 @@ state 62
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1391,9 +1393,9 @@ state 62
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1502,41 +1504,41 @@ state 69
 
 state 70
 
-    (9) TypeToken -> IMAG .
+    (9) TypeToken -> STRING .
 
-    ASSIGN          reduce using rule 9 (TypeToken -> IMAG .)
-    SEMICOLON       reduce using rule 9 (TypeToken -> IMAG .)
-    LBRACE          reduce using rule 9 (TypeToken -> IMAG .)
-    RPAREN          reduce using rule 9 (TypeToken -> IMAG .)
-    COMMA           reduce using rule 9 (TypeToken -> IMAG .)
-    STRING_LITERAL  reduce using rule 9 (TypeToken -> IMAG .)
-    COLON           reduce using rule 9 (TypeToken -> IMAG .)
+    ASSIGN          reduce using rule 9 (TypeToken -> STRING .)
+    SEMICOLON       reduce using rule 9 (TypeToken -> STRING .)
+    LBRACE          reduce using rule 9 (TypeToken -> STRING .)
+    RPAREN          reduce using rule 9 (TypeToken -> STRING .)
+    COMMA           reduce using rule 9 (TypeToken -> STRING .)
+    STRING_LITERAL  reduce using rule 9 (TypeToken -> STRING .)
+    COLON           reduce using rule 9 (TypeToken -> STRING .)
 
 
 state 71
 
-    (10) TypeToken -> STRING .
+    (10) TypeToken -> BOOL .
 
-    ASSIGN          reduce using rule 10 (TypeToken -> STRING .)
-    SEMICOLON       reduce using rule 10 (TypeToken -> STRING .)
-    LBRACE          reduce using rule 10 (TypeToken -> STRING .)
-    RPAREN          reduce using rule 10 (TypeToken -> STRING .)
-    COMMA           reduce using rule 10 (TypeToken -> STRING .)
-    STRING_LITERAL  reduce using rule 10 (TypeToken -> STRING .)
-    COLON           reduce using rule 10 (TypeToken -> STRING .)
+    ASSIGN          reduce using rule 10 (TypeToken -> BOOL .)
+    SEMICOLON       reduce using rule 10 (TypeToken -> BOOL .)
+    LBRACE          reduce using rule 10 (TypeToken -> BOOL .)
+    RPAREN          reduce using rule 10 (TypeToken -> BOOL .)
+    COMMA           reduce using rule 10 (TypeToken -> BOOL .)
+    STRING_LITERAL  reduce using rule 10 (TypeToken -> BOOL .)
+    COLON           reduce using rule 10 (TypeToken -> BOOL .)
 
 
 state 72
 
-    (11) TypeToken -> BOOL .
+    (11) TypeToken -> COMPLEX .
 
-    ASSIGN          reduce using rule 11 (TypeToken -> BOOL .)
-    SEMICOLON       reduce using rule 11 (TypeToken -> BOOL .)
-    LBRACE          reduce using rule 11 (TypeToken -> BOOL .)
-    RPAREN          reduce using rule 11 (TypeToken -> BOOL .)
-    COMMA           reduce using rule 11 (TypeToken -> BOOL .)
-    STRING_LITERAL  reduce using rule 11 (TypeToken -> BOOL .)
-    COLON           reduce using rule 11 (TypeToken -> BOOL .)
+    ASSIGN          reduce using rule 11 (TypeToken -> COMPLEX .)
+    SEMICOLON       reduce using rule 11 (TypeToken -> COMPLEX .)
+    LBRACE          reduce using rule 11 (TypeToken -> COMPLEX .)
+    RPAREN          reduce using rule 11 (TypeToken -> COMPLEX .)
+    COMMA           reduce using rule 11 (TypeToken -> COMPLEX .)
+    STRING_LITERAL  reduce using rule 11 (TypeToken -> COMPLEX .)
+    COLON           reduce using rule 11 (TypeToken -> COMPLEX .)
 
 
 state 73
@@ -1623,9 +1625,9 @@ state 77
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1635,9 +1637,9 @@ state 77
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1662,9 +1664,9 @@ state 78
     LPAREN          reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     INT             reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     FLOAT           reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
-    IMAG            reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     STRING          reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     BOOL            reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
+    COMPLEX         reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     TYPE            reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     IDENT           reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
     LBRACK          reduce using rule 61 (IdentifierList -> IDENT IdentifierRep .)
@@ -1683,9 +1685,9 @@ state 79
     LPAREN          reduce using rule 63 (IdentifierRep -> epsilon .)
     INT             reduce using rule 63 (IdentifierRep -> epsilon .)
     FLOAT           reduce using rule 63 (IdentifierRep -> epsilon .)
-    IMAG            reduce using rule 63 (IdentifierRep -> epsilon .)
     STRING          reduce using rule 63 (IdentifierRep -> epsilon .)
     BOOL            reduce using rule 63 (IdentifierRep -> epsilon .)
+    COMPLEX         reduce using rule 63 (IdentifierRep -> epsilon .)
     TYPE            reduce using rule 63 (IdentifierRep -> epsilon .)
     IDENT           reduce using rule 63 (IdentifierRep -> epsilon .)
     LBRACK          reduce using rule 63 (IdentifierRep -> epsilon .)
@@ -1732,9 +1734,9 @@ state 82
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1744,9 +1746,9 @@ state 82
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -1980,9 +1982,9 @@ state 98
     (42) ParameterDeclCommaRep -> . ParameterDecl COMMA ParameterDecl
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -1996,9 +1998,9 @@ state 98
     IDENT           shift and go to state 105
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     LBRACK          shift and go to state 75
     STRUCT          shift and go to state 76
@@ -2063,9 +2065,9 @@ state 103
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -2075,9 +2077,9 @@ state 103
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -2115,9 +2117,9 @@ state 105
     LPAREN          reduce using rule 257 (epsilon -> .)
     INT             reduce using rule 257 (epsilon -> .)
     FLOAT           reduce using rule 257 (epsilon -> .)
-    IMAG            reduce using rule 257 (epsilon -> .)
     STRING          reduce using rule 257 (epsilon -> .)
     BOOL            reduce using rule 257 (epsilon -> .)
+    COMPLEX         reduce using rule 257 (epsilon -> .)
     TYPE            reduce using rule 257 (epsilon -> .)
     IDENT           reduce using rule 257 (epsilon -> .)
     LBRACK          reduce using rule 257 (epsilon -> .)
@@ -2224,17 +2226,17 @@ state 112
     (6) TypeName -> . QualifiedIdent
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
 
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
 
@@ -3383,9 +3385,9 @@ state 151
     LPAREN          reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     INT             reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     FLOAT           reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
-    IMAG            reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     STRING          reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     BOOL            reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
+    COMPLEX         reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     TYPE            reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     IDENT           reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
     LBRACK          reduce using rule 35 (Parameters -> LPAREN ParameterListOpt RPAREN .)
@@ -3420,9 +3422,9 @@ state 153
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -3433,9 +3435,9 @@ state 153
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     LBRACK          shift and go to state 75
     STRUCT          shift and go to state 76
@@ -3468,9 +3470,9 @@ state 154
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -3481,9 +3483,9 @@ state 154
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     LBRACK          shift and go to state 75
     STRUCT          shift and go to state 76
@@ -3555,9 +3557,9 @@ state 159
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -3567,9 +3569,9 @@ state 159
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -4420,9 +4422,9 @@ state 191
     LPAREN          reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     INT             reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     FLOAT           reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
-    IMAG            reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     STRING          reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     BOOL            reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
+    COMPLEX         reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     TYPE            reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     IDENT           reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
     LBRACK          reduce using rule 62 (IdentifierRep -> IdentifierRep COMMA IDENT .)
@@ -5137,9 +5139,9 @@ state 229
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -5149,9 +5151,9 @@ state 229
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -5374,9 +5376,9 @@ state 236
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -5386,9 +5388,9 @@ state 236
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -5573,9 +5575,9 @@ state 246
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -5585,9 +5587,9 @@ state 246
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -7891,9 +7893,9 @@ state 354
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -7903,9 +7905,9 @@ state 354
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
@@ -7943,9 +7945,9 @@ state 356
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -7956,9 +7958,9 @@ state 356
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75
     STRUCT          shift and go to state 76
@@ -8141,9 +8143,9 @@ state 367
     (15) TypeLit -> . PointerType
     (7) TypeToken -> . INT
     (8) TypeToken -> . FLOAT
-    (9) TypeToken -> . IMAG
-    (10) TypeToken -> . STRING
-    (11) TypeToken -> . BOOL
+    (9) TypeToken -> . STRING
+    (10) TypeToken -> . BOOL
+    (11) TypeToken -> . COMPLEX
     (12) TypeToken -> . TYPE IDENT
     (97) QualifiedIdent -> . IDENT PERIOD TypeName
     (18) ArrayType -> . LBRACK ArrayLength RBRACK ElementType
@@ -8153,9 +8155,9 @@ state 367
     LPAREN          shift and go to state 62
     INT             shift and go to state 68
     FLOAT           shift and go to state 69
-    IMAG            shift and go to state 70
-    STRING          shift and go to state 71
-    BOOL            shift and go to state 72
+    STRING          shift and go to state 70
+    BOOL            shift and go to state 71
+    COMPLEX         shift and go to state 72
     TYPE            shift and go to state 73
     IDENT           shift and go to state 74
     LBRACK          shift and go to state 75

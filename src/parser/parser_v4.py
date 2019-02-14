@@ -42,7 +42,8 @@ reserved = {
 	'int': 'INT',
 	'float': 'FLOAT',
 	'string': 'STRING',
-	'bool': 'BOOL'
+	'bool': 'BOOL',
+	'complex': 'COMPLEX'
 }
 
 
@@ -307,9 +308,9 @@ def p_type_name(p):
 def p_type_token(p):
 	'''TypeToken : INT
 							 | FLOAT
-							 | IMAG
 							 | STRING
 							 | BOOL
+							 | COMPLEX
 							 | TYPE IDENT'''
 	if len(p) == 3:
 		p[1] = Node(p[1])
