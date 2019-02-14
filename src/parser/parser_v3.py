@@ -7,108 +7,108 @@ import sys
 
 """
 CITE:
-    Most of the token definations are taken from documentation
-    of golang(go docs), and some from the token (go/token)
-    package of golang: https://golang.org/src/go/token/token.go
+	Most of the token definations are taken from documentation
+	of golang(go docs), and some from the token (go/token)
+	package of golang: https://golang.org/src/go/token/token.go
 """
 
 # reserved words in language
 reserved = {
-    'break'        :    'BREAK',
-    'default'      :    'DEFAULT',
-    'select'       :    'SELECT',
-    'func'         :    'FUNC',
-    'case'         :    'CASE',
-    'interface'    :    'INTERFACE',
-    'defer'        :    'DEFER',
-    'go'           :    'GO',
-    'struct'       :    'STRUCT',
-    'goto'         :    'GOTO',
-    'chan'         :    'CHAN',
-    'else'         :    'ELSE',
-    'map'          :    'MAP',
-    'fallthrough'  :    'FALLTHROUGH',
-    'package'      :    'PACKAGE',
-    'switch'       :    'SWITCH',
-    'const'        :    'CONST',
-    'range'        :    'RANGE',
-    'type'         :    'TYPE',
-    'if'           :    'IF',
-    'continue'     :    'CONTINUE',
-    'return'       :    'RETURN',
-    'for'          :    'FOR',
-    'import'       :    'IMPORT',
-    'var'          :    'VAR',
+	'break'        :    'BREAK',
+	'default'      :    'DEFAULT',
+	'select'       :    'SELECT',
+	'func'         :    'FUNC',
+	'case'         :    'CASE',
+	'interface'    :    'INTERFACE',
+	'defer'        :    'DEFER',
+	'go'           :    'GO',
+	'struct'       :    'STRUCT',
+	'goto'         :    'GOTO',
+	'chan'         :    'CHAN',
+	'else'         :    'ELSE',
+	'map'          :    'MAP',
+	'fallthrough'  :    'FALLTHROUGH',
+	'package'      :    'PACKAGE',
+	'switch'       :    'SWITCH',
+	'const'        :    'CONST',
+	'range'        :    'RANGE',
+	'type'         :    'TYPE',
+	'if'           :    'IF',
+	'continue'     :    'CONTINUE',
+	'return'       :    'RETURN',
+	'for'          :    'FOR',
+	'import'       :    'IMPORT',
+	'var'          :    'VAR',
 }
 
 
 # token list (compulsary)
 tokens = [
-    # literals
-    'IDENT',            # main
-    'INT',              # 123
-    'FLOAT',            # 123.4
-    'IMAG',             # 123.4i
-    'CHAR',             # 'a'
-    'STRING',           # "abc"
+	# literals
+	'IDENT',            # main
+	'INT',              # 123
+	'FLOAT',            # 123.4
+	'IMAG',             # 123.4i
+	'CHAR',             # 'a'
+	'STRING',           # "abc"
 
-    # operator
-    'ADD',              # +
-    'SUB',              # -
-    'MUL',              # *
-    'QUO',              # /
-    'REM',              # %
+	# operator
+	'ADD',              # +
+	'SUB',              # -
+	'MUL',              # *
+	'QUO',              # /
+	'REM',              # %
 
-    'ADD_ASSIGN',       # +=
-    'SUB_ASSIGN',       # -=
-    'MUL_ASSIGN',       # *=
-    'QUO_ASSIGN',       # %=
-    'REM_ASSIGN',       # %=
+	'ADD_ASSIGN',       # +=
+	'SUB_ASSIGN',       # -=
+	'MUL_ASSIGN',       # *=
+	'QUO_ASSIGN',       # %=
+	'REM_ASSIGN',       # %=
 
-    # bitwise operators
-    'AND',              # &
-    'OR',               # |
-    'XOR',              # ^
-    'SHL',              # <<
-    'SHR',              # >>
-    'AND_NOT',          # &^
+	# bitwise operators
+	'AND',              # &
+	'OR',               # |
+	'XOR',              # ^
+	'SHL',              # <<
+	'SHR',              # >>
+	'AND_NOT',          # &^
 
-    'AND_ASSIGN',       # &=
-    'OR_ASSIGN',        # |=
-    'XOR_ASSIGN',       # ^=
-    'SHL_ASSIGN',       # <<=
-    'SHR_ASSIGN',       # >>=
-    'AND_NOT_ASSIGN',   # &^=
+	'AND_ASSIGN',       # &=
+	'OR_ASSIGN',        # |=
+	'XOR_ASSIGN',       # ^=
+	'SHL_ASSIGN',       # <<=
+	'SHR_ASSIGN',       # >>=
+	'AND_NOT_ASSIGN',   # &^=
 
-    'LAND',             # &&
-    'LOR',              # ||
-    'ARROW',            # <-
-    'INC',              # ++
-    'DEC',              # --
+	'LAND',             # &&
+	'LOR',              # ||
+	'ARROW',            # <-
+	'INC',              # ++
+	'DEC',              # --
 
-    'EQL',              # ==
-    'LSS',              # <
-    'GTR',              # >
-    'ASSIGN',           # =
-    'NOT',              # !
+	'EQL',              # ==
+	'LSS',              # <
+	'GTR',              # >
+	'ASSIGN',           # =
+	'NOT',              # !
 
-    'NEQ',              # !=
-    'LEQ',              # <=
-    'GEQ',              # >=
-    'DEFINE',           # :=
-    'ELLIPSIS',         # ...
+	'NEQ',              # !=
+	'LEQ',              # <=
+	'GEQ',              # >=
+	'DEFINE',           # :=
+	'ELLIPSIS',         # ...
 
-    'LPAREN',           # (
-    'LBRACK',           # [
-    'LBRACE',           # {
-    'COMMA',            # ,
-    'PERIOD',           # .
+	'LPAREN',           # (
+	'LBRACK',           # [
+	'LBRACE',           # {
+	'COMMA',            # ,
+	'PERIOD',           # .
 
-    'RPAREN',           # )
-    'RBRACK',           # ]
-    'RBRACE',           # }
-    'SEMICOLON',        # ;
-    'COLON',            # :
+	'RPAREN',           # )
+	'RBRACK',           # ]
+	'RBRACE',           # }
+	'SEMICOLON',        # ;
+	'COLON',            # :
 
 ] + list(reserved.values())
 
@@ -196,92 +196,97 @@ ctr = 1
 
 @TOKEN(identifier)
 def t_IDENT(t):
-    t.type = reserved.get(t.value,"IDENT")
-    return t
+	t.type = reserved.get(t.value,"IDENT")
+	return t
 
 def t_NL(t):
-    r"\n+"
-    t.lexer.lineno += len(t.value)
-    pass
+	r"\n+"
+	t.lexer.lineno += len(t.value)
+	pass
 
 def t_COMMENT(t):
-    r"(//.*)|(/\*(.|\n)*?)\*/"
-    pass
+	r"(//.*)|(/\*(.|\n)*?)\*/"
+	pass
 
 def t_STRING(t):
-    r"(\"(.|\n)*?)\""
-    return t
+	r"(\"(.|\n)*?)\""
+	return t
 
 def t_error(t):
-    print("[ERROR] Invalid token:",t.value[0])
-    t.lexer.skip(1) #skip ahead 1 character
+	print("[ERROR] Invalid token:",t.value[0])
+	t.lexer.skip(1) #skip ahead 1 character
 
 
 myout = ""
 
 class Node:
-    def __init__(self, children=None, leaf=None):
-        if children:
-            self.children = children
-        else:
-            self.children = None
-        self.leaf = leaf
+	def __init__(self, children=None, leaf=None):
+		if children:
+			self.children = children
+		else:
+			self.children = None
+		self.leaf = leaf
 
 def gendot(x, parent):
-    global myout
-    global ctr
+	global myout
+	global ctr
 
-    if x.children == None:
-        return
-    for i in x.children:
-        if i == None:
-            continue
-        myout += str(ctr) + ' [label="' + i.leaf + '"];\n'
-        myout += str(parent) +  ' -> ' + str(ctr) + ';\n'
-        ctr += 1
-        gendot(i,ctr-1)
+	if x.children == None:
+		return
+	for i in x.children:
+		if i == None:
+			continue
+		myout += str(ctr) + ' [label="' + i.leaf + '"];\n'
+		myout += str(parent) +  ' -> ' + str(ctr) + ';\n'
+		ctr += 1
+		gendot(i,ctr-1)
 
 precedence = (
-    ('right','ASSIGN', 'NOT'),
-    ('left', 'LOR'),
-    ('left', 'LAND'),
-    ('left', 'OR'),
-    ('left', 'XOR'),
-    ('left', 'AND'),
-    ('left', 'EQL', 'NEQ'),
-    ('left', 'LSS', 'GTR','LEQ','GEQ'),
-    ('left', 'SHL', 'SHR'),
-    ('left', 'ADD', 'SUB'),
-    ('left', 'MUL', 'QUO','REM'),
+	('right','ASSIGN', 'NOT'),
+	('left', 'LOR'),
+	('left', 'LAND'),
+	('left', 'OR'),
+	('left', 'XOR'),
+	('left', 'AND'),
+	('left', 'EQL', 'NEQ'),
+	('left', 'LSS', 'GTR','LEQ','GEQ'),
+	('left', 'SHL', 'SHR'),
+	('left', 'ADD', 'SUB'),
+	('left', 'MUL', 'QUO','REM'),
 )
 
 
 def p_start(p):
 	''' start : SourceFile '''
 	p[0] = Node([p[1]],'sourceFile')
+	global ctr
+	global myout
+
+	gendot(p[0],ctr-1)
+	out_file.write(myout)
 
 
 ###   Source file #####
 
 def p_SourceFile(p):
-    'SourceFile : PackageClause SEMICOLON ImportDeclList TopLevelDeclList '
-    p[0] = Node([p[1],p[3],p[4]],'SourceFile')
+	'SourceFile : PackageClause SEMICOLON ImportDeclList TopLevelDeclList '
+	p[0] = Node([p[1],p[3],p[4]],'SourceFile')
 
 def p_ImportDeclList(p):
-    '''ImportDeclList : empty
-                | ImportDeclList ImportDecl SEMICOLON '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]],'ImportDeclList')
+	'''ImportDeclList : empty
+				| ImportDeclList ImportDecl SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ImportDeclList')
 
 def p_TopLevelDecList(p):
-    '''TopLevelDeclList : empty
-                | TopLevelDeclList TopLevelDecl SEMICOLON '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]], 'TopLevelDecl')
+	'''TopLevelDeclList : empty
+				| TopLevelDeclList TopLevelDecl SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]], 'TopLevelDecl')
 
 ### -------------------------------------------------
 
@@ -289,57 +294,57 @@ def p_TopLevelDecList(p):
 # ---------- PACKAGE CLAUSE --------------------
 
 def p_PackageClause(p):
-    'PackageClause  : PACKAGE IDENT'
-    p[0] = Node([],'package: ' + p[1] )
+	'PackageClause  : PACKAGE IDENT'
+	p[0] = Node([],'package: ' + p[1] )
 
 # -----------------------------------------------
 
 def p_TopLevelDecl(p):
-    '''TopLevelDecl  : Declaration
-                | FunctionDecl
-                | MethodDecl '''
-    p[0] = Node([p[1]], 'TopLevelDecl')
+	'''TopLevelDecl  : Declaration
+				| FunctionDecl
+				| MethodDecl '''
+	p[0] = Node([p[1]], 'TopLevelDecl')
 
 
 # --------- IMPORT DECLARATIONS ---------------
 
 def p_ImportDecl(p):
-    'ImportDecl  : IMPORT ImportSpecTopList'
-    p[1] = Node([],'import')
-    p[0] = Node([p[1],p[2]],'ImportDecl')
+	'ImportDecl  : IMPORT ImportSpecTopList'
+	p[1] = Node([],'import')
+	p[0] = Node([p[1],p[2]],'ImportDecl')
 
 def p_ImportSpecTopList(p):
-    '''ImportSpecTopList : ImportSpec
-            | LPAREN ImportSpecList RPAREN '''
-    if p[1] == "(":
-        p[0] = Node([p[2]], 'ImportSpecList')
-    else:
-        p[0] = Node([p[1]], 'ImportSpecList')
+	'''ImportSpecTopList : ImportSpec
+			| LPAREN ImportSpecList RPAREN '''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'ImportSpecList')
+	else:
+		p[0] = Node([p[1]], 'ImportSpecList')
 
 def p_ImportSpecList(p):
-    '''ImportSpecList : empty
-                | ImportSpecList ImportSpec SEMICOLON'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]],'ImportSpecList')
+	'''ImportSpecList : empty
+				| ImportSpecList ImportSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ImportSpecList')
 
 def p_ImportSpec(p):
-    'ImportSpec  :  ImportSpecInit ImportPath '
-    p[0] = Node([p[1],p[2]],'ImportSpec')
+	'ImportSpec  :  ImportSpecInit ImportPath '
+	p[0] = Node([p[1],p[2]],'ImportSpec')
 
 def p_ImportSpecInit(p):
-    '''ImportSpecInit : empty
-            | PERIOD
-            | IDENT '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([], 'ImportSpecList: ' + p[1])
+	'''ImportSpecInit : empty
+			| PERIOD
+			| IDENT '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'ImportSpecList: ' + p[1])
 
-def p_ImportPath(t):
-    'ImportPath  : STRING '
-    p[0] = Node([],"ImportPath: " + p[1])
+def p_ImportPath(p):
+	'ImportPath  : STRING '
+	p[0] = Node([],"ImportPath: " + p[1])
 
 # -------------------------------------------------------
 
@@ -347,106 +352,106 @@ def p_ImportPath(t):
 #-----------------------BLOCKS---------------------------
 
 def p_Block(p):
-    'Block : LBRACE StatementList RBRACE'
-    p[0] = Node([p[1]], "Block")
+	'Block : LBRACE StatementList RBRACE'
+	p[0] = Node([p[1]], "Block")
 
 def p_StatementList(p):
-    '''StatementList : empty
-                | StatementList Statement SEMICOLON'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]],'StatementList')
+	'''StatementList : empty
+				| StatementList Statement SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'StatementList')
 
 def p_Statement(p):
-    '''Statement : Declaration
-                | SimpleStmt
-                | ReturnStmt
-                | Block
-                | IfStmt
-                | SwitchStmt
-                | ForStmt '''
-    p[0] = Node([p[1]], 'Statement')
+	'''Statement : Declaration
+				| SimpleStmt
+				| ReturnStmt
+				| Block
+				| IfStmt
+				| SwitchStmt
+				| ForStmt '''
+	p[0] = Node([p[1]], 'Statement')
 # -------------------------------------------------------
 
 
 def p_Declaration(p):
-    '''Declaration  : ConstDecl
-                    | TypeDecl
-                    | VarDecl '''
-    p[0] = Node([p[1]], 'Declaration')
+	'''Declaration  : ConstDecl
+					| TypeDecl
+					| VarDecl '''
+	p[0] = Node([p[1]], 'Declaration')
 
 
 
 def p_ConstDecl(p):
-    ' ConstDecl      : CONST ConstSpecTopList '
-    p[1] = Node([],"const")
-    p[0] = Node([p[1],p[2]], "ConstDecl")
+	' ConstDecl      : CONST ConstSpecTopList '
+	p[1] = Node([],"const")
+	p[0] = Node([p[1],p[2]], "ConstDecl")
 
 def p_ConstSpecTopList(p):
-    '''ConstSpecTopList : ConstSpec
-                    | LPAREN ConstSpecList RPAREN'''
-    if p[1] == '(':
-        p[0] = Node([p[2]], 'ConstSpecTopList')
+	'''ConstSpecTopList : ConstSpec
+					| LPAREN ConstSpecList RPAREN'''
+	if p[1] == '(':
+		p[0] = Node([p[2]], 'ConstSpecTopList')
 
 def p_ConstSpecList(p):
-    '''ConstSpecList : empty
-                    | ConstSpecList ConstSpec SEMICOLON '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]],'ConstSpecList')
+	'''ConstSpecList : empty
+					| ConstSpecList ConstSpec SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'ConstSpecList')
 
 def p_ConstSpec(p):
-    'ConstSpec      : IdentifierList ConstSpecTail '
-    p[0] = Node([p[1],p[2]],'ConstSpec')
+	'ConstSpec      : IdentifierList ConstSpecTail '
+	p[0] = Node([p[1],p[2]],'ConstSpec')
 
 def p_ConstSpecTail(p):
-    '''ConstSpecTail : empty
-                    | TypeTop ASSIGN ExpressionList '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[3]], "ConstSpecTail: " + ASSIGN)
+	'''ConstSpecTail : empty
+					| TypeTop ASSIGN ExpressionList '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[3]], "ConstSpecTail: " + ASSIGN)
 
 
 def p_TypeTop(p):
-    '''TypeTop : empty
-                | Type '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node(p[1],'TypeTop')
+	'''TypeTop : empty
+				| Type '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node(p[1],'TypeTop')
 
 
 
 
 
 def p_IdentifierList(p):
-    "IdentifierList : IDENT IdentifierBotList"
-    p[1] = Node('identifier', [], p[1])
-    p[0] = Node('identifierList', [p[1], p[2]])
+	"IdentifierList : IDENT IdentifierBotList"
+	p[1] = Node('identifier', [], p[1])
+	p[0] = Node('identifierList', [p[1], p[2]])
 
 def p_IdentifierBotList(p):
-    '''IdentifierBotList : empty
-                        | IdentifierBotList COMMA IDENT'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[3] = Node([], 'identifier:' + p[3])
-        p[0] = Node([p[1], p[3]], 'IdentifierBotList')
+	'''IdentifierBotList : empty
+						| IdentifierBotList COMMA IDENT'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[3] = Node([], 'identifier:' + p[3])
+		p[0] = Node([p[1], p[3]], 'IdentifierBotList')
 
 def p_ExpressionList(p):
-    "ExpressionList : Expression ExpressionBotList"
-    p[0] = Node([p[1], p[2]], 'ExpressionList')
+	"ExpressionList : Expression ExpressionBotList"
+	p[0] = Node([p[1], p[2]], 'ExpressionList')
 
 def p_ExpressionBotList(p):
-    '''ExpressionBotList : empty
-                        | ExpressionBotList COMMA Expression'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2]], 'ExpressionBotList')
+	'''ExpressionBotList : empty
+						| ExpressionBotList COMMA Expression'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'ExpressionBotList')
 
 # Line 32, 33, 34 not required
 
@@ -454,42 +459,42 @@ def p_ExpressionBotList(p):
 
 
 def p_TypeDecl(p):
-    "TypeDecl : TYPE TypeSpecTopList"
-    p[1] = Node([], 'type')
-    p[0] = Node([p[1], p[2]], 'TypeDecl')
+	"TypeDecl : TYPE TypeSpecTopList"
+	p[1] = Node([], 'type')
+	p[0] = Node([p[1], p[2]], 'TypeDecl')
 
 def p_TypeSpecTopList(p):
-    '''TypeSpecTopList : TypeSpec
-                        | LPAREN TypeSpecList RPAREN'''
-    if p[1] == "(":
-        p[0] = Node([p[2]], 'TypeSpecTopList')
-    else:
-        p[0] = Node([p[1]], 'TypeSpecTopList')
+	'''TypeSpecTopList : TypeSpec
+						| LPAREN TypeSpecList RPAREN'''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'TypeSpecTopList')
+	else:
+		p[0] = Node([p[1]], 'TypeSpecTopList')
 
 def p_TypeSpecList(p):
-    '''TypeSpecList : empty
-                    | TypeSpecList TypeSpec SEMICOLON'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2]], 'TypeSpecList')
+	'''TypeSpecList : empty
+					| TypeSpecList TypeSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'TypeSpecList')
 
 def p_TypeSpec(p):
-    '''TypeSpec : AliasDecl
-                | TypeDef'''
-    p[0] = Node([p[1]], 'TypeSpec')
+	'''TypeSpec : AliasDecl
+				| TypeDef'''
+	p[0] = Node([p[1]], 'TypeSpec')
 
 def p_AliasDecl(p):
-    "AliasDecl : IDENT ASSIGN Type"
-    p[1] = Node([], 'identifier: ' + p[1])
-    p[2] = Node([], 'type: ' + p[2])
-    p[0] = Node([p[1], p[2]], 'AliasDecl: ' + ASSIGN)
+	"AliasDecl : IDENT ASSIGN Type"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[2] = Node([], 'type: ' + p[2])
+	p[0] = Node([p[1], p[2]], 'AliasDecl: ' + ASSIGN)
 
 def p_TypeDef(p):
-    "TypeDef : IDENT Type"
-    p[1] = Node([], 'identifier: ' + p[1])
-    p[2] = Node([], 'type: ' + p[2])
-    p[0] = Node([p[1], p[2]], 'TypeDef')
+	"TypeDef : IDENT Type"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[2] = Node([], 'type: ' + p[2])
+	p[0] = Node([p[1], p[2]], 'TypeDef')
 
 
 
@@ -497,351 +502,351 @@ def p_TypeDef(p):
 # -----------------------TYPES---------------------------
 
 def p_Type(p):
-    '''Type : TypeName
-            | TypeLit
-            | LPAREN Type RPAREN'''
-    if p[1] == '(':
-        p[0] = Node([p[2]], 'Type')
-    else:
-        p[0] = Node([p[1]], 'Type')
+	'''Type : TypeName
+			| TypeLit
+			| LPAREN Type RPAREN'''
+	if p[1] == '(':
+		p[0] = Node([p[2]], 'Type')
+	else:
+		p[0] = Node([p[1]], 'Type')
 
 def p_TypeName(p):
-    '''TypeName  : IDENT
-                | QualifiedIdent'''
-    p[0] = Node([p[1]], 'TypeName')
+	'''TypeName  : IDENT
+				| QualifiedIdent'''
+	p[0] = Node([p[1]], 'TypeName')
 
 def p_QualifiedIdent(p):
-    "QualifiedIdent : IDENT PERIOD IDENT"
-    p[1] = Node([], 'identifier: ' + p[1])
-    p[3] = Node([], 'identifier: ' + p[3])
-    p[0] = ([p[1], p[3]], 'QualifiedIdent')
+	"QualifiedIdent : IDENT PERIOD IDENT"
+	p[1] = Node([], 'identifier: ' + p[1])
+	p[3] = Node([], 'identifier: ' + p[3])
+	p[0] = ([p[1], p[3]], 'QualifiedIdent')
 
 def p_TypeLit(p):
-    '''TypeLit   : ArrayType
-                | StructType
-                | FunctionType'''
-    p[0] = Node([p[1]], 'TypeLit')
+	'''TypeLit   : ArrayType
+				| StructType
+				| FunctionType'''
+	p[0] = Node([p[1]], 'TypeLit')
 
 def p_ArrayType(p):
-    "ArrayType   : LBRACK ArrayLength RBRACK ElementType"
-    p[0] = Node([p[1], p[2]], 'ArrayType')
+	"ArrayType   : LBRACK ArrayLength RBRACK ElementType"
+	p[0] = Node([p[1], p[2]], 'ArrayType')
 
 def p_ArrayLength(p):
-    "ArrayLength : Expression"
-    p[0] = Node([p[1]], 'ArrayLength')
+	"ArrayLength : Expression"
+	p[0] = Node([p[1]], 'ArrayLength')
 
 def p_ElementType(p):
-    "ElementType : Type"
-    p[0] = Node([p[1]], 'ElementType')
+	"ElementType : Type"
+	p[0] = Node([p[1]], 'ElementType')
 
 def p_StructType(p):
-    "StructType    : STRUCT LBRACE FieldDeclList RBRACE"
-    p[1] = Node([], 'struct')
-    p[0] = Node([p[1], p[3]], 'StructType')
+	"StructType    : STRUCT LBRACE FieldDeclList RBRACE"
+	p[1] = Node([], 'struct')
+	p[0] = Node([p[1], p[3]], 'StructType')
 
 def p_FieldDeclList(p):
-    '''FieldDeclList : empty
-                    | FieldDeclList FieldDecl SEMICOLON'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2]], 'FieldDeclList')
+	'''FieldDeclList : empty
+					| FieldDeclList FieldDecl SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'FieldDeclList')
 
 def p_FieldDecl(p):
-    "FieldDecl     : FieldDeclHead TagTop"
-    p[0] = Node([p[1], p[2]], 'FieldDecl')
+	"FieldDecl     : FieldDeclHead TagTop"
+	p[0] = Node([p[1], p[2]], 'FieldDecl')
 
 def p_TagTop(p):
-    '''TagTop : empty
-            | Tag'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1]], 'TagTop')
+	'''TagTop : empty
+			| Tag'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'TagTop')
 
 def p_FieldDeclHead(p):
-    '''FieldDeclHead : IdentifierList Type
-                        | EmbeddedField'''
+	'''FieldDeclHead : IdentifierList Type
+						| EmbeddedField'''
 
 def p_EmbeddedField(p):
-    "EmbeddedField : starTop TypeName"
-    p[0] = Node([p[1], p[2]], 'EmbeddedField')
+	"EmbeddedField : starTop TypeName"
+	p[0] = Node([p[1], p[2]], 'EmbeddedField')
 
 def p_starTop(p):
-    '''starTop : empty
-                | MUL '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([], 'starTop: ' + MUL)
+	'''starTop : empty
+				| MUL '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'starTop: ' + MUL)
 
 def p_Tag(p):
-    "Tag           : string_lit"
-    p[0] = Node([p[1]], 'Tag')
+	"Tag           : string_lit"
+	p[0] = Node([p[1]], 'Tag')
 
 def p_FunctionType(p):
-    "FunctionType   : FUNC Signature"
-    p[1] = Node([], p[1])
-    p[0] = Node([p[1], p[2]], 'FunctionType')
+	"FunctionType   : FUNC Signature"
+	p[1] = Node([], p[1])
+	p[0] = Node([p[1], p[2]], 'FunctionType')
 
 def p_Signature(p):
-    "Signature      : Parameters ResultTop"
-    p[0] = Node([p[1], p[2]], 'Signature')
+	"Signature      : Parameters ResultTop"
+	p[0] = Node([p[1], p[2]], 'Signature')
 
 
 def p_ResultTop(p):
-    '''ResultTop : empty
-                | Result'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1]], 'ResultTop')
+	'''ResultTop : empty
+				| Result'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'ResultTop')
 
 def p_Result(p):
-    '''Result         : Parameters
-                        | Type'''
-    p[0] = Node([p[1]], 'Result')
+	'''Result         : Parameters
+						| Type'''
+	p[0] = Node([p[1]], 'Result')
 
 def p_Parameters(p):
-    '''Parameters     : LPAREN ParameterListTop RPAREN'''
-    p[0] = Node([p[1]], 'Parameters')
+	'''Parameters     : LPAREN ParameterListTop RPAREN'''
+	p[0] = Node([p[1]], 'Parameters')
 
 def p_ParameterListTop(p):
-    '''ParameterListTop : empty
-                        | ParameterList commaTop'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2]], 'ParameterListTop')
+	'''ParameterListTop : empty
+						| ParameterList commaTop'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], 'ParameterListTop')
 
 def p_commaTop(p):
-    '''commaTop : empty
-                | COMMA'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([], 'commaTop: ,')
+	'''commaTop : empty
+				| COMMA'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'commaTop: ,')
 
 def p_ParameterList(p):
-    '''ParameterList  : ParameterDecl ParameterDeclList'''
-    p[0] = Node([p[1], p[2]], 'ParameterList')
+	'''ParameterList  : ParameterDecl ParameterDeclList'''
+	p[0] = Node([p[1], p[2]], 'ParameterList')
 
 def p_ParameterDeclList(p):
-    '''ParameterDeclList : empty
-                        | ParameterDeclList COMMA ParameterDecl'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[3]], 'ParameterDeclList')
+	'''ParameterDeclList : empty
+						| ParameterDeclList COMMA ParameterDecl'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[3]], 'ParameterDeclList')
 
 def p_ParameterDecl(p):
-    "ParameterDecl  : ParameterDeclHead tripledotTop Type"
-    p[0] = Node([p[1], p[2], p[3]], 'ParameterDecl')
+	"ParameterDecl  : ParameterDeclHead tripledotTop Type"
+	p[0] = Node([p[1], p[2], p[3]], 'ParameterDecl')
 
 def p_tripledotTop(p):
-    '''tripledotTop : empty
-                    | ELLIPSIS'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([], 'tripledotTop: ' + ELLIPSIS)
+	'''tripledotTop : empty
+					| ELLIPSIS'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([], 'tripledotTop: ' + ELLIPSIS)
 
 def p_ParameterDeclHead(p):
-    '''ParameterDeclHead : empty
-                        | IdentifierList'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[1] = Node([p[1]], 'ParameterDeclHead')
+	'''ParameterDeclHead : empty
+						| IdentifierList'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([p[1]], 'ParameterDeclHead')
 
 
 
 ###############
 
 def p_VarDecl(p):
-    ''' VarDecl     : VAR VarSpecTopList '''
-    p[1] = Node([],"VAR")
-    p[0] = Node([p[1],p[2]],'VarDecl')
+	''' VarDecl     : VAR VarSpecTopList '''
+	p[1] = Node([],"VAR")
+	p[0] = Node([p[1],p[2]],'VarDecl')
 
 def p_VarSpecTopList(p):
-    '''VarSpecTopList : VarSpec
-            | LPAREN VarSpecList RPAREN '''
-    if p[1] == "(":
-        p[0] = Node([p[2]],'VarSpecTopList')
-    else:
-        p[0] = Node([p[1]],'VarSpecTopList')
+	'''VarSpecTopList : VarSpec
+			| LPAREN VarSpecList RPAREN '''
+	if p[1] == "(":
+		p[0] = Node([p[2]],'VarSpecTopList')
+	else:
+		p[0] = Node([p[1]],'VarSpecTopList')
 
 
 def p_VarSpecList(p):
-    '''VarSpecList : empty
-                | VarSpecList VarSpec SEMICOLON'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1],p[2]],'VarSpecList')
+	'''VarSpecList : empty
+				| VarSpecList VarSpec SEMICOLON'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1],p[2]],'VarSpecList')
 
 def p_VarSpec(p):
-    '''VarSpec  : IdentifierList VarSpecTail '''
-    p[0] = Node([p[1],p[2]],'VarSpec')
+	'''VarSpec  : IdentifierList VarSpecTail '''
+	p[0] = Node([p[1],p[2]],'VarSpec')
 
 def p_VarSpecTail(p):
-    '''VarSpecTail : Type VarSpecMid
-                    | ASSIGN ExpressionList '''
-    if p[1] == "=":
-        p[1] = Node([], "=")
-        p[0] = Node([p[1],p[2]],'VarSpecTail')
-    else:
-        p[0] = Node([p[1],p[2]],'VarSpecList')
+	'''VarSpecTail : Type VarSpecMid
+					| ASSIGN ExpressionList '''
+	if p[1] == "=":
+		p[1] = Node([], "=")
+		p[0] = Node([p[1],p[2]],'VarSpecTail')
+	else:
+		p[0] = Node([p[1],p[2]],'VarSpecList')
 
 
 def p_VarSpecMid(p):
-    '''VarSpecMid : empty
-            | ASSIGN ExpressionList '''
-    if p[0] == "":
-        p[0] = None
-    else:
-        p[1] = Node([], "=")
-        p[0] = Node([p[1],p[2]],'VarSpecMid')
+	'''VarSpecMid : empty
+			| ASSIGN ExpressionList '''
+	if p[0] == "":
+		p[0] = None
+	else:
+		p[1] = Node([], "=")
+		p[0] = Node([p[1],p[2]],'VarSpecMid')
 
 
 #############################
 
 def p_FunctionDecl(p):
-    ''' FunctionDecl : FUNC FunctionName FunctionDeclTail '''
-    p[1] = Node([],'FUNC')
-    p[0] = Node([p[1],p[2],p[3]],'FunctionDecl')
+	''' FunctionDecl : FUNC FunctionName FunctionDeclTail '''
+	p[1] = Node([],'FUNC')
+	p[0] = Node([p[1],p[2],p[3]],'FunctionDecl')
 
 def p_FunctionDeclTail(p):
-    '''FunctionDeclTail : Function
-                | Signature'''
-    p[0] = Node([p[1]],'Function')
+	'''FunctionDeclTail : Function
+				| Signature'''
+	p[0] = Node([p[1]],'Function')
 
 def p_FunctionName(p):
-    '''FunctionName : IDENT'''
-    p[0] = Node([], 'FunctionName: ' + p[1])
+	'''FunctionName : IDENT'''
+	p[0] = Node([], 'FunctionName: ' + p[1])
 
 def p_Function(p):
-    '''Function     : Signature FunctionBody '''
-    p[0] = Node([p[1],p[2]], 'Function')
+	'''Function     : Signature FunctionBody '''
+	p[0] = Node([p[1],p[2]], 'Function')
 
 def p_FunctionBody(p):
-    '''FunctionBody : Block '''
-    p[0] = Node([p[1]],'FunctionBody')
+	'''FunctionBody : Block '''
+	p[0] = Node([p[1]],'FunctionBody')
 
 ###########
 
 def p_MethodDecl(p):
-    '''MethodDecl : FUNC Receiver MethodName FunctionDeclTail '''
-    p[1] = Node([],'func')
-    p[0] = Node([p[1],p[2],p[3],p[4]], 'MethodDecl')
+	'''MethodDecl : FUNC Receiver MethodName FunctionDeclTail '''
+	p[1] = Node([],'func')
+	p[0] = Node([p[1],p[2],p[3],p[4]], 'MethodDecl')
 
 def p_Receiver(p):
-    '''Receiver   : Parameters '''
-    p[0] = Node([p[1]],'Receiver')
+	'''Receiver   : Parameters '''
+	p[0] = Node([p[1]],'Receiver')
 
 ##############
 
 def p_SimpleStmt(p):
-    '''SimpleStmt : ExpressionStmt
-                  | Assignment
-                  | ShortVarDecl '''
-    p[0] = Node([p[1]],'SimpleStmt')
+	'''SimpleStmt : ExpressionStmt
+				  | Assignment
+				  | ShortVarDecl '''
+	p[0] = Node([p[1]],'SimpleStmt')
 
 def p_ExpressionStmt(p):
-    '''ExpressionStmt : Expression '''
-    p[0] = Node([p[1]], 'ExpressionStmt')
+	'''ExpressionStmt : Expression '''
+	p[0] = Node([p[1]], 'ExpressionStmt')
 
 def p_ShortVarDecl(p):
-    '''ShortVarDecl : IdentifierList DEFINE ExpressionList '''
-    p[0] = Node([p[1],p[2]],'ShortVarDecl: :=')
+	'''ShortVarDecl : IdentifierList DEFINE ExpressionList '''
+	p[0] = Node([p[1],p[2]],'ShortVarDecl: :=')
 
 def p_Assignment(p):
-    '''Assignment : ExpressionList assign_op ExpressionList '''
-    p[0] = Node([p[1],p[2],p[3]], 'Assignment')
+	'''Assignment : ExpressionList assign_op ExpressionList '''
+	p[0] = Node([p[1],p[2],p[3]], 'Assignment')
 
 def p_assign_op(p):
-    '''assign_op : addmul_op ASSIGN '''
-    p[0] = Node([p[1],p[2]],'assign_op')
+	'''assign_op : addmul_op ASSIGN '''
+	p[0] = Node([p[1],p[2]],'assign_op')
 
 def p_addmul_op(p):
-    '''addmul_op : empty
-            | add_op
-            | mul_op '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1]],'addmul_op')
+	'''addmul_op : empty
+			| add_op
+			| mul_op '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]],'addmul_op')
 
 def p_IfStmt(p):
-    '''IfStmt : IF SimpleStmtBot Expression Block elseBot '''
-    p[1] = Node([],'if')
-    p[0] = Node([p[1],p[2],p[3],p[4],p[5]],'IfStmt')
+	'''IfStmt : IF SimpleStmtBot Expression Block elseBot '''
+	p[1] = Node([],'if')
+	p[0] = Node([p[1],p[2],p[3],p[4],p[5]],'IfStmt')
 
 def p_SimpleStmtBot(p):
-    '''SimpleStmtBot : empty
-            | SimpleStmt SEMICOLON '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[1] = Node([p[1]],'SimpleStmtBot')
+	'''SimpleStmtBot : empty
+			| SimpleStmt SEMICOLON '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([p[1]],'SimpleStmtBot')
 
 def p_elseBot(p):
-    '''elseBot : empty
-            | ELSE elseTail '''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[1] = Node([],'else')
-        p[0] = Node([p[1],p[2]],'elseBot')
+	'''elseBot : empty
+			| ELSE elseTail '''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[1] = Node([],'else')
+		p[0] = Node([p[1],p[2]],'elseBot')
 
 def p_elseTail(p):
-    '''elseTail : IfStmt
-            | Block '''
-    p[0] = Node([p[1]],'elseTail')
+	'''elseTail : IfStmt
+			| Block '''
+	p[0] = Node([p[1]],'elseTail')
 
 def p_SwitchStmt(p):
-    '''SwitchStmt : ExprSwitchStmt '''
-    p[0] = Node([p[1]],'SwitchStmt')
+	'''SwitchStmt : ExprSwitchStmt '''
+	p[0] = Node([p[1]],'SwitchStmt')
 
 def p_ExprSwitchStmt(p):
-    ''' ExprSwitchStmt : SWITCH SimpleStmtBot ExpressionBot LBRACE ExprCaseClauseList RBRACE '''
-    p[1] = Node([],'switch')
-    p[0] = Node([p[1],p[2],p[3],p[5]], 'ExprSwitchStmt')
+	''' ExprSwitchStmt : SWITCH SimpleStmtBot ExpressionBot LBRACE ExprCaseClauseList RBRACE '''
+	p[1] = Node([],'switch')
+	p[0] = Node([p[1],p[2],p[3],p[5]], 'ExprSwitchStmt')
 
 def p_ExprCaseClauseList(p):
-    '''ExprCaseClauseList : empty
-                          | ExprCaseClauseList ExprCaseClause'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2]], "ExprCaseClauseList")
+	'''ExprCaseClauseList : empty
+						  | ExprCaseClauseList ExprCaseClause'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2]], "ExprCaseClauseList")
 
 def p_ExprCaseClause(p):
-    '''ExprCaseClause : ExprSwitchCase COLON StatementList '''
-    p[0] = Node([p[1],p[3]],'ExprCaseClause')
+	'''ExprCaseClause : ExprSwitchCase COLON StatementList '''
+	p[0] = Node([p[1],p[3]],'ExprCaseClause')
 
 def p_ExprSwitchCase(p):
-    ''' ExprSwitchCase : CASE ExpressionList
-                        | DEFAULT '''
-    if p[1] == "case":
-        p[1] = Node([],'case')
-        p[0] = Node([p[1],p[2]],'ExprSwitchCase')
-    else:
-        p[1] = Node([],'default')
-        p[0] = Node([p[1]],'ExprSwitchCase')
+	''' ExprSwitchCase : CASE ExpressionList
+						| DEFAULT '''
+	if p[1] == "case":
+		p[1] = Node([],'case')
+		p[0] = Node([p[1],p[2]],'ExprSwitchCase')
+	else:
+		p[1] = Node([],'default')
+		p[0] = Node([p[1]],'ExprSwitchCase')
 
 def p_ForStmt(p):
-    '''ForStmt : FOR ExpressionBot Block '''
-    p[1] = Node([],'for')
-    p[0] = Node([p[1],p[2],p[3]],'ForStmt')
+	'''ForStmt : FOR ExpressionBot Block '''
+	p[1] = Node([],'for')
+	p[0] = Node([p[1],p[2],p[3]],'ForStmt')
 
 def p_ExpressionBot(p):
-    '''ExpressionBot : empty
-                | Expression '''
-    if p[1]=="":
-        p[0] = None
-    else:
-        p[0] = Node([p[1]],'ExpressionBot')
+	'''ExpressionBot : empty
+				| Expression '''
+	if p[1]=="":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]],'ExpressionBot')
 
 
 
@@ -852,87 +857,87 @@ def p_ExpressionBot(p):
 # After line 104
 
 def p_ReturnStmt(p):
-    "ReturnStmt : RETURN ExpressionListBot"
-    p[1] = Node([], 'return')
+	"ReturnStmt : RETURN ExpressionListBot"
+	p[1] = Node([], 'return')
 
 def p_ExpressionListBot(p):
-    '''ExpressionListBot : empty
-                        | ExpressionList'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1]], 'ExpressionListBot')
+	'''ExpressionListBot : empty
+						| ExpressionList'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1]], 'ExpressionListBot')
 
 
 
 
 
 def p_Expression(p):
-    '''Expression : UnaryExpr
-                    | Expression binary_op Expression'''
-    # To be completed
+	'''Expression : UnaryExpr
+					| Expression binary_op Expression'''
+	# To be completed
 
 
 
 def p_UnaryExpr(p):
-    '''UnaryExpr  : PrimaryExpr
-                | unary_op UnaryExpr'''
-    # To be completed
+	'''UnaryExpr  : PrimaryExpr
+				| unary_op UnaryExpr'''
+	# To be completed
 
 def p_binary_op(p):
-    '''binary_op  : LOR
-                    | LAND
-                    | rel_op
-                    | add_op
-                    | mul_op'''
-    if p[1] == "||" or p[1] == "&&":
-        p[0] = Node([], 'binary_op: ' + p[1])
-    else:
-        p[0] = Node([p[1]], 'binary_op')
+	'''binary_op  : LOR
+					| LAND
+					| rel_op
+					| add_op
+					| mul_op'''
+	if p[1] == "||" or p[1] == "&&":
+		p[0] = Node([], 'binary_op: ' + p[1])
+	else:
+		p[0] = Node([p[1]], 'binary_op')
 
 def p_rel_op(p):
-    '''rel_op     : EQL
-                    | NEQ
-                    | LSS
-                    | LEQ
-                    | GTR
-                    | GEQ'''
-    p[0] = Node([], 'rel_op: ' + p[1])
+	'''rel_op     : EQL
+					| NEQ
+					| LSS
+					| LEQ
+					| GTR
+					| GEQ'''
+	p[0] = Node([], 'rel_op: ' + p[1])
 
 def p_add_op(p):
-    '''add_op     : ADD
-                    | SUB
-                    | OR
-                    | XOR'''
-    p[0] = Node([], 'add_op: ' + p[1])
+	'''add_op     : ADD
+					| SUB
+					| OR
+					| XOR'''
+	p[0] = Node([], 'add_op: ' + p[1])
 
 def p_mul_op(p):
-    '''mul_op     : MUL
-                    | QUO
-                    | REM
-                    | SHL
-                    | SHR
-                    | AND
-                    | AND_NOT'''
-    p[0] = Node([], 'mul_op: ' + p[1])
+	'''mul_op     : MUL
+					| QUO
+					| REM
+					| SHL
+					| SHR
+					| AND
+					| AND_NOT'''
+	p[0] = Node([], 'mul_op: ' + p[1])
 
 def p_unary_op(p):
-    '''unary_op   : "+"
-                    | "-"
-                    | "!"
-                    | "^"
-                    | "*"
-                    | "&"
-                    | CHAN'''
-    p[0] = Node([], 'unary_op: ' + p[1])
+	'''unary_op   : "+"
+					| "-"
+					| "!"
+					| "^"
+					| "*"
+					| "&"
+					| CHAN'''
+	p[0] = Node([], 'unary_op: ' + p[1])
 
 
 def p_PrimaryExpr(p):
-    '''PrimaryExpr : Operand
-        | PrimaryExpr Selector
-        | PrimaryExpr Index
-        | PrimaryExpr Arguments'''
-    p[0] = Node([p[1]], 'PrimaryExpr')
+	'''PrimaryExpr : Operand
+		| PrimaryExpr Selector
+		| PrimaryExpr Index
+		| PrimaryExpr Arguments'''
+	p[0] = Node([p[1]], 'PrimaryExpr')
 
 
 
@@ -941,109 +946,110 @@ def p_PrimaryExpr(p):
 
 
 def p_Operand(p):
-    '''Operand     : Literal
-                    | OperandName
-                    | MethodExpr
-                    | LPAREN Expression RPAREN'''
-    if p[1] == "(":
-        p[0] = Node([p[2]], 'Operand')
-    else:
-        p[0] = Node([p[1]], 'Operand')
+	'''Operand     : Literal
+					| OperandName
+					| MethodExpr
+					| LPAREN Expression RPAREN'''
+	if p[1] == "(":
+		p[0] = Node([p[2]], 'Operand')
+	else:
+		p[0] = Node([p[1]], 'Operand')
 
 def p_Literal(p):
-    '''Literal     : BasicLit
-                    | FunctionLit'''
-    p[0] = Node([p[1]], 'Literal')
+	'''Literal     : BasicLit
+					| FunctionLit'''
+	p[0] = Node([p[1]], 'Literal')
 
 def p_BasicLit(p):
-    '''BasicLit    : int_lit
-                    | float_lit
-                    | string_lit'''
-    p[0] = Node([p[1]], 'BasicLit')
+	'''BasicLit    : int_lit
+					| float_lit
+					| string_lit'''
+	p[0] = Node([p[1]], 'BasicLit')
 
 
 # 129 to 137 not required
 
 def p_int_lit(p):
-    '''int_lit             : INT'''
-    p[0] = Node([], 'int_lit: ' + p[1])
+	'''int_lit             : INT'''
+	p[0] = Node([], 'int_lit: ' + p[1])
 
 def p_float_lit(p):
-    '''float_lit             : FLOAT'''
-    p[0] = Node([], 'float_lit: ' + p[1])
+	'''float_lit             : FLOAT'''
+	p[0] = Node([], 'float_lit: ' + p[1])
 
 
 def p_string_lit(p):
-    '''string_lit             : STRING'''
-    p[0] = Node([], 'string_lit: '+p[1])
+	'''string_lit             : STRING'''
+	p[0] = Node([], 'string_lit: '+p[1])
 
 def p_OperandName(p):
-    'OperandName :  IDENT'
-    p[0] = Node([], 'identifier: '+p[1])
+	'OperandName :  IDENT'
+	p[0] = Node([], 'identifier: '+p[1])
 
 def p_FunctionLit(p):
-    'FunctionLit : FUNC Function'
-    p[0] = Node([p[2]], 'FunctionLit')
+	'FunctionLit : FUNC Function'
+	p[0] = Node([p[2]], 'FunctionLit')
 
 def p_MethodExpr(p):
-    'MethodExpr : ReceiverType PERIOD MethodName'
-    p[0] = Node([p[1], p[3]], "MethodExpr: .")
+	'MethodExpr : ReceiverType PERIOD MethodName'
+	p[0] = Node([p[1], p[3]], "MethodExpr: .")
 
 def p_MethodName(p):
-    'MethodName : IDENT'
-    p[0] = Node([], "MethodName: "+p[1])
+	'MethodName : IDENT'
+	p[0] = Node([], "MethodName: "+p[1])
 
 def p_ReceiverType(p):
-    '''
-    ReceiverType : TypeName
-                   | LPAREN MUL TypeName RPAREN
-                   | LPAREN ReceiverType RPAREN
-    '''
-    if p[1] == '(':
-        if p[2] == '*':
-            p[0] = Node([p[3]], "ReceiverType: *")
-        else:
-            p[0] = Node([p[2]], "ReceiverType")
-    else:
-        p[0] = Node([p[1]], "RecieverType")
+	'''
+	ReceiverType : TypeName
+				   | LPAREN MUL TypeName RPAREN
+				   | LPAREN ReceiverType RPAREN
+	'''
+	if p[1] == '(':
+		if p[2] == '*':
+			p[0] = Node([p[3]], "ReceiverType: *")
+		else:
+			p[0] = Node([p[2]], "ReceiverType")
+	else:
+		p[0] = Node([p[1]], "RecieverType")
 
 def p_Selector(p):
-    'Selector : PERIOD IDENT'
-    p[0] = Node([], 'indentifier: '+p[2])
+	'Selector : PERIOD IDENT'
+	p[0] = Node([], 'indentifier: '+p[2])
 
 def p_Index(p):
-    'Index : LBRACK Expression RBRACK'
-    p[0] = Node([p[2]], "Index")
+	'Index : LBRACK Expression RBRACK'
+	p[0] = Node([p[2]], "Index")
 
 def p_Arguments(p):
-    'Arguments : LPAREN ArgumentsHead RPAREN'
-    p[0] = Node([p[2]], "Arguments")
+	'Arguments : LPAREN ArgumentsHead RPAREN'
+	p[0] = Node([p[2]], "Arguments")
 
 def p_ArgumentsHead(p):
-    '''ArgumentsHead : empty
-                 | ArgumentsHeadMid tripledotTop commaTop'''
-    if p[1] == "":
-        p[0] = None
-    else:
-        p[0] = Node([p[1], p[2], p[3]], "ArgumentsHead")
+	'''ArgumentsHead : empty
+				 | ArgumentsHeadMid tripledotTop commaTop'''
+	if p[1] == "":
+		p[0] = None
+	else:
+		p[0] = Node([p[1], p[2], p[3]], "ArgumentsHead")
 
 def  p_ArgumentsHeadMid(p):
-    '''ArgumentsHeadMid : ExpressionList
-                        | Type COMMA ExpressionList
-                        | Type'''
-    if p[1].leaf == 'Type':
-        if p[2] == ',':
-            p[0] = Node([p[3]], "ArgumentsHeadMid: ,")
-        else:
-            p[0] = Node([p[1]], "ArgumentsHeadMid")
-    else:
-        p[0] = Node([p[1]], "ArgumentsHeadMid")
+	'''ArgumentsHeadMid : ExpressionList
+						| Type COMMA ExpressionList
+						| Type'''
+	if p[1].leaf == 'Type':
+		if p[2] == ',':
+			p[0] = Node([p[3]], "ArgumentsHeadMid: ,")
+		else:
+			p[0] = Node([p[1]], "ArgumentsHeadMid")
+	else:
+		p[0] = Node([p[1]], "ArgumentsHeadMid")
 
 
 
 def p_empty(p):
-    "empty : "
-    pass
+	"empty : "
+	p[0] = ""
+	pass
 
 
 
@@ -1059,9 +1065,9 @@ def p_empty(p):
 # 	out_file.write(myout)
 
 def p_error(p):
-    print("Error in parsing!")
-    print("Error at: ", p.type)
-    sys.exit()
+	print("Error in parsing!")
+	print("Error at: ", p.type)
+	sys.exit()
 
 # Build lexer
 lexer = lex.lex()
