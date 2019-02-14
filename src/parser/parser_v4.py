@@ -253,7 +253,23 @@ class Node:
 		else:
 			self.children = None
 		self.leaf = leaf
+		self.redundant = False
 
+def preProcess(root):
+	cnt = 0
+	if (root == None) or isinstance(root, str) or root.children == None:
+		return
+	for child in root.children:
+		if child != None:
+			cnt = cnt + 1
+
+	if cnt == 1:
+		root.redundant = True
+	cnt = 0
+	for child in root.children:
+		if child != None:
+			preProcess(child)
+	return root
 
 def gendot(x, parent):
 	global myout
@@ -266,11 +282,14 @@ def gendot(x, parent):
 			continue
 		if isinstance(i,str):
 			myout += str(ctr) + ' [label="' + i.replace('"','') + '"];\n'
-			myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+			if not x.redundant:
+				myout += str(parent) + ' -> ' + str(ctr) + ';\n'
 			ctr += 1
 			continue
 		myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
-		myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+		if not x.redundant:
+			myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+			# print("yo\n")
 		ctr += 1
 		gendot(i, ctr - 1)
 
@@ -297,7 +316,7 @@ def p_start(p):
 	p[0] = Node("start", [p[1]])
 	global ctr
 	global myout
-
+	p[0] = preProcess(p[0])
 	gendot(p[0],ctr-1)
 	out_file.write(myout)
 # -------------------------------------------------------
