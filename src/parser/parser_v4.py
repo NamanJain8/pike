@@ -253,6 +253,37 @@ class Node:
 		else:
 			self.children = None
 		self.leaf = leaf
+		self.parent = 0
+		self.valid = True
+
+def pre(node, parent):
+	if node.children == None:
+		return
+	global ctr
+	for i in node.children:
+		if i == None:
+			continue
+		ctr += 1
+		i.parent = parent		
+		pre(i, ctr - 1)
+	return node
+
+def pre2(node):
+	if node.children == None:
+		return
+	count = 0
+	for i in node.children:
+		if i != None:
+			count += 1
+	if count == 1:
+		node.valid = False
+	for child in node.children:
+		if child != None:
+			if count == 1:
+				child.parent = node.parent
+			pre2(child)
+
+	return node
 
 
 def gendot(x, parent):
@@ -264,15 +295,9 @@ def gendot(x, parent):
 	for i in x.children:
 		if i == None:
 			continue
-		# if isinstance(i,str):
-		# 	print(i)
-		# 	print(myout)
-		# 	myout += str(ctr) + ' [label="' + i.replace('"','') + '"];\n'
-		# 	myout += str(parent) + ' -> ' + str(ctr) + ';\n'
-		# 	ctr += 1
-		# 	continue
-		myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
-		myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+		if i.valid:
+			myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
+			myout += str(i.parent) + ' -> ' + str(ctr) + ';\n'
 		ctr += 1
 		gendot(i, ctr - 1)
 
@@ -296,10 +321,13 @@ precedence = (
 
 def p_start(p):
 	'''start : SourceFile'''
-	p[0] = Node("start", [p[1]])
 	global ctr
 	global myout
+	p[0] = Node("start", [p[1]])
 
+	p[0] = pre(p[0], 0)
+	p[0] = pre2(p[0])
+	ctr = 1
 	gendot(p[0],ctr-1)
 	out_file.write(myout)
 # -------------------------------------------------------
