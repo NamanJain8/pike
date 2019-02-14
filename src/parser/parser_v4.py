@@ -15,7 +15,7 @@ import sys
 # 		  print ("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
 # 		  indent[0] -= 2
 # 	  return tracefunc
-
+#
 # sys.settrace(tracefunc)
 
 
@@ -264,7 +264,7 @@ def pre(node, parent):
 		if i == None:
 			continue
 		ctr += 1
-		i.parent = parent		
+		i.parent = parent
 		pre(i, ctr - 1)
 	return node
 
@@ -411,7 +411,7 @@ def p_struct_type(p):
 	p[1] = Node(p[1])
 	p[2] = Node(p[2])
 	p[4] = Node(p[4])
-	p[0] = Node("StructType", [p[0],p[1],p[2],p[3]])
+	p[0] = Node("StructType", [p[1],p[2],p[3],p[4]])
 
 
 def p_field_decl_rep(p):
@@ -665,7 +665,7 @@ def p_type_spec(p):
 def p_alias_decl(p):
 	'''AliasDecl : IDENT ASSIGN Type'''
 	p[1] = Node(p[1])
-	p[2] = Node(p[2])
+	p[1] = Node(p[2])
 	p[0] = Node("AliasDecl", [p[1],p[2],p[3]])
 # -------------------------------------------------------
 
@@ -1104,7 +1104,7 @@ def p_expression_stmt(p):
 def p_inc_dec(p):
 	''' IncDecStmt : Expression INC
 								   | Expression DEC '''
-	p[1] = Node(p[1])
+	p[2] = Node(p[2])
 	p[0] = Node("IncDecStmt", [p[1], p[2]])
 
 
