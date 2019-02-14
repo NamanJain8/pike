@@ -290,7 +290,7 @@ def p_type(p):
 		p[1] = Node(p[1])
 		p[3] = Node(p[3])
 		p[0] = Node("Type",[p[1],p[2],p[3]])
-	else: 
+	else:
 		p[0] = Node("Type",[p[1]])
 
 
@@ -710,15 +710,17 @@ def p_operand(p):
 					   | OperandName
 					   | LPAREN Expression RPAREN'''
 	if len(p) == 2:
-		p[0] = Node("", [])
+		p[0] = Node("Operand", [p[1]])
 	else:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[2] = Node(p[1])
+		p[0] = Node("Operand", [p[1], p[2], p[3]])
 
 
 def p_literal(p):
 	'''Literal : BasicLit'''
 	# | CompositeLit'''
-	p[0] = Node("", [])
+	p[0] = Node("Literal", [p[1]])
 
 
 def p_basic_lit(p):
@@ -726,85 +728,97 @@ def p_basic_lit(p):
 							| FLOAT
 							| STRING
 							'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("BasicLit", [p[1]])
 
 
 def p_operand_name(p):
 	'''OperandName : IDENT'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("OperandName", [p[1]])
 # ---------------------------------------------------------
 
 
 # -------------------QUALIFIED IDENT----------------
 def p_quali_ident(p):
 	'''QualifiedIdent : IDENT PERIOD TypeName'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
+	p[0] = Node("QualifiedIdent", [p[1], p[2], p[3]])
 # -------------------------------------------------------
 
 
 # -----------------COMPOSITE LITERALS----------------------
 def p_comp_lit(p):
 	'''CompositeLit : LiteralType LiteralValue'''
-	p[0] = Node("", [])
+	p[0] = Node("CompositeLit", [p[1], p[2]])
 
 
 def p_lit_type(p):
 	'''LiteralType : ArrayType
 							   | ElementType
 							   | TypeName'''
-	p[0] = Node("", [])
+	p[0] = Node("LiteralType", [p[1]])
 
 
 def p_lit_val(p):
 	'''LiteralValue : LBRACE ElementListOpt RBRACE'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[3] = Node(p[3])
+	p[0] = Node("LiteralValue", [p[1], p[2], p[3]])
 
 
 def p_elem_list_comma_opt(p):
 	'''ElementListOpt : ElementList
 											   | epsilon'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ElementListOpt", [p[1]])
 
 
 def p_elem_list(p):
 	'''ElementList : KeyedElement KeyedElementCommaRep'''
-	p[0] = Node("", [])
+	p[0] = Node("ElementList", [p[1], p[2]])
 
 
 def p_key_elem_comma_rep(p):
 	'''KeyedElementCommaRep : KeyedElementCommaRep COMMA KeyedElement
 													| epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("KeyedElementCommaRep", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_key_elem(p):
 	'''KeyedElement : Key COLON Element
 									| Element'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("KeyedElement", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("KeyedElement", [p[1]])
 
 
 def p_key(p):
 	'''Key : FieldName
 			   | Expression
 			   | LiteralValue'''
-	p[0] = Node("", [])
+	p[0] = Node("Key", [p[1]])
 
 
 def p_field_name(p):
 	'''FieldName : IDENT'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("FieldName", [p[1]])
 
 
 def p_elem(p):
 	'''Element : Expression
 					   | LiteralValue'''
-	p[0] = Node("", [])
+	p[0] = Node("Element", [p[1]])
 # ---------------------------------------------------------
 
 
@@ -817,46 +831,62 @@ def p_prim_expr(p):
 							   | PrimaryExpr TypeAssertion
 							   | PrimaryExpr Arguments'''
 	if len(p) == 2:
-		p[0] = Node("", [])
+		p[0] = Node("PrimaryExpr", [p[1]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("PrimaryExpr", [p[1], p[2]])
 
 
 def p_selector(p):
 	'''Selector : PERIOD IDENT'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
+	p[0] = Node("Selector", [p[1], p[2]])
 
 
 def p_index(p):
 	'''Index : LBRACK Expression RBRACK'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[3] = NOde(p[3])
+	p[0] = Node("Index", [p[1], p[2], p[3]])
 
 
 def p_slice(p):
 	'''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
 					 | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
 	if len(p) == 6:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[3] = Node(p[3])
+		p[5] = Node(p[5])
+		p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5]])
 	else:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[3] = Node(p[3])
+		p[5] = Node(p[5])
+		p[7] = Node(p[7])
+		p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5], p[6], p[7]])
 
 def p_type_assert(p):
 	'''TypeAssertion : PERIOD LPAREN Type RPAREN'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
+	p[4] = Node(p[4])
+	p[0] = Node("TypeAssertion", [p[1], p[2], p[3], p[4]])
 
 
 def p_argument(p):
 	'''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[3] = Node(p[3])
+	p[0] = Node("Arguments", [p[1], p[2], p[3]])
 
 
 def p_expr_list_type_opt(p):
 	'''ExpressionListTypeOpt : ExpressionList
 													 | epsilon'''
-	if len(p) == 3:
-		p[0] = Node("", [])
+	if len(p) == 2:
+		p[0] = Node("ExpressionListTypeOpt", [p[1]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 # def p_comma_opt(p):
 #    '''CommaOpt : COMMA
@@ -871,9 +901,10 @@ def p_expr_list_comma_opt(p):
 	'''ExpressionListCommaOpt : COMMA ExpressionList
 													  | epsilon'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("ExpressionListCommaOpt", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 # ---------------------------------------------------------
 
 
@@ -882,15 +913,16 @@ def p_expr(p):
 	'''Expression : UnaryExpr
 							  | Expression BinaryOp Expression'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[0] = Node("Expression", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("Expression", [p[1]])
 
 
 def p_expr_opt(p):
 	'''ExpressionOpt : Expression
 									 | epsilon'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("ExpressionOpt", [p[1]])
 
 
 def p_unary_expr(p):
@@ -898,11 +930,12 @@ def p_unary_expr(p):
 							 | UnaryOp UnaryExpr
 							 | NOT UnaryExpr'''
 	if len(p) == 2:
-		p[0] = Node("", [])
+		p[0] = Node("UnaryExpr", [p[1], p[2]])
 	elif p[1] == "!":
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("UnaryExpr", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("UnaryExpr", [p[1]])
 
 
 def p_binary_op(p):
@@ -910,12 +943,11 @@ def p_binary_op(p):
 							| LAND
 							| RelOp
 							| AddMulOp'''
-	if p[1] == "||":
-		p[0] = Node("", [])
-	elif p[1] == "&&":
-		p[0] = Node("", [])
+	if p[1] == "||" or p[1] == "&&":
+		p[1] = Node(p[1])
+		p[0] = Node("BinaryOp", [p[1]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("BinaryOp", [p[1]])
 
 
 def p_rel_op(p):
@@ -925,18 +957,8 @@ def p_rel_op(p):
 					 | GTR
 					 | LEQ
 					 | GEQ'''
-	if p[1] == "==":
-		p[0] = Node("", [])
-	elif p[1] == "!=":
-		p[0] = Node("", [])
-	elif p[1] == "<":
-		p[0] = Node("", [])
-	elif p[1] == ">":
-		p[0] = Node("", [])
-	elif p[1] == "<=":
-		p[0] = Node("", [])
-	elif p[1] == ">=":
-		p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("RelOp", [p[1]])
 
 
 def p_add_mul_op(p):
@@ -947,20 +969,11 @@ def p_add_mul_op(p):
 							| REM
 							| SHL
 							| SHR'''
-	if p[1] == "/":
-		p[0] = Node("", [])
-	elif p[1] == "%":
-		p[0] = Node("", [])
-	elif p[1] == "|":
-		p[0] = Node("", [])
-	elif p[1] == "^":
-		p[0] = Node("", [])
-	elif p[1] == "<<":
-		p[0] = Node("", [])
-	elif p[1] == ">>":
-		p[0] = Node("", [])
+	if p[1] == "/" or p[1] == "%" or p[1] == "|" or p[1] == "^" or p[1] == "<<" or p[1] == ">>":
+		p[1] = Node(p[1])
+		p[0] = Node("AddMulOp", [p[1]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("AddMulOp", [p[1]])
 
 
 def p_unary_op(p):
@@ -968,14 +981,9 @@ def p_unary_op(p):
 					   | SUB
 					   | MUL
 					   | AND '''
-	if p[1] == '+':
-		p[0] = Node("", [])
-	elif p[1] == '-':
-		p[0] = Node("", [])
-	elif p[1] == '*':
-		p[0] = Node("", [])
-	elif p[1] == '&':
-		p[0] = Node("", [])
+	# if p[1] == '+' or p[1] == "-" or p[1] == "*" or p[1] == "&":
+	p[1] == Node(p[1])
+	p[0] = Node("UnaryOp", [p[1]])
 # -------------------------------------------------------
 
 
@@ -999,7 +1007,7 @@ def p_statement(p):
 							 | IfStmt
 							 | SwitchStmt
 							 | ForStmt '''
-	p[0] = Node("", [])
+	p[0] = Node("Statement", [p[1]])
 
 
 def p_simple_stmt(p):
@@ -1008,41 +1016,45 @@ def p_simple_stmt(p):
 								   | IncDecStmt
 								   | Assignment
 								   | ShortVarDecl '''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("SimpleStmt", [p[1]])
 
 
 def p_labeled_statements(p):
 	''' LabeledStmt : Label COLON Statement '''
-	p[0] = Node("", [])
+	p[1] == Node(p[1])
+	p[2] == Node(p[2])
+	p[0] = Node("LabeledStmt", [p[1], p[2], p[3]])
 
 
 def p_label(p):
 	''' Label : IDENT '''
-	p[0] = Node("", [])
+	p[1] == Node(p[1])
+	p[0] = Node("Label", [p[1]])
 
 
 def p_expression_stmt(p):
 	''' ExpressionStmt : Expression '''
-	p[0] = Node("", [])
+	p[0] = Node("ExpressionStmt", [p[1]])
 
 
 def p_inc_dec(p):
 	''' IncDecStmt : Expression INC
 								   | Expression DEC '''
-	if p[2] == '++':
-		p[0] = Node("", [])
-	else:
-		p[0] = Node("", [])
+	p[1] == Node(p[1])
+	p[0] = Node("IncDecStmt", [p[1], p[2]])
 
 
 def p_assignment(p):
 	''' Assignment : ExpressionList assign_op ExpressionList'''
-	p[0] = Node("", [])
+	p[0] = Node("Assignment", [p[1], p[2], p[3]])
 
 
 def p_assign_op(p):
 	''' assign_op : AssignOp'''
-	p[0] = Node("", [])
+	p[0] = Node("assign_op", [p[1]])
 
 
 def p_AssignOp(p):
@@ -1057,21 +1069,23 @@ def p_AssignOp(p):
 							 | SHL_ASSIGN
 							 | SHR_ASSIGN
 							 | ASSIGN '''
-	p[0] = Node("", [])
+	p[0] = Node("AssignOp", [p[1]])
 
 
 def p_if_statement(p):
 	''' IfStmt : IF Expression Block ElseOpt '''
-	p[0] = Node("", [])
+	p[1] == Node(p[1])
+	p[0] = Node("IfStmt", [p[1], p[2], p[3], p[4]])
 
 
 def p_SimpleStmtOpt(p):
 	''' SimpleStmtOpt : SimpleStmt SEMICOLON
 										  | epsilon '''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[2] == Node(p[2])
+		p[0] = Node("SimpleStmtOpt", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_else_opt(p):
@@ -1079,9 +1093,10 @@ def p_else_opt(p):
 							| ELSE Block
 							| epsilon '''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] == Node(p[1])
+		p[0] = Node("ElseOpt", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 # ----------------------------------------------------------------
 
@@ -1342,7 +1357,8 @@ def p_toplevel_decl_rep(p):
 	'''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
 										   | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] == Node(p[3])
+		p[0] = Node("TopLevelDeclRep", [p[1], p[2], p[3]])
 	else:
 		p[0] = None
 # --------------------------------------------------------
@@ -1351,12 +1367,14 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
 	'''PackageClause : PACKAGE PackageName'''
-	p[0] = Node("Package: " + p[2])
+	p[1] == Node(p[1])
+	p[0] = Node("PackageClause", [p[1], p[2]])
 
 
 def p_package_name(p):
 	'''PackageName : IDENT'''
-	p[0] = p[1]
+	p[1] == Node(p[1])
+	p[0] = Node("PackageName", [p[1]])
 # -----------------------------------------------
 
 
@@ -1365,25 +1383,28 @@ def p_import_decl(p):
 	'''ImportDecl : IMPORT ImportSpec
 					| IMPORT LPAREN ImportSpecRep RPAREN '''
 	if len(p) == 3:
-		p[0] = Node("",p[2].children)
+		p[1] == Node(p[1])
+		p[0] = Node("ImportDecl", [p[1], p[2]])
 	else:
-		p[0] = Node("",p[3].children)
+		p[1] == Node(p[1])
+		p[3] == Node(p[2])
+		p[4] == Node(p[4])
+		p[0] = Node("ImportDecl", [p[1], p[2], p[3], p[4]])
 
 
 def p_import_spec_rep(p):
 	''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
 						  | epsilon '''
 	if len(p) == 4:
-		mylist = p[1].children
-		mylist.append(p[2].children)
-		p[0] = Node("",mylist)
+		p[3] = Node(p[3])
+		p[0] = Node("ImportSpecRep", [p[1], p[2], p[3]])
 	else:
 		p[0] = None
 
 
 def p_import_spec(p):
 	''' ImportSpec : PackageNameDotOpt ImportPath '''
-	p[0] = Node("",[p[2]])
+	p[0] = Node("ImportSpec", [p[1], p[2]])
 
 
 def p_package_name_dot_opt(p):
@@ -1391,14 +1412,18 @@ def p_package_name_dot_opt(p):
 												  | PackageName
 												  | epsilon'''
 	if p[1] == '.':
-		p[0] =
+		p[1] == Node(p[1])
+		p[0] = Node("PackageNameDotOpt", [p[1]])
+	elif p[1] == "epsilon":
+		p[0] = None
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("PackageNameDotOpt", [p[1]])
 
 
 def p_import_path(p):
 	''' ImportPath : STRING '''
-	p[0] = Node(p[1])
+	p[1] == Node(p[1])
+	p[0] = Node("ImportPath", [p[1]])
 # -------------------------------------------------------
 
 
