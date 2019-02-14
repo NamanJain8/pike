@@ -395,42 +395,51 @@ def p_Tag(p):
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
 	'''PointerType : MUL BaseType'''
-	p[0] = Node("", [])
+	p[1] = Node("*")
+	p[0] = Node("PointerType", [p[1], p[2]])
 
 
 def p_base_type(p):
 	'''BaseType : Type'''
-	p[0] = Node("", [])
+	p[0] = Node("BaseType", [p[1]])
 # ---------------------------------------------------------
 
 
 # ---------------FUNCTION TYPES----------------------------
 def p_sign(p):
 	'''Signature : Parameters ResultOpt'''
-	p[0] = Node("", [])
+	p[0] = Node("Signature", [p[1], p[2]])
 
 
 def p_result_opt(p):
 	'''ResultOpt : Result
 							 | epsilon'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ResultTop", [p[1]])
 
 
 def p_result(p):
 	'''Result : Parameters
 					  | Type'''
-	p[0] = Node("", [])
+	p[0] = Node("Result", [p[1]])
 
 
 def p_params(p):
 	'''Parameters : LPAREN ParameterListOpt RPAREN'''
-	p[0] = Node("", [])
+	p[1] = Node("(")
+	p[3] = Node(")")
+	p[0] = Node("Parameters", [p[1], p[2], p[3]])
 
 
 def p_param_list_opt(p):
 	'''ParameterListOpt : ParametersList
 													 | epsilon'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("ParameterListOpt", [p[1]])
 
 
 def p_param_list(p):
@@ -438,45 +447,49 @@ def p_param_list(p):
 									  | IdentifierList Type
 									  | ParameterDeclCommaRep'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[0] = Node("ParameterList", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("ParameterList", [p[0]])
 
 
 def p_param_decl_comma_rep(p):
 	'''ParameterDeclCommaRep : ParameterDeclCommaRep COMMA ParameterDecl
 													 | ParameterDecl COMMA ParameterDecl'''
-	p[0] = Node("", [])
+	p[2] = Node(",")
+	p[0] = Node("ParameterDeclCommaRep", [p[1], p[2], p[3]])
 
 
 def p_param_decl(p):
 	'''ParameterDecl : IdentifierList Type
 									 | Type'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[0] = Node("ParameterDecl", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("ParameterDecl", [p[1]])
 # ---------------------------------------------------------
 
 
 # -----------------------BLOCKS---------------------------
 def p_block(p):
 	'''Block : LBRACE StatementList RBRACE'''
-	p[0] = Node("", [])
+	p[1] = Node("{")
+	p[3] = Node("}")
+	p[0] = Node("Block", [p[1], p[2], p[3]])
 
 
 def p_stat_list(p):
 	'''StatementList : StatementRep'''
-	p[0] = Node("", [])
+	p[0] = Node("StatementList", [p[1]])
 
 
 def p_stat_rep(p):
 	'''StatementRep : StatementRep Statement SEMICOLON
 									| epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] = Node(";")
+		p[0] = Node("StatementRep", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 # -------------------------------------------------------
 
 
@@ -485,13 +498,13 @@ def p_decl(p):
 	'''Declaration : ConstDecl
 								   | TypeDecl
 								   | VarDecl'''
-	p[0] = Node("", [])
+	p[0] = Node("Declaration", [p[1]])
 
 
 def p_toplevel_decl(p):
 	'''TopLevelDecl : Declaration
 									| FunctionDecl'''
-	p[0] = Node("", [])
+	p[0] = Node("TopLevelDecl", [p[1]])
 # -------------------------------------------------------
 
 
@@ -499,61 +512,70 @@ def p_toplevel_decl(p):
 def p_const_decl(p):
 	'''ConstDecl : CONST ConstSpec
 							 | CONST LPAREN ConstSpecRep RPAREN'''
+	p[1] = Node(p[1])
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[0] = Node("ConstDecl", [p[1], p[2]])
 	else:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[3] = Node(p[3])
+		p[0] = Node("ConstDecl", [p[1], p[2], p[3], p[4]])
 
 
 def p_const_spec_rep(p):
 	'''ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
 									| epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] = Node(p[3])
+		p[0] = Node("ConstSpecRep", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_const_spec(p):
 	'''ConstSpec : IdentifierList TypeExprListOpt'''
-	p[0] = Node("", [])
+	p[0] = Node("ConstSpec", [p[1], p[2]])
 
 
 def p_type_expr_list(p):
 	'''TypeExprListOpt : TypeOpt ASSIGN ExpressionList
 									   | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("TypeExprListOpt", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_identifier_list(p):
 	'''IdentifierList : IDENT IdentifierRep'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("IdentifierList", [p[1], p[2]])
 
 
 def p_identifier_rep(p):
 	'''IdentifierRep : IdentifierRep COMMA IDENT
 									 | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[3] = Node(p[3])
+		p[0] = Node("IdentifierRep", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_expr_list(p):
 	'''ExpressionList : Expression ExpressionRep'''
-	p[0] = Node("", [])
+	p[0] = Node("ExpressionList", [p[1], p[2]])
 
 
 def p_expr_rep(p):
 	'''ExpressionRep : ExpressionRep COMMA Expression
 									 | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("ExpressionRep", [p[1], p[2], p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 # -------------------------------------------------------
 
 
@@ -1336,7 +1358,7 @@ def p_package_name_dot_opt(p):
 												  | PackageName
 												  | epsilon'''
 	if p[1] == '.':
-		p[0] = 
+		p[0] =
 	else:
 		p[0] = Node("", [])
 
