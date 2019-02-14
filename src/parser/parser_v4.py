@@ -8,15 +8,14 @@ import sys
 ## uncomment this for debugging
 
 # def tracefunc(frame, event, arg, indent=[0]):
-# 	  if
-#       if event == "call":
-#           indent[0] += 2
-#           print ("-" * indent[0] + "> call function", frame.f_code.co_name)
-#       elif event == "return":
-#           print ("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
-#           indent[0] -= 2
-#       return tracefunc
-
+# 	  if event == "call":
+# 		  indent[0] += 2
+# 		  print ("-" * indent[0] + "> call function", frame.f_code.co_name)
+# 	  elif event == "return":
+# 		  print ("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
+# 		  indent[0] -= 2
+# 	  return tracefunc
+#
 # sys.settrace(tracefunc)
 
 
@@ -58,7 +57,8 @@ reserved = {
 	'float': 'FLOAT',
 	'string': 'STRING',
 	'bool': 'BOOL',
-	'complex': 'COMPLEX'
+	'complex': 'COMPLEX',
+	'typecast': 'TYPECAST'
 }
 
 
@@ -247,7 +247,7 @@ myout = ""
 
 
 class Node:
-	def __init__(self, leaf=None, children=None):
+	def __init__(self, leaf="", children=[]):
 		if children:
 			self.children = children
 		else:
@@ -265,7 +265,9 @@ def gendot(x, parent):
 		if i == None:
 			continue
 		if isinstance(i,str):
-			print(i)
+			myout += str(ctr) + ' [label="' + i.replace('"','') + '"];\n'
+			myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+			ctr += 1
 			continue
 		myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
 		myout += str(parent) + ' -> ' + str(ctr) + ';\n'
@@ -848,6 +850,7 @@ def p_elem(p):
 def p_prim_expr(p):
 	'''PrimaryExpr : Operand
 							   | PrimaryExpr Selector
+							   | Conversion
 							   | PrimaryExpr Index
 							   | PrimaryExpr Slice
 							   | PrimaryExpr TypeAssertion
@@ -1013,9 +1016,12 @@ def p_unary_op(p):
 
 
 # -----------------CONVERSIONS-----------------------------
-# def p_conversion(p):
-#     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
-#     p[0] = Node("", [])
+def p_conversion(p):
+	'''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
+	p[1] = Node(p[1])
+	p[3] = Node(p[3])
+	p[5] = Node(p[5])
+	p[0] = Node("Conversion", [p[1], p[2], p[3], p[4], p[5]])
 # ---------------------------------------------------------
 
 
@@ -1392,7 +1398,7 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
 	'''PackageClause : PACKAGE PackageName'''
-	p[1] == Node(p[1])
+	p[1] == Node(p[1], [])
 	p[0] = Node("PackageClause", [p[1], p[2]])
 
 
