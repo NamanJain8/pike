@@ -1,10 +1,245 @@
+from ply import lex
+from ply.lex import TOKEN
 import ply.yacc as yacc
+import json
+import argparse
 import sys
-import os
-# from lexer import tokens, data
-from lexer import *
-from pprint import pprint
 
+"""
+CITE:
+  Most of the token definations are taken from documentation
+  of golang(go docs), and some from the token (go/token)
+  package of golang: https://golang.org/src/go/token/token.go
+"""
+
+# reserved words in language
+reserved = {
+  'break'        :    'BREAK',
+  'default'      :    'DEFAULT',
+  'select'       :    'SELECT',
+  'func'         :    'FUNC',
+  'case'         :    'CASE',
+  'interface'    :    'INTERFACE',
+  'defer'        :    'DEFER',
+  'go'           :    'GO',
+  'struct'       :    'STRUCT',
+  'goto'         :    'GOTO',
+  'chan'         :    'CHAN',
+  'else'         :    'ELSE',
+  'map'          :    'MAP',
+  'fallthrough'  :    'FALLTHROUGH',
+  'package'      :    'PACKAGE',
+  'switch'       :    'SWITCH',
+  'const'        :    'CONST',
+  'range'        :    'RANGE',
+  'type'         :    'TYPE',
+  'if'           :    'IF',
+  'continue'     :    'CONTINUE',
+  'return'       :    'RETURN',
+  'for'          :    'FOR',
+  'import'       :    'IMPORT',
+  'var'          :    'VAR',
+}
+
+
+# token list (compulsary)
+tokens = [
+  # literals
+  'IDENT',            # main
+  'INT',              # 123
+  'FLOAT',            # 123.4
+  'IMAG',             # 123.4i
+  'CHAR',             # 'a'
+  'STRING',           # "abc"
+
+  # operator
+  'ADD',              # +
+  'SUB',              # -
+  'MUL',              # *
+  'QUO',              # /
+  'REM',              # %
+
+  'ADD_ASSIGN',       # +=
+  'SUB_ASSIGN',       # -=
+  'MUL_ASSIGN',       # *=
+  'QUO_ASSIGN',       # %=
+  'REM_ASSIGN',       # %=
+
+  # bitwise operators
+  'AND',              # &
+  'OR',               # |
+  'XOR',              # ^
+  'SHL',              # <<
+  'SHR',              # >>
+  'AND_NOT',          # &^
+
+  'AND_ASSIGN',       # &=
+  'OR_ASSIGN',        # |=
+  'XOR_ASSIGN',       # ^=
+  'SHL_ASSIGN',       # <<=
+  'SHR_ASSIGN',       # >>=
+  'AND_NOT_ASSIGN',   # &^=
+
+  'LAND',             # &&
+  'LOR',              # ||
+  'ARROW',            # <-
+  'INC',              # ++
+  'DEC',              # --
+
+  'EQL',              # ==
+  'LSS',              # <
+  'GTR',              # >
+  'ASSIGN',           # =
+  'NOT',              # !
+
+  'NEQ',              # !=
+  'LEQ',              # <=
+  'GEQ',              # >=
+  'DEFINE',           # :=
+  'ELLIPSIS',         # ...
+
+  'LPAREN',           # (
+  'LBRACK',           # [
+  'LBRACE',           # {
+  'COMMA',            # ,
+  'PERIOD',           # .
+
+  'RPAREN',           # )
+  'RBRACK',           # ]
+  'RBRACE',           # }
+  'SEMICOLON',        # ;
+  'COLON',            # :
+
+] + list(reserved.values())
+
+# Mathematical operators
+t_ADD   = r"\+"
+t_SUB   = r"-"
+t_MUL   = r"\*"
+t_QUO   = r"/"
+t_REM   = r"%"
+
+t_ADD_ASSIGN    = r"\+="
+t_SUB_ASSIGN    = r"-="
+t_MUL_ASSIGN    = r"\*="
+t_QUO_ASSIGN    = r"/="
+t_REM_ASSIGN    = r"%="
+
+# bitwise operators
+t_AND   = r"&"
+t_OR    = r"\|"
+t_XOR   = r"\^"
+t_SHL   = r"<<"
+t_SHR   = r">>"
+t_AND_NOT   = r"&\^"
+
+AND_ASSIGN  = r"&="
+OR_ASSIGN   = r"!="
+XOR_ASSIGN  = r"\^="
+SHL_ASSIGN  = r"<<="
+SHR_ASSIGN  = r">>="
+AND_NOT_ASSIGN  = r"&\^="
+
+t_LAND  = r"&&"
+t_LOR   = r"\|\|"
+t_ARROW = r"<-"
+t_INC   = r"\+\+"
+t_DEC   = r"--"
+
+t_EQL   = r"=="
+t_LSS   = r"<"
+t_GTR   = r">"
+t_ASSIGN    = r"="
+t_NOT   = "!"
+
+t_NEQ   = r"!="
+t_LEQ   = r"<="
+t_GEQ   = r">="
+t_DEFINE    = r":="
+t_ELLIPSIS  = r"\.\.\."
+
+t_LPAREN    = r"\("
+t_LBRACKK    = r"\["
+t_LBRACKE    = r"\{"
+t_COMMA     = r","
+t_PERIOD    = r"\."
+
+t_RPAREN    = r"\)"
+t_RBRACK    = r"\]"
+t_RBRACE    = r"\}"
+t_SEMICOLON = r";"
+t_COLON     = r":"
+
+letter = r"[_A-Za-z]"
+decimal_digit   = r"[0-9]"
+octal_digit = r"[0-7]"
+hexa_digit  = r"[0-9a-fA-F]"
+
+identifier = letter + r"(" + letter + r"|" + decimal_digit + r")*"
+
+octal_literal = r"0[0-7]*"
+hexa_literal = r"0[xX][0-9a-fA-F]+"
+decimal_literal = r"[1-9][0-9]*"
+t_INT   = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
+
+decimals = decimal_digit + r"(" + decimal_digit + r")*"
+exponent = r"(e|E)" + r"(\+|-)?" + decimals
+t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
+
+t_IMAG  = r"(" + decimals + r"|" + t_FLOAT + r")" + r"i"
+
+t_ignore = " \t"
+
+# t_STRING = r"\"[.]+\""
+ctr = 1
+# Definig functions for each token
+
+@TOKEN(identifier)
+def t_IDENT(t):
+  t.type = reserved.get(t.value,"IDENT")
+  return t
+
+def t_NL(t):
+  r"\n+"
+  t.lexer.lineno += len(t.value)
+  pass
+
+def t_COMMENT(t):
+  r"(//.*)|(/\*(.|\n)*?)\*/"
+  pass
+
+def t_STRING(t):
+  r"(\"(.|\n)*?)\""
+  return t
+
+def t_error(t):
+  print("[ERROR] Invalid token:",t.value[0])
+  t.lexer.skip(1) #skip ahead 1 character
+
+
+myout = ""
+
+class Node:
+  def __init__(self, children=None, leaf=None):
+    if children:
+      self.children = children
+    else:
+      self.children = None
+    self.leaf = leaf
+
+def gendot(x, parent):
+  global myout
+  global ctr
+
+  if x.children == None:
+    return
+  for i in x.children:
+    if i == None:
+      continue
+    myout += str(ctr) + ' [label="' + i.leaf + '"];\n'
+    myout += str(parent) +  ' -> ' + str(ctr) + ';\n'
+    ctr += 1
+    gendot(i,ctr-1)
 
 precedence = (
     ('right','ASSIGN', 'NOT'),
@@ -16,7 +251,7 @@ precedence = (
     ('left', 'EQL', 'NEQ'),
     ('left', 'LSS', 'GTR','LEQ','GEQ'),
     ('left', 'SHL', 'SHR'),
-    ('left', 'PLUS', 'SUB'),
+    ('left', 'ADD', 'SUB'),
     ('left', 'MUL', 'QUO','REM'),
 )
 
@@ -43,13 +278,10 @@ def p_type_name(p):
     p[0] = ["TypeName", p[1]]
 
 def p_type_token(p):
-    '''TypeToken : INT_T
-                 | FLOAT_T
-                 | UINT_T
-                 | COMPLEX_T
-                 | RUNE_T
-                 | BOOL_T
-                 | STRING_T
+    '''TypeToken : INT
+                 | FLOAT
+                 | IMAG
+                 | STRING
                  | TYPE IDENT'''
     if len(p) == 2:
         p[0] = ["TypeToken", p[1]]
@@ -74,7 +306,7 @@ def p_type_opt(p):
 
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
-  '''ArrayType : LSQUARE ArrayLength RSQUARE ElementType'''
+  '''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
   p[0] = ["ArrayType", "[", p[2], "]", p[4]]
 
 def p_array_length(p):
@@ -90,7 +322,7 @@ def p_element_type(p):
 
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
-  '''StructType : STRUCT LCURL FieldDeclRep RCURL'''
+  '''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
   p[0] = ["StructType", "struct", "{", p[3], "}"]
 
 def p_field_decl_rep(p):
@@ -177,7 +409,7 @@ def p_param_decl(p):
 
 #-----------------------BLOCKS---------------------------
 def p_block(p):
-    '''Block : LCURL StatementList RCURL'''
+    '''Block : LBRACE StatementList RBRACE'''
     p[0] = ["Blocks", "{" , p[2], "}"]
 
 def p_stat_list(p):
@@ -335,7 +567,7 @@ def p_expr_list_opt(p):
 
 # ----------------SHORT VARIABLE DECLARATIONS-------------
 def p_short_var_decl(p):
-  ''' ShortVarDecl : IDENT QUICK_ASSIGN Expression '''
+  ''' ShortVarDecl : IDENT DEFINE Expression '''
   p[0] = ["ShortVarDecl", p[1], ":=", p[3]]
 # -------------------------------------------------------
 
@@ -377,13 +609,10 @@ def p_literal(p):
     p[0] = ["Literal", p[1]]
 
 def p_basic_lit(p):
-    '''BasicLit : INTEGER
-                | OCTAL
-                | HEX
+    '''BasicLit : INT
                 | FLOAT
-                | IMAGINARY
-                | RUNE
-                | STRING'''
+                | STRING
+                '''
     p[0] = ["BasicLit",str(p[1])]
 
 def p_operand_name(p):
@@ -394,7 +623,7 @@ def p_operand_name(p):
 
 # -------------------QUALIFIED IDENT----------------
 def p_quali_ident(p):
-    '''QualifiedIdent : IDENT DOT TypeName'''
+    '''QualifiedIdent : IDENT PERIOD TypeName'''
     p[0] = ["QualifiedIdent", p[1], ".", p[3]]
 # -------------------------------------------------------
 
@@ -411,7 +640,7 @@ def p_lit_type(p):
     p[0] = ["LiteralType", p[1]]
 
 def p_lit_val(p):
-    '''LiteralValue : LCURL ElementListOpt RCURL'''
+    '''LiteralValue : LBRACE ElementListOpt RBRACE'''
     p[0] = ["LiteralValue", "{", p[2], "}"]
 
 def p_elem_list_comma_opt(p):
@@ -460,7 +689,6 @@ def p_elem(p):
 def p_prim_expr(p):
     '''PrimaryExpr : Operand
                    | PrimaryExpr Selector
-                   | Conversion
                    | PrimaryExpr Index
                    | PrimaryExpr Slice
                    | PrimaryExpr TypeAssertion
@@ -471,23 +699,23 @@ def p_prim_expr(p):
         p[0] = ["PrimaryExpr", p[1], p[2]]
 
 def p_selector(p):
-    '''Selector : DOT IDENT'''
+    '''Selector : PERIOD IDENT'''
     p[0] = ["Selector", ".", p[2]]
 
 def p_index(p):
-    '''Index : LSQUARE Expression RSQUARE'''
+    '''Index : LBRACK Expression RBRACK'''
     p[0] = ["Index", "[", p[2], "]"]
 
 def p_slice(p):
-    '''Slice : LSQUARE ExpressionOpt COLON ExpressionOpt RSQUARE
-             | LSQUARE ExpressionOpt COLON Expression COLON Expression RSQUARE'''
+    '''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
+             | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
     if len(p) == 6:
         p[0] = ["Slice", "[", p[2], ":", p[4], "]"]
     else:
         p[0] = ["Slice", "[", p[2], ":", p[4], ":", p[6], "]"]
 
 def p_type_assert(p):
-    '''TypeAssertion : DOT LPAREN Type RPAREN'''
+    '''TypeAssertion : PERIOD LPAREN Type RPAREN'''
     p[0] = ["TypeAssertion", ".", "(", p[3], ")"]
 
 def p_argument(p):
@@ -601,7 +829,7 @@ def p_add_mul_op(p):
         p[0] = ["AddMulOp", p[1]]
 
 def p_unary_op(p):
-    '''UnaryOp : PLUS
+    '''UnaryOp : ADD
                | SUB
                | MUL
                | AND '''
@@ -619,9 +847,9 @@ def p_unary_op(p):
 
 
 # -----------------CONVERSIONS-----------------------------
-def p_conversion(p):
-    '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
-    p[0] = ["Conversion", p[1], p[2],  "(", p[4], ")"]
+# def p_conversion(p):
+#     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
+#     p[0] = ["Conversion", p[1], p[2],  "(", p[4], ")"]
 # ---------------------------------------------------------
 
 
@@ -669,8 +897,8 @@ def p_expression_stmt(p):
   p[0] = ["ExpressionStmt", p[1]]
 
 def p_inc_dec(p):
-  ''' IncDecStmt : Expression INCR
-                 | Expression DECR '''
+  ''' IncDecStmt : Expression INC
+                 | Expression DEC '''
   if p[2] == '++':
     p[0] = ["IncDecStmt", p[1], "++"]
   else:
@@ -686,7 +914,7 @@ def p_assign_op(p):
   p[0] = ["assign_op", p[1]]
 
 def p_AssignOp(p):
-  ''' AssignOp : PLUS_ASSIGN
+  ''' AssignOp : ADD_ASSIGN
                | SUB_ASSIGN
                | MUL_ASSIGN
                | QUO_ASSIGN
@@ -736,7 +964,7 @@ def p_switch_statement(p):
 
 
 def p_expr_switch_stmt(p):
-  ''' ExprSwitchStmt : SWITCH ExpressionOpt LCURL ExprCaseClauseRep RCURL'''
+  ''' ExprSwitchStmt : SWITCH ExpressionOpt LBRACE ExprCaseClauseRep RBRACE'''
   p[0] = ["ExpressionStmt", "switch", p[2], p[3], "{", p[5], "}"]
 
 def p_expr_case_clause_rep(p):
@@ -760,17 +988,17 @@ def p_expr_switch_case(p):
     p[0] = ["ExprSwitchCase", p[1]]
 
 def p_type_switch_stmt(p):
-  ''' TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LCURL TypeCaseClauseOpt RCURL'''
+  ''' TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LBRACE TypeCaseClauseOpt RBRACE'''
   p[0] = ["TypeSwitchStmt", "switch", p[2], p[3],"{", p[5], "}"]
 
 
 def p_type_switch_guard(p):
-  ''' TypeSwitchGuard : IdentifierOpt PrimaryExpr DOT LPAREN TYPE RPAREN '''
+  ''' TypeSwitchGuard : IdentifierOpt PrimaryExpr PERIOD LPAREN TYPE RPAREN '''
 
   p[0] = ["TypeSwitchGuard", p[1], p[2], ".", "(", "type", ")"]
 
 def p_identifier_opt(p):
-  ''' IdentifierOpt : IDENT QUICK_ASSIGN
+  ''' IdentifierOpt : IDENT DEFINE
                     | epsilon '''
 
   if len(p) == 3:
@@ -963,7 +1191,7 @@ def p_import_spec(p):
   p[0] = ["ImportSpec", p[1], p[2]]
 
 def p_package_name_dot_opt(p):
-  ''' PackageNameDotOpt : DOT
+  ''' PackageNameDotOpt : PERIOD
                         | PackageName
                         | epsilon'''
   if p[1]== '.':
@@ -996,7 +1224,7 @@ def p_empty(p):
 #   p[0] = ['start', p[1]]
 
 # def p_expression_plus(p):
-#     '''expression : expression PLUS term
+#     '''expression : expression ADD term
 #                   | expression SUB term'''
 #     if p[2] == '+':
 #         # p[0] = "<expr>" + p[1] + "</expr> + " + p[3]
@@ -1111,7 +1339,7 @@ def printResult(graph, prev, after):
           toFindNT[kk] = "<b style='color:red'>" + toFindNT[kk] + "</b>"
           break
     final = ' '.join(toFindNT)
-    print  final + "<br/>"
+    print(final + "<br/>")
 
 
 
@@ -1167,10 +1395,10 @@ toFindNonTerminals(result)
 # print nonTerminals
 file_name = file_name.split("/")[-1].split(".")[0] + ".html"
 sys.stdout = open(file_name, "w+")
-print "<!DOCTYPE html>\
-<html><head>"
-print "<b style='color:red'>Start</b><br>"
+print("<!DOCTYPE html>\
+<html><head>")
+print("<b style='color:red'>Start</b><br>")
 
 
 printResult(result, "" , "")
-print "</head></html>"
+print("</head></html>")
