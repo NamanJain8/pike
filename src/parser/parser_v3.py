@@ -241,6 +241,27 @@ def gendot(x, parent):
         ctr += 1
         gendot(i,ctr-1)
 
+precedence = (
+    ('right','ASSIGN', 'NOT'),
+    ('left', 'LOR'),
+    ('left', 'LAND'),
+    ('left', 'OR'),
+    ('left', 'XOR'),
+    ('left', 'AND'),
+    ('left', 'EQL', 'NEQ'),
+    ('left', 'LSS', 'GTR','LEQ','GEQ'),
+    ('left', 'SHL', 'SHR'),
+    ('left', 'ADD', 'SUB'),
+    ('left', 'MUL', 'QUO','REM'),
+)
+
+
+def p_start(p):
+	''' start : SourceFile '''
+	p[0] = Node([p[1]],'sourceFile')
+
+
+###   Source file #####
 
 def p_SourceFile(p):
     'SourceFile : PackageClause SEMICOLON ImportDeclList TopLevelDeclList '
@@ -262,12 +283,16 @@ def p_TopLevelDecList(p):
     else:
         p[0] = Node([p[1],p[2]], 'TopLevelDecl')
 
+### -------------------------------------------------
 
 
+# ---------- PACKAGE CLAUSE --------------------
 
 def p_PackageClause(p):
     'PackageClause  : PACKAGE IDENT'
     p[0] = Node([],'package: ' + p[1] )
+
+# -----------------------------------------------
 
 def p_TopLevelDecl(p):
     '''TopLevelDecl  : Declaration
@@ -276,6 +301,7 @@ def p_TopLevelDecl(p):
     p[0] = Node([p[1]], 'TopLevelDecl')
 
 
+# --------- IMPORT DECLARATIONS ---------------
 
 def p_ImportDecl(p):
     'ImportDecl  : IMPORT ImportSpecTopList'
@@ -315,7 +341,10 @@ def p_ImportPath(t):
     'ImportPath  : STRING '
     p[0] = Node([],"ImportPath: " + p[1])
 
+# -------------------------------------------------------
 
+
+#-----------------------BLOCKS---------------------------
 
 def p_Block(p):
     'Block : LBRACE StatementList RBRACE'
@@ -338,7 +367,7 @@ def p_Statement(p):
                 | SwitchStmt
                 | ForStmt '''
     p[0] = Node([p[1]], 'Statement')
-
+# -------------------------------------------------------
 
 
 def p_Declaration(p):
@@ -388,10 +417,6 @@ def p_TypeTop(p):
         p[0] = None
     else:
         p[0] = Node(p[1],'TypeTop')
-
-
-
-
 
 
 
@@ -469,6 +494,7 @@ def p_TypeDef(p):
 
 
 
+# -----------------------TYPES---------------------------
 
 def p_Type(p):
     '''Type : TypeName
