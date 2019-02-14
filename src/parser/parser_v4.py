@@ -584,36 +584,44 @@ def p_type_decl(p):
 	'''TypeDecl : TYPE TypeSpec
 							| TYPE LPAREN TypeSpecRep RPAREN'''
 	if len(p) == 5:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[2] = Node(p[2])
+		p[4] = Node(p[4])
+		p[0] = Node("TypeDecl", [p[1],p[2],p[3],p[4]])
 	else:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("TypeDecl", [p[1],p[2]])
 
 
 def p_type_spec_rep(p):
 	'''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
 							   | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] = Node(p[3])
+		p[0] = Node("TypeSpecRep", [p[1],p[2],p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_type_spec(p):
 	'''TypeSpec : AliasDecl
 							| TypeDef'''
-	p[0] = Node("", [])
+	p[0] = Node("AliasDecl", [p[1]])
 
 
 def p_alias_decl(p):
 	'''AliasDecl : IDENT ASSIGN Type'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[1] = Node(p[2])
+	p[0] = Node("AliasDecl", [p[1],p[2],p[3]])
 # -------------------------------------------------------
 
 
 # -------------------TYPE DEFINITIONS--------------------
 def p_type_def(p):
 	'''TypeDef : IDENT Type'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("TypeDef", [p[1],p[2]])
 # -------------------------------------------------------
 
 
@@ -622,43 +630,52 @@ def p_var_decl(p):
 	'''VarDecl : VAR VarSpec
 					   | VAR LPAREN VarSpecRep RPAREN'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("VarDecl", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[2] = Node(p[2])
+		p[4] = Node(p[4])
+		p[0] = Node("VarDecl", [p[1],p[2],p[3],p[4]])
 
 
 def p_var_spec_rep(p):
 	'''VarSpecRep : VarSpecRep VarSpec SEMICOLON
 							  | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] = Node(p[3])
+		p[0] = Node("VarSpecRep", [p[1],p[2],p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_var_spec(p):
 	'''VarSpec : IdentifierList Type ExpressionListOpt
 					   | IdentifierList ASSIGN ExpressionList'''
 	if p[2] == '=':
-		p[0] = Node("", [])
+		p[2] = Node(p[2])
+		p[0] = Node("VarSpec", [p[1],p[2],p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("VarSpec", [p[1],p[2],p[3]])
 
 
 def p_expr_list_opt(p):
 	'''ExpressionListOpt : ASSIGN ExpressionList
 											 | epsilon'''
 	if len(p) == 3:
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("ExpressionListOpt", [p[1],p[2]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 # -------------------------------------------------------
 
 
 # ----------------SHORT VARIABLE DECLARATIONS-------------
 def p_short_var_decl(p):
 	''' ShortVarDecl : IDENT DEFINE Expression '''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
+	p[0] = Node("ShortVarDecl", [p[1],p[2],p[3]])
 # -------------------------------------------------------
 
 
@@ -666,22 +683,24 @@ def p_short_var_decl(p):
 def p_func_decl(p):
 	'''FunctionDecl : FUNC FunctionName Function
 									| FUNC FunctionName Signature'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("FunctionDecl", [p[1],p[2],p[3]])
 
 
 def p_func_name(p):
 	'''FunctionName : IDENT'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("FunctionName", [p[1]])
 
 
 def p_func(p):
 	'''Function : Signature FunctionBody'''
-	p[0] = Node("", [])
+	p[0] = Node("Function", [p[1],p[2]])
 
 
 def p_func_body(p):
 	'''FunctionBody : Block'''
-	p[0] = Node("", [])
+	p[0] = Node("FunctionBody", [p[1]])
 # -------------------------------------------------------
 
 
