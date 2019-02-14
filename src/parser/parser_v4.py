@@ -1324,7 +1324,8 @@ def p_toplevel_decl_rep(p):
 	'''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
 										   | epsilon'''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] == Node(p[3])
+		p[0] = Node("TopLevelDeclRep", [p[1], p[2], p[3]])
 	else:
 		p[0] = None
 # --------------------------------------------------------
@@ -1333,12 +1334,14 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
 	'''PackageClause : PACKAGE PackageName'''
-	p[0] = Node("Package: " + p[2])
+	p[1] == Node(p[1])
+	p[0] = Node("PackageClause", [p[1], p[2]])
 
 
 def p_package_name(p):
 	'''PackageName : IDENT'''
-	p[0] = p[1]
+	p[1] == Node(p[1])
+	p[0] = Node("PackageName", [p[1]])
 # -----------------------------------------------
 
 
@@ -1347,25 +1350,28 @@ def p_import_decl(p):
 	'''ImportDecl : IMPORT ImportSpec
 					| IMPORT LPAREN ImportSpecRep RPAREN '''
 	if len(p) == 3:
-		p[0] = Node("",p[2].children)
+		p[1] == Node(p[1])
+		p[0] = Node("ImportDecl", [p[1], p[2]])
 	else:
-		p[0] = Node("",p[3].children)
+		p[1] == Node(p[1])
+		p[3] == Node(p[2])
+		p[4] == Node(p[4])
+		p[0] = Node("ImportDecl", [p[1], p[2], p[3], p[4]])
 
 
 def p_import_spec_rep(p):
 	''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
 						  | epsilon '''
 	if len(p) == 4:
-		mylist = p[1].children
-		mylist.append(p[2].children)
-		p[0] = Node("",mylist)
+		p[3] = Node(p[3])
+		p[0] = Node("ImportSpecRep", [p[1], p[2], p[3]])
 	else:
 		p[0] = None
 
 
 def p_import_spec(p):
 	''' ImportSpec : PackageNameDotOpt ImportPath '''
-	p[0] = Node("",[p[2]])
+	p[0] = Node("ImportSpec", [p[1], p[2]])
 
 
 def p_package_name_dot_opt(p):
@@ -1373,14 +1379,18 @@ def p_package_name_dot_opt(p):
 												  | PackageName
 												  | epsilon'''
 	if p[1] == '.':
-		p[0] =
+		p[1] == Node(p[1])
+		p[0] = Node("PackageNameDotOpt", [p[1]])
+	elif p[1] == "epsilon":
+		p[0] = None
 	else:
-		p[0] = Node("", [])
+		p[0] = Node("PackageNameDotOpt", [p[1]])
 
 
 def p_import_path(p):
 	''' ImportPath : STRING '''
-	p[0] = Node(p[1])
+	p[1] == Node(p[1])
+	p[0] = Node("ImportPath", [p[1]])
 # -------------------------------------------------------
 
 
