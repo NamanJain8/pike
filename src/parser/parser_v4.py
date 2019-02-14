@@ -748,6 +748,7 @@ def p_basic_lit(p):
 	'''BasicLit : INT_LITERAL
 							| FLOAT_LITERAL
 							| STRING_LITERAL
+							| IMAG
 							'''
 	p[1] = Node(p[1])
 	p[0] = Node("BasicLit", [p[1]])
