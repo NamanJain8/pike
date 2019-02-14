@@ -247,7 +247,7 @@ def gendot(x, parent):
 		if isinstance(i,str):
 			print(i)
 			continue
-		myout += str(ctr) + ' [label="' + i.leaf + '"];\n'
+		myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
 		myout += str(parent) + ' -> ' + str(ctr) + ';\n'
 		ctr += 1
 		gendot(i, ctr - 1)
