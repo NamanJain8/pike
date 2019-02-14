@@ -8,7 +8,7 @@ import sys
 ## uncomment this for debugging
 
 # def tracefunc(frame, event, arg, indent=[0]):
-# 	  if 
+# 	  if
 #       if event == "call":
 #           indent[0] += 2
 #           print ("-" * indent[0] + "> call function", frame.f_code.co_name)
@@ -942,8 +942,11 @@ def p_expr(p):
 def p_expr_opt(p):
 	'''ExpressionOpt : Expression
 									 | epsilon'''
-	p[1] = Node(p[1])
-	p[0] = Node("ExpressionOpt", [p[1]])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[1] = Node(p[1])
+		p[0] = Node("ExpressionOpt", [p[1]])
 
 
 def p_unary_expr(p):
