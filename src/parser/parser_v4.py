@@ -15,7 +15,7 @@ import sys
 # 		  print ("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
 # 		  indent[0] -= 2
 # 	  return tracefunc
-#
+
 # sys.settrace(tracefunc)
 
 
@@ -665,7 +665,7 @@ def p_type_spec(p):
 def p_alias_decl(p):
 	'''AliasDecl : IDENT ASSIGN Type'''
 	p[1] = Node(p[1])
-	p[1] = Node(p[2])
+	p[2] = Node(p[2])
 	p[0] = Node("AliasDecl", [p[1],p[2],p[3]])
 # -------------------------------------------------------
 
@@ -1130,6 +1130,7 @@ def p_AssignOp(p):
 							 | SHL_ASSIGN
 							 | SHR_ASSIGN
 							 | ASSIGN '''
+	p[1] = Node(p[1])
 	p[0] = Node("AssignOp", [p[1]])
 
 
