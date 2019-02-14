@@ -1,26 +1,42 @@
 package main;
-
 import (
 	"fmt";
-	"strings";
+	"math";
 );
 
-func main() {
-	// Create a tic-tac-toe board.
-	var game [3][3] string;
+type Abser int;
 
-	// The players take turns.
-	game[0][0] = "X";
-	game[2][2] = "O";
-	game[2][0] = "X";
-	game[1][0] = "O";
-	game[0][2] = "X";
-
-	printBoard(game);
+type Vertex struct {
+	X, Y float;
 };
 
-func printBoard(s  string) {
-	for i := 0; i < len(s); i++ {
-		f(i);
-	};
+ func Abs(v *type Vertex) float {
+ 	return math.Sqrt(v.X*v.Y+x.Y);
+ };
+
+ func main() {
+ var a type Abser;
+ f :=  typecast type MyFloat(a);
+ var v type Vertex;
+ v.X = 2;
+	a = g.k+4;
+
+
+ a = f;  // a MyFloat implements Abser
+ a = &v; // a *Vertex implements Abser
+
+ // In the following line, v is a Vertex (not *Vertex)
+ // and does NOT implement Abser.
+ a = v;
+//fmt.Println(a.m);
+ fmt.Println(Abs(a.n));
 };
+
+ type MyFloat float;
+
+ func main (f type MyFloat) (float) {
+ 	if f < 0 {
+ 		return typecast float(-f);
+ 	};
+ 	return typecast float(-f);
+ };
