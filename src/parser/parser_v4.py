@@ -54,6 +54,10 @@ reserved = {
 	'for':    'FOR',
 	'import':    'IMPORT',
 	'var':    'VAR',
+	'int': 'INT',
+	'float': 'FLOAT',
+	'string': 'STRING',
+	'bool': 'BOOL'
 }
 
 
@@ -61,11 +65,11 @@ reserved = {
 tokens = [
 	# literals
 	'IDENT',            # main
-	'INT',              # 123
-	'FLOAT',            # 123.4
+	'INT_LITERAL',              # 123
+	'FLOAT_LITERAL',            # 123.4
 	'IMAG',             # 123.4i
 	'CHAR',             # 'a'
-	'STRING',           # "abc"
+	'STRING_LITERAL',           # "abc"
 
 	# operator
 	'ADD',              # +
@@ -195,18 +199,18 @@ identifier = letter + r"(" + letter + r"|" + decimal_digit + r")*"
 octal_literal = r"0[0-7]*"
 hexa_literal = r"0[xX][0-9a-fA-F]+"
 decimal_literal = r"[1-9][0-9]*"
-t_INT = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
+t_INT_LITERAL = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
 
 decimals = decimal_digit + r"(" + decimal_digit + r")*"
 exponent = r"(e|E)" + r"(\+|-)?" + decimals
-t_FLOAT = r"(" + decimals + r"\." + decimals + exponent + r")|(" + \
+t_FLOAT_LITERAL = r"(" + decimals + r"\." + decimals + exponent + r")|(" + \
 	decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
 
-t_IMAG = r"(" + decimals + r"|" + t_FLOAT + r")" + r"i"
+t_IMAG = r"(" + decimals + r"|" + t_FLOAT_LITERAL + r")" + r"i"
 
 t_ignore = " \t"
 
-# t_STRING = r"\"[.]+\""
+# t_STRING_LITERAL = r"\"[.]+\""
 ctr = 1
 # Definig functions for each token
 
@@ -228,7 +232,7 @@ def t_COMMENT(t):
 	pass
 
 
-def t_STRING(t):
+def t_STRING_LITERAL(t):
 	r"(\"(.|\n)*?)\""
 	return t
 
@@ -320,10 +324,11 @@ def p_type_token(p):
 							 | FLOAT
 							 | IMAG
 							 | STRING
+							 | BOOL
 							 | TYPE IDENT'''
-	if len(p) == 2:
-		p[1] = Node("TYPE",[])
-		p[1] = Node(p[1],[])
+	if len(p) == 3:
+		p[1] = Node(p[1])
+		p[2] = Node(p[2])
 		p[0] = Node("TypeToken", [p[1],p[2]])
 	else:
 		p[1] = Node(p[1])
@@ -401,7 +406,7 @@ def p_TagOpt(p):
 
 
 def p_Tag(p):
-	''' Tag : STRING '''
+	''' Tag : STRING_LITERAL '''
 	p[1] = Node(p[1])
 	p[0] = Node("Tag", [p[1]])
 # ---------------------------------------------------------
@@ -739,9 +744,9 @@ def p_literal(p):
 
 
 def p_basic_lit(p):
-	'''BasicLit : INT
-							| FLOAT
-							| STRING
+	'''BasicLit : INT_LITERAL
+							| FLOAT_LITERAL
+							| STRING_LITERAL
 							'''
 	p[1] = Node(p[1])
 	p[0] = Node("BasicLit", [p[1]])
@@ -1436,7 +1441,7 @@ def p_package_name_dot_opt(p):
 
 
 def p_import_path(p):
-	''' ImportPath : STRING '''
+	''' ImportPath : STRING_LITERAL '''
 	p[1] == Node(p[1])
 	p[0] = Node("ImportPath", [p[1]])
 # -------------------------------------------------------
