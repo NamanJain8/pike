@@ -264,11 +264,13 @@ def gendot(x, parent):
 	for i in x.children:
 		if i == None:
 			continue
-		if isinstance(i,str):
-			myout += str(ctr) + ' [label="' + i.replace('"','') + '"];\n'
-			myout += str(parent) + ' -> ' + str(ctr) + ';\n'
-			ctr += 1
-			continue
+		# if isinstance(i,str):
+		# 	print(i)
+		# 	print(myout)
+		# 	myout += str(ctr) + ' [label="' + i.replace('"','') + '"];\n'
+		# 	myout += str(parent) + ' -> ' + str(ctr) + ';\n'
+		# 	ctr += 1
+		# 	continue
 		myout += str(ctr) + ' [label="' + (i.leaf).replace('"','') + '"];\n'
 		myout += str(parent) + ' -> ' + str(ctr) + ';\n'
 		ctr += 1
@@ -1010,7 +1012,7 @@ def p_unary_op(p):
 					   | MUL
 					   | AND '''
 	# if p[1] == '+' or p[1] == "-" or p[1] == "*" or p[1] == "&":
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("UnaryOp", [p[1]])
 # -------------------------------------------------------
 
@@ -1055,14 +1057,14 @@ def p_simple_stmt(p):
 
 def p_labeled_statements(p):
 	''' LabeledStmt : Label COLON Statement '''
-	p[1] == Node(p[1])
-	p[2] == Node(p[2])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
 	p[0] = Node("LabeledStmt", [p[1], p[2], p[3]])
 
 
 def p_label(p):
 	''' Label : IDENT '''
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("Label", [p[1]])
 
 
@@ -1074,7 +1076,7 @@ def p_expression_stmt(p):
 def p_inc_dec(p):
 	''' IncDecStmt : Expression INC
 								   | Expression DEC '''
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("IncDecStmt", [p[1], p[2]])
 
 
@@ -1105,7 +1107,7 @@ def p_AssignOp(p):
 
 def p_if_statement(p):
 	''' IfStmt : IF Expression Block ElseOpt '''
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("IfStmt", [p[1], p[2], p[3], p[4]])
 
 
@@ -1113,7 +1115,7 @@ def p_SimpleStmtOpt(p):
 	''' SimpleStmtOpt : SimpleStmt SEMICOLON
 										  | epsilon '''
 	if len(p) == 3:
-		p[2] == Node(p[2])
+		p[2] = Node(p[2])
 		p[0] = Node("SimpleStmtOpt", [p[1], p[2]])
 	else:
 		p[0] = None
@@ -1124,7 +1126,7 @@ def p_else_opt(p):
 							| ELSE Block
 							| epsilon '''
 	if len(p) == 3:
-		p[1] == Node(p[1])
+		p[1] = Node(p[1])
 		p[0] = Node("ElseOpt", [p[1], p[2]])
 	else:
 		p[0] = None
@@ -1388,7 +1390,7 @@ def p_toplevel_decl_rep(p):
 	'''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
 										   | epsilon'''
 	if len(p) == 4:
-		p[3] == Node(p[3])
+		p[3] = Node(p[3])
 		p[0] = Node("TopLevelDeclRep", [p[1], p[2], p[3]])
 	else:
 		p[0] = None
@@ -1398,13 +1400,13 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
 	'''PackageClause : PACKAGE PackageName'''
-	p[1] == Node(p[1], [])
+	p[1] = Node(p[1])
 	p[0] = Node("PackageClause", [p[1], p[2]])
 
 
 def p_package_name(p):
 	'''PackageName : IDENT'''
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("PackageName", [p[1]])
 # -----------------------------------------------
 
@@ -1414,12 +1416,12 @@ def p_import_decl(p):
 	'''ImportDecl : IMPORT ImportSpec
 					| IMPORT LPAREN ImportSpecRep RPAREN '''
 	if len(p) == 3:
-		p[1] == Node(p[1])
+		p[1] = Node(p[1])
 		p[0] = Node("ImportDecl", [p[1], p[2]])
 	else:
-		p[1] == Node(p[1])
-		p[3] == Node(p[2])
-		p[4] == Node(p[4])
+		p[1] = Node(p[1])
+		p[2] = Node(p[2])
+		p[4] = Node(p[4])
 		p[0] = Node("ImportDecl", [p[1], p[2], p[3], p[4]])
 
 
@@ -1443,7 +1445,7 @@ def p_package_name_dot_opt(p):
 												  | PackageName
 												  | epsilon'''
 	if p[1] == '.':
-		p[1] == Node(p[1])
+		p[1] = Node(p[1])
 		p[0] = Node("PackageNameDotOpt", [p[1]])
 	elif p[1] == "epsilon":
 		p[0] = None
@@ -1453,7 +1455,7 @@ def p_package_name_dot_opt(p):
 
 def p_import_path(p):
 	''' ImportPath : STRING_LITERAL '''
-	p[1] == Node(p[1])
+	p[1] = Node(p[1])
 	p[0] = Node("ImportPath", [p[1]])
 # -------------------------------------------------------
 
