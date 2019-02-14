@@ -851,7 +851,7 @@ def p_selector(p):
 def p_index(p):
 	'''Index : LBRACK Expression RBRACK'''
 	p[1] = Node(p[1])
-	p[3] = NOde(p[3])
+	p[3] = Node(p[3])
 	p[0] = Node("Index", [p[1], p[2], p[3]])
 
 
