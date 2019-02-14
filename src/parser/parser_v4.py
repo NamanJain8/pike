@@ -287,15 +287,17 @@ def p_type(p):
 					| TypeLit
 					| LPAREN Type RPAREN'''
 	if len(p) == 4:
-		p[0] = p[2]
-	else:
-		p[0] = p[1]
+		p[1] = Node(p[1])
+		p[3] = Node(p[3])
+		p[0] = Node("Type",[p[1],p[2],p[3]])
+	else: 
+		p[0] = Node("Type",[p[1]])
 
 
 def p_type_name(p):
 	'''TypeName : TypeToken
 							| QualifiedIdent'''
-	p[0] = p[1]
+	p[0] = Node("TypeName",[p[1]])
 
 
 def p_type_token(p):
@@ -305,41 +307,47 @@ def p_type_token(p):
 							 | STRING
 							 | TYPE IDENT'''
 	if len(p) == 2:
-		p[0] = Node("", [])
+		p[1] = Node("TYPE",[])
+		p[1] = Node(p[1],[])
+		p[0] = Node("TypeToken", [p[1],p[2]])
 	else:
-		p[1] = Node("", [])
-		p[2] = Node("", [])
-		p[0] = Node("", [])
+		p[1] = Node(p[1])
+		p[0] = Node("TypeToken", [p[1]])
 
 
 def p_type_lit(p):
 	'''TypeLit : ArrayType
 					   | StructType
 					   | PointerType'''
-	p[0] = p[1]
+	p[0] = Node("TypeLit",[p[1]])
 
 
 def p_type_opt(p):
 	'''TypeOpt : Type
 					   | epsilon'''
-	p[0] = Node("", [])
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("TypeOpt", [p[1]])
 # -------------------------------------------------------
 
 
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
 	'''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[3] = Node(p[3])
+	p[0] = Node("ArrayType", [p[1],p[2],p[3],p[4]])
 
 
 def p_array_length(p):
 	''' ArrayLength : Expression '''
-	p[0] = Node("", [])
+	p[0] = Node("ArrayLength", [p[1]])
 
 
 def p_element_type(p):
 	''' ElementType : Type '''
-	p[0] = Node("", [])
+	p[0] = Node("ElementType", [p[1]])
 
 # --------------------------------------------------------
 
@@ -347,32 +355,40 @@ def p_element_type(p):
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
 	'''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[2] = Node(p[2])
+	p[4] = Node(p[4])
+	p[0] = Node("StructType", [p[0],p[1],p[2],p[3]])
 
 
 def p_field_decl_rep(p):
 	''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
 									| epsilon '''
 	if len(p) == 4:
-		p[0] = Node("", [])
+		p[3] = Node(p[3])
+		p[0] = Node("FieldDecl", [p[1],p[2],p[3]])
 	else:
-		p[0] = Node("", [])
+		p[0] = None
 
 
 def p_field_decl(p):
 	''' FieldDecl : IdentifierList Type TagOpt'''
-	p[0] = Node("", [])
+	p[0] = Node("FieldDecl", [p[1],p[2],p[3]])
 
 
 def p_TagOpt(p):
 	''' TagOpt : Tag
-						   | epsilon '''
-	p[0] = Node("", [])
+				| epsilon '''
+	if p[1] == "epsilon":
+		p[0] = None
+	else:
+		p[0] = Node("TagOpt", [p[1]])
 
 
 def p_Tag(p):
 	''' Tag : STRING '''
-	p[0] = Node("", [])
+	p[1] = Node(p[1])
+	p[0] = Node("Tag", [p[1]])
 # ---------------------------------------------------------
 
 
