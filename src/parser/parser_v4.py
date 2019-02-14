@@ -5,6 +5,21 @@ import json
 import argparse
 import sys
 
+## uncomment this for debugging
+
+# def tracefunc(frame, event, arg, indent=[0]):
+# 	  if 
+#       if event == "call":
+#           indent[0] += 2
+#           print ("-" * indent[0] + "> call function", frame.f_code.co_name)
+#       elif event == "return":
+#           print ("<" + "-" * indent[0], "exit function", frame.f_code.co_name)
+#           indent[0] -= 2
+#       return tracefunc
+
+# sys.settrace(tracefunc)
+
+
 """
 CITE:
   Most of the token definations are taken from documentation
