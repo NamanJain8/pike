@@ -1,3 +1,7 @@
-for ( ident==10 ){
-	naman = jain;
-}
+// This is a comment
+package main;
+import "fmt";
+
+func main() {
+	fmt.Println("Hello World!");
+};
