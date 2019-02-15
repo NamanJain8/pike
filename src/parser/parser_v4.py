@@ -340,9 +340,10 @@ def p_type(p):
 					| TypeLit
 					| LPAREN Type RPAREN'''
 	if len(p) == 4:
-		p[1] = Node(p[1])
-		p[3] = Node(p[3])
-		p[0] = Node("Type",[p[1],p[2],p[3]])
+		# p[1] = Node(p[1])
+		# p[3] = Node(p[3])
+		# p[0] = Node("Type",[p[1],p[2],p[3]])
+		p[0] = Node("Type",[p[2]])
 	else:
 		p[0] = Node("Type",[p[1]])
 
@@ -389,9 +390,10 @@ def p_type_opt(p):
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
 	'''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
-	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[0] = Node("ArrayType", [p[1],p[2],p[3],p[4]])
+	# p[1] = Node(p[1])
+	# p[3] = Node(p[3])
+	# p[0] = Node("ArrayType", [p[1],p[2],p[3],p[4]])
+	p[0] = Node("ArrayType", [p[2], p[4]])
 
 
 def p_array_length(p):
@@ -410,17 +412,19 @@ def p_element_type(p):
 def p_struct_type(p):
 	'''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
 	p[1] = Node(p[1])
-	p[2] = Node(p[2])
-	p[4] = Node(p[4])
-	p[0] = Node("StructType", [p[1],p[2],p[3],p[4]])
+	# p[2] = Node(p[2])
+	# p[4] = Node(p[4])
+	# p[0] = Node("StructType", [p[1],p[2],p[3],p[4]])
+	p[0] = Node("StructType", [p[1], p[3]])
 
 
 def p_field_decl_rep(p):
 	''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
 									| epsilon '''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("FieldDecl", [p[1],p[2],p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("FieldDecl", [p[1],p[2],p[3]])
+		p[0] = Node("FieldDecl", [p[1],p[2]])
 	else:
 		p[0] = None
 
@@ -482,9 +486,10 @@ def p_result(p):
 
 def p_params(p):
 	'''Parameters : LPAREN ParameterListOpt RPAREN'''
-	p[1] = Node("(")
-	p[3] = Node(")")
-	p[0] = Node("Parameters", [p[1], p[2], p[3]])
+	# p[1] = Node("(")
+	# p[3] = Node(")")
+	# p[0] = Node("Parameters", [p[1], p[2], p[3]])
+	p[0] = Node("Parameters", [p[2]])
 
 
 def p_param_list_opt(p):
@@ -526,11 +531,12 @@ def p_param_decl(p):
 # -----------------------BLOCKS---------------------------
 def p_block(p):
 	'''Block : LBRACE StatementList RBRACE'''
-	p[1] = Node("{")
+	# p[1] = Node("{")
 	# if p[2] != None:
 	# 	p[2] = Node("StatementList",p[2].children)
-	p[3] = Node("}")
-	p[0] = Node("Block", [p[1], p[2], p[3]])
+	# p[3] = Node("}")
+	# p[0] = Node("Block", [p[1], p[2], p[3]])
+	p[0] = Node("Block", [p[2]])
 
 
 def p_stat_list(p):
@@ -578,17 +584,19 @@ def p_const_decl(p):
 	if len(p) == 3:
 		p[0] = Node("ConstDecl", [p[1], p[2]])
 	else:
-		p[2] = Node(p[2])
-		p[3] = Node(p[3])
-		p[0] = Node("ConstDecl", [p[1], p[2], p[3], p[4]])
+		# p[2] = Node(p[2])
+		# p[4] = Node(p[4])
+		# p[0] = Node("ConstDecl", [p[1], p[2], p[3], p[4]])
+		p[0] = Node("ConstDecl", [p[1], p[3]])
 
 
 def p_const_spec_rep(p):
 	'''ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
 									| epsilon'''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("ConstSpecRep", [p[1], p[2], p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("ConstSpecRep", [p[1], p[2], p[3]])
+		p[0] = Node("ConstSpecRep", [p[1], p[2]])
 	else:
 		p[0] = None
 
@@ -647,9 +655,10 @@ def p_type_decl(p):
 							| TYPE LPAREN TypeSpecRep RPAREN'''
 	if len(p) == 5:
 		p[1] = Node(p[1])
-		p[2] = Node(p[2])
-		p[4] = Node(p[4])
-		p[0] = Node("TypeDecl", [p[1],p[2],p[3],p[4]])
+		# p[2] = Node(p[2])
+		# p[4] = Node(p[4])
+		# p[0] = Node("TypeDecl", [p[1],p[2],p[3],p[4]])
+		p[0] = Node("TypeDecl", [p[1], p[3]])
 	else:
 		p[1] = Node(p[1])
 		p[0] = Node("TypeDecl", [p[1],p[2]])
@@ -659,8 +668,9 @@ def p_type_spec_rep(p):
 	'''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
 							   | epsilon'''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("TypeSpecRep", [p[1],p[2],p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("TypeSpecRep", [p[1],p[2],p[3]])
+		p[0] = Node("TypeSpecRep", [p[1],p[2]])
 	else:
 		p[0] = None
 
@@ -696,17 +706,19 @@ def p_var_decl(p):
 		p[0] = Node("VarDecl", [p[1],p[2]])
 	else:
 		p[1] = Node(p[1])
-		p[2] = Node(p[2])
-		p[4] = Node(p[4])
-		p[0] = Node("VarDecl", [p[1],p[2],p[3],p[4]])
+		# p[2] = Node(p[2])
+		# p[4] = Node(p[4])
+		# p[0] = Node("VarDecl", [p[1],p[2],p[3],p[4]])
+		p[0] = Node("VarDecl", [p[1], p[3]])
 
 
 def p_var_spec_rep(p):
 	'''VarSpecRep : VarSpecRep VarSpec SEMICOLON
 							  | epsilon'''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("VarSpecRep", [p[1],p[2],p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("VarSpecRep", [p[1],p[2],p[3]])
+		p[0] = Node("VarSpecRep", [p[1],p[2]])
 	else:
 		p[0] = None
 
@@ -774,9 +786,10 @@ def p_operand(p):
 	if len(p) == 2:
 		p[0] = Node("Operand", [p[1]])
 	else:
-		p[1] = Node(p[1])
-		p[2] = Node(p[1])
-		p[0] = Node("Operand", [p[1], p[2], p[3]])
+		# p[1] = Node(p[1])
+		# p[3] = Node(p[3])
+		# p[0] = Node("Operand", [p[1], p[2], p[3]])
+		p[0] = Node("Operand", [p[2]])
 
 
 def p_literal(p):
@@ -826,9 +839,10 @@ def p_lit_type(p):
 
 def p_lit_val(p):
 	'''LiteralValue : LBRACE ElementListOpt RBRACE'''
-	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[0] = Node("LiteralValue", [p[1], p[2], p[3]])
+	# p[1] = Node(p[1])
+	# p[3] = Node(p[3])
+	# p[0] = Node("LiteralValue", [p[1], p[2], p[3]])
+	p[0] = Node("LiteralValue", [p[2]])
 
 
 def p_elem_list_comma_opt(p):
@@ -909,39 +923,43 @@ def p_selector(p):
 
 def p_index(p):
 	'''Index : LBRACK Expression RBRACK'''
-	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[0] = Node("Index", [p[1], p[2], p[3]])
-
+	# p[1] = Node(p[1])
+	# p[3] = Node(p[3])
+	# p[0] = Node("Index", [p[1], p[2], p[3]])
+	p[0] = Node("Index", [p[2]])
 
 def p_slice(p):
 	'''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
 					 | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
 	if len(p) == 6:
-		p[1] = Node(p[1])
+		# p[1] = Node(p[1])
 		p[3] = Node(p[3])
-		p[5] = Node(p[5])
-		p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5]])
+		# p[5] = Node(p[5])
+		# p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5]])
+		p[0] = Node("Slice", [p[2], p[3], p[4]])
 	else:
-		p[1] = Node(p[1])
+		# p[1] = Node(p[1])
 		p[3] = Node(p[3])
 		p[5] = Node(p[5])
-		p[7] = Node(p[7])
-		p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5], p[6], p[7]])
+		# p[7] = Node(p[7])
+		# p[0] = Node("Slice", [p[1], p[2], p[3], p[4], p[5], p[6], p[7]])
+		p[0] = Node("Slice", [p[2], p[3], p[4], p[5], p[6]])
 
 def p_type_assert(p):
 	'''TypeAssertion : PERIOD LPAREN Type RPAREN'''
 	p[1] = Node(p[1])
-	p[2] = Node(p[2])
-	p[4] = Node(p[4])
-	p[0] = Node("TypeAssertion", [p[1], p[2], p[3], p[4]])
+	# p[2] = Node(p[2])
+	# p[4] = Node(p[4])
+	# p[0] = Node("TypeAssertion", [p[1], p[2], p[3], p[4]])
+	p[0] = Node("TypeAssertion", [p[1], p[3]])
 
 
 def p_argument(p):
 	'''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
-	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[0] = Node("Arguments", [p[1], p[2], p[3]])
+	# p[1] = Node(p[1])
+	# p[3] = Node(p[3])
+	# p[0] = Node("Arguments", [p[1], p[2], p[3]])
+	p[0] = Node("Arguments", [p[2]])
 
 
 def p_expr_list_type_opt(p):
@@ -1063,9 +1081,9 @@ def p_unary_op(p):
 def p_conversion(p):
 	'''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
 	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[5] = Node(p[5])
-	p[0] = Node("Conversion", [p[1], p[2], p[3], p[4], p[5]])
+	# p[3] = Node(p[3])
+	# p[5] = Node(p[5])
+	p[0] = Node("Conversion", [p[1], p[2], p[4]])
 # ---------------------------------------------------------
 
 
@@ -1159,8 +1177,9 @@ def p_SimpleStmtOpt(p):
 	''' SimpleStmtOpt : SimpleStmt SEMICOLON
 										  | epsilon '''
 	if len(p) == 3:
-		p[2] = Node(p[2])
-		p[0] = Node("SimpleStmtOpt", [p[1], p[2]])
+		# p[2] = Node(p[2])
+		# p[0] = Node("SimpleStmtOpt", [p[1], p[2]])
+		p[0] = Node("SimpleStmtOpt", [p[1]])
 	else:
 		p[0] = None
 
@@ -1189,9 +1208,10 @@ def p_switch_statement(p):
 def p_expr_switch_stmt(p):
 	''' ExprSwitchStmt : SWITCH ExpressionOpt LBRACE ExprCaseClauseRep RBRACE'''
 	p[1] = Node(p[1])
-	p[3] = Node(p[3])
-	p[5] = Node(p[5])
-	p[0] = Node("ExpressionStmt", [p[1],p[2],p[3],p[4],p[5]])
+	# p[3] = Node(p[3])
+	# p[5] = Node(p[5])
+	# p[0] = Node("ExpressionStmt", [p[1],p[2],p[3],p[4],p[5]])
+	p[0] = Node("ExpressionStmt", [p[1], p[2], p[4]])
 
 
 def p_expr_case_clause_rep(p):
@@ -1223,19 +1243,21 @@ def p_expr_switch_case(p):
 def p_type_switch_stmt(p):
 	''' TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LBRACE TypeCaseClauseOpt RBRACE'''
 	p[1] = Node(p[1])
-	p[4] = Node(p[4])
-	p[6] = Node(p[6])
-	p[0] = Node("TypeSwitchStmt", [p[1],p[2],p[3],p[4],p[5],p[6]])
+	# p[4] = Node(p[4])
+	# p[6] = Node(p[6])
+	# p[0] = Node("TypeSwitchStmt", [p[1],p[2],p[3],p[4],p[5],p[6]])
+	p[0] = Node("TypeSwitchStmt", [p[1], p[2], p[3], p[5]])
 
 
 def p_type_switch_guard(p):
 	''' TypeSwitchGuard : IdentifierOpt PrimaryExpr PERIOD LPAREN TYPE RPAREN '''
 
 	p[3] = Node(p[3])
-	p[4] = Node(p[4])
+	# p[4] = Node(p[4])
 	p[5] = Node(p[5])
-	p[6] = Node(p[6])
-	p[0] = Node("TypeSwitchGuard", [p[1],p[2],p[3],p[4],p[5],p[6]])
+	# p[6] = Node(p[6])
+	# p[0] = Node("TypeSwitchGuard", [p[1],p[2],p[3],p[4],p[5],p[6]])
+	p[0] = Node("TypeSwitchGuard", [p[1],p[2],p[3],p[5]])
 
 
 def p_identifier_opt(p):
@@ -1318,9 +1340,10 @@ def p_condition(p):
 
 def p_forclause(p):
 	'''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
-	p[2] = Node(p[2])
-	p[4] = Node(p[4])
-	p[0] = Node("ForClause", [p[1],p[2],p[3],p[4],p[5]])
+	# p[2] = Node(p[2])
+	# p[4] = Node(p[4])
+	# p[0] = Node("ForClause", [p[1],p[2],p[3],p[4],p[5]])
+	p[0] = Node("ForClause", [p[1], p[3], p[5]])
 
 # def p_initstmtopt(p):
 #   '''InitStmtOpt : epsilon
@@ -1416,16 +1439,17 @@ def p_goto(p):
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
 	'''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
-	p[2] = Node(p[2])
-	p[0] = Node("SourceFile", [p[1],p[2],p[3],p[4]])
+	# p[2] = Node(p[2])
+	p[0] = Node("SourceFile", [p[1], p[3], p[4]])
 
 
 def p_import_decl_rep(p):
 	'''ImportDeclRep : epsilon
 					 | ImportDeclRep ImportDecl SEMICOLON'''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("ImportDeclRep",[p[1],p[2],p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("ImportDeclRep",[p[1],p[2],p[3]])
+		p[0] = Node("ImportDeclRep",[p[1], p[2]])
 	else:
 		p[0] = None
 
@@ -1434,8 +1458,9 @@ def p_toplevel_decl_rep(p):
 	'''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
 										   | epsilon'''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("TopLevelDeclRep", [p[1], p[2], p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("TopLevelDeclRep", [p[1], p[2], p[3]])
+		p[0] = Node("TopLevelDeclRep", [p[1], p[2]])
 	else:
 		p[0] = None
 # --------------------------------------------------------
@@ -1464,17 +1489,23 @@ def p_import_decl(p):
 		p[0] = Node("ImportDecl", [p[1], p[2]])
 	else:
 		p[1] = Node(p[1])
-		p[2] = Node(p[2])
-		p[4] = Node(p[4])
-		p[0] = Node("ImportDecl", [p[1], p[2], p[3], p[4]])
+		# p[2] = Node(p[2])
+		# p[4] = Node(p[4])
+		# p[0] = Node("ImportDecl", [p[1], p[2], p[3], p[4]])
+		p[0] = Node("ImportDecl", [p[1], p[3]])
 
 
 def p_import_spec_rep(p):
 	''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
 						  | epsilon '''
 	if len(p) == 4:
-		p[3] = Node(p[3])
-		p[0] = Node("ImportSpecRep", [p[1], p[2], p[3]])
+		# p[3] = Node(p[3])
+		# p[0] = Node("ImportSpecRep", [p[1], p[2], p[3]])
+		mylist2 = []
+		if p[1] != None:
+			mylist2.extend(p[1].children)
+		mylist2.append(p[2])
+		p[0] = Node("StatementRep",mylist2)
 	else:
 		p[0] = None
 
