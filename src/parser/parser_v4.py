@@ -1598,14 +1598,29 @@ def p_error(p):
 	sys.exit()
 
 
+parser = argparse.ArgumentParser(description='Scans and Parses the input .go file and builds the corresponding AST')
+
+# parser.add_argument('--cfg', dest='config_file_location', help='Location of the input .go file', required=True)
+
+parser.add_argument('--output', dest='out_file_location', help='Location of the output .html file', required=True)
+
+parser.add_argument('--input', dest='in_file_location', help='Location of the output .html file', required=True)
+
+result = parser.parse_args()
+# config_file_location = str(result.config_file_location)
+out_file_location = str(result.out_file_location)
+in_file_location = str(result.in_file_location)
+
+
 # Build lexer
 lexer = lex.lex()
 # lexer.abcde = 0   # custom global varibales for lexer
 
 # Read input file
-in_file_location = "input.go"
-in_file = open(in_file_location, 'r')
-out_file = open("output.dot", "w")
+in_file = open(in_file_location,'r')
+
+# Open output file
+out_file = open(out_file_location,"w+")
 out_file.write('strict digraph G {\n')
 
 data = in_file.read()
@@ -1618,3 +1633,21 @@ out_file.write("}\n")
 # Close file
 out_file.close()
 in_file.close()
+
+
+# # Read input file
+# in_file_location = "input.go"
+# in_file = open(in_file_location, 'r')
+# out_file = open("output.dot", "w")
+# out_file.write('strict digraph G {\n')
+#
+# data = in_file.read()
+# 
+# # Iterate to get tokens
+# parser = yacc.yacc()
+# res = parser.parse(data)
+#
+# out_file.write("}\n")
+# # Close file
+# out_file.close()
+# in_file.close()
