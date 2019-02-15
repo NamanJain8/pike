@@ -264,7 +264,7 @@ def pre(node, parent):
 		if i == None:
 			continue
 		ctr += 1
-		print(i)
+		# print(i)
 		i.parent = parent
 		pre(i, ctr - 1)
 	return node
@@ -527,21 +527,29 @@ def p_param_decl(p):
 def p_block(p):
 	'''Block : LBRACE StatementList RBRACE'''
 	p[1] = Node("{")
+	# if p[2] != None:
+	# 	p[2] = Node("StatementList",p[2].children)
 	p[3] = Node("}")
 	p[0] = Node("Block", [p[1], p[2], p[3]])
 
 
 def p_stat_list(p):
 	'''StatementList : StatementRep'''
-	p[0] = Node("StatementList", [p[1]])
+	# p[0] = Node("StatementList", [p[1]])
+	p[0] = p[1]
 
 
 def p_stat_rep(p):
 	'''StatementRep : StatementRep Statement SEMICOLON
 									| epsilon'''
 	if len(p) == 4:
-		p[3] = Node(";")
-		p[0] = Node("StatementRep", [p[1], p[2], p[3]])
+		# p[3] = Node(";")
+		# p[0] = Node("StatementRep", [p[1], p[2], p[3]])
+		mylist = []
+		if p[1] != None:
+			mylist.extend(p[1].children)
+		mylist.append(p[2])
+		p[0] = Node("StatementRep",mylist)
 	else:
 		p[0] = None
 # -------------------------------------------------------
