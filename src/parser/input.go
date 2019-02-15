@@ -16,6 +16,7 @@ type Vertex struct {
 
  func main() {
  var a type Abser;
+ a =  -1 + 2 + 3*9/10;
  f :=  typecast type MyFloat(a);
  var v type Vertex;
  v.X = 2;

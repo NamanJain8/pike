@@ -264,6 +264,7 @@ def pre(node, parent):
 		if i == None:
 			continue
 		ctr += 1
+		print(i)
 		i.parent = parent
 		pre(i, ctr - 1)
 	return node
@@ -727,8 +728,8 @@ def p_expr_list_opt(p):
 def p_short_var_decl(p):
 	''' ShortVarDecl : IDENT DEFINE Expression '''
 	p[1] = Node(p[1])
-	p[2] = Node(p[2])
-	p[0] = Node("ShortVarDecl", [p[1],p[2],p[3]])
+	# p[2] = Node(p[2])
+	p[0] = Node("ShortVarDecl" + p[2], [p[1],p[3]])
 # -------------------------------------------------------
 
 
@@ -968,7 +969,7 @@ def p_expr(p):
 	'''Expression : UnaryExpr
 							  | Expression BinaryOp Expression'''
 	if len(p) == 4:
-		p[0] = Node("Expression", [p[1], p[2], p[3]])
+		p[0] = Node("Expression: " + p[2], [p[1], p[3]])
 	else:
 		p[0] = Node("Expression", [p[1]])
 
@@ -988,10 +989,10 @@ def p_unary_expr(p):
 							 | UnaryOp UnaryExpr
 							 | NOT UnaryExpr'''
 	if len(p) == 3 and p[1] != "!":
-		p[0] = Node("UnaryExpr", [p[1], p[2]])
+		p[0] = Node("UnaryExpr " + p[1], [p[2]])
 	elif p[1] == "!":
 		p[1] = Node(p[1])
-		p[0] = Node("UnaryExpr", [p[1], p[2]])
+		p[0] = Node("UnaryExpr " + p[1], [p[2]])
 	else:
 		p[0] = Node("UnaryExpr", [p[1]])
 
@@ -1001,11 +1002,12 @@ def p_binary_op(p):
 							| LAND
 							| RelOp
 							| AddMulOp'''
-	if p[1] == "||" or p[1] == "&&":
-		p[1] = Node(p[1])
-		p[0] = Node("BinaryOp", [p[1]])
-	else:
-		p[0] = Node("BinaryOp", [p[1]])
+	# if p[1] == "||" or p[1] == "&&":
+	# 	p[1] = Node(p[1])
+	# 	p[0] = Node("BinaryOp", [p[1]])
+	# else:
+	# 	p[0] = Node("BinaryOp", [p[1]])
+	p[0] = p[1]
 
 
 def p_rel_op(p):
@@ -1015,8 +1017,9 @@ def p_rel_op(p):
 					 | GTR
 					 | LEQ
 					 | GEQ'''
-	p[1] = Node(p[1])
-	p[0] = Node("RelOp", [p[1]])
+	# p[1] = Node(p[1])
+	# p[0] = Node("RelOp", [p[1]])
+	p[0] = p[1]
 
 
 def p_add_mul_op(p):
@@ -1028,10 +1031,12 @@ def p_add_mul_op(p):
 							| SHL
 							| SHR'''
 	if p[1] == "/" or p[1] == "%" or p[1] == "|" or p[1] == "^" or p[1] == "<<" or p[1] == ">>":
-		p[1] = Node(p[1])
-		p[0] = Node("AddMulOp", [p[1]])
+		# p[1] = Node(p[1])
+		# p[0] = Node("AddMulOp", [p[1]])
+		p[0] = p[1]
 	else:
-		p[0] = Node("AddMulOp", [p[1]])
+		# p[0] = Node("AddMulOp", [p[1]])
+		p[0] = p[1]
 
 
 def p_unary_op(p):
@@ -1040,8 +1045,9 @@ def p_unary_op(p):
 					   | MUL
 					   | AND '''
 	# if p[1] == '+' or p[1] == "-" or p[1] == "*" or p[1] == "&":
-	p[1] = Node(p[1])
-	p[0] = Node("UnaryOp", [p[1]])
+	# p[1] = Node(p[1])
+	# p[0] = Node("UnaryOp", [p[1]])
+	p[0] = p[1]
 # -------------------------------------------------------
 
 
@@ -1110,12 +1116,13 @@ def p_inc_dec(p):
 
 def p_assignment(p):
 	''' Assignment : ExpressionList assign_op ExpressionList'''
-	p[0] = Node("Assignment", [p[1], p[2], p[3]])
+	p[0] = Node("Assignment: " + p[2], [p[1], p[3]])
 
 
 def p_assign_op(p):
 	''' assign_op : AssignOp'''
-	p[0] = Node("assign_op", [p[1]])
+	# p[0] = Node("assign_op", [p[1]])
+	p[0] = p[1]
 
 
 def p_AssignOp(p):
@@ -1130,8 +1137,8 @@ def p_AssignOp(p):
 							 | SHL_ASSIGN
 							 | SHR_ASSIGN
 							 | ASSIGN '''
-	p[1] = Node(p[1])
-	p[0] = Node("AssignOp", [p[1]])
+	p[0] = p[1]
+	# p[0] = Node("AssignOp", [p[1]])
 
 
 def p_if_statement(p):
