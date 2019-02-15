@@ -1,3 +1,0 @@
-# To produce .ps file
-python3 parser_v3.py
-dot -Tps output.dot -o out.ps

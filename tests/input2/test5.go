@@ -1,42 +1,28 @@
 package main;
+
 import (
-	"fmt";
-	"math";
+    "bufio";
+    "fmt";
+    "os";
+    "strings";
 );
 
-type Abser int;
+func main() {
+    // Open the file and scan it.
+    // f, _ := os.Open("C:\\programs\\file.txt");
+    scanner := bufio.NewScanner();
 
-type Vertex struct {
-	X, Y float;
+    // for scanner.Scan() {
+        line := scanner.Text(a);
+
+        // Split the line on commas.
+        // parts := strings.Split(line, ",");
+
+        // Loop over the parts from the string.
+        for i := 0; i < len(parts); i++ {
+            fmt.Println(parts[i]);
+        };
+        // Write a newline.
+        // fmt.Println("\n");
+    // };
 };
-
- func Abs(v *type Vertex) float {
- 	return math.Sqrt(v.X*v.Y+x.Y);
- };
-
- func main() {
- var a type Abser;
- f :=  typecast type MyFloat(a);
- var v type Vertex;
- v.X = 2;
-	a = g.k+4;
-
-
- a = f;  // a MyFloat implements Abser
- a = &v; // a *Vertex implements Abser
-
- // In the following line, v is a Vertex (not *Vertex)
- // and does NOT implement Abser.
- a = v;
-//fmt.Println(a.m);
- fmt.Println(Abs(a.n));
-};
-
- type MyFloat float;
-
- func main (f type MyFloat) (float) {
- 	if f < 0 {
- 		return typecast float(-f);
- 	};
- 	return typecast float(-f);
- };

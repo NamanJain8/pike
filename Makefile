@@ -3,3 +3,4 @@ all:
 
 clean:
 	scripts/clean.sh
+	rm -f tests/output2/out*

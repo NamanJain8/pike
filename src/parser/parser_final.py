@@ -508,7 +508,7 @@ def p_param_list(p):
 	if len(p) == 3:
 		p[0] = Node("ParameterList", [p[1], p[2]])
 	else:
-		p[0] = Node("ParameterList", [p[0]])
+		p[0] = Node("ParameterList", [p[1]])
 
 
 def p_param_decl_comma_rep(p):
@@ -684,7 +684,7 @@ def p_type_spec(p):
 def p_alias_decl(p):
 	'''AliasDecl : IDENT ASSIGN Type'''
 	p[1] = Node(p[1])
-	p[1] = Node(p[2])
+	p[2] = Node(p[2])
 	p[0] = Node("AliasDecl", [p[1],p[2],p[3]])
 # -------------------------------------------------------
 
@@ -965,7 +965,7 @@ def p_argument(p):
 def p_expr_list_type_opt(p):
 	'''ExpressionListTypeOpt : ExpressionList
 													 | epsilon'''
-	if len(p) == 2:
+	if p[1] != "epsilon":
 		p[0] = Node("ExpressionListTypeOpt", [p[1]])
 	else:
 		p[0] = None
@@ -1006,7 +1006,7 @@ def p_expr_opt(p):
 	if p[1] == "epsilon":
 		p[0] = None
 	else:
-		p[1] = Node(p[1])
+		# p[1] = Node(p[1])
 		p[0] = Node("ExpressionOpt", [p[1]])
 
 
@@ -1016,7 +1016,7 @@ def p_unary_expr(p):
 							 | NOT UnaryExpr'''
 	if len(p) == 3 and p[1] != "!":
 		p[0] = Node("UnaryExpr " + p[1], [p[2]])
-	elif p[1] == "!":
+	elif len(p) == 3 and p[1] == "!":
 		p[1] = Node(p[1])
 		p[0] = Node("UnaryExpr " + p[1], [p[2]])
 	else:
@@ -1117,7 +1117,7 @@ def p_simple_stmt(p):
 
 def p_labeled_statements(p):
 	''' LabeledStmt : Label COLON Statement '''
-	p[1] = Node(p[1])
+	# p[1] = Node(p[1])
 	p[2] = Node(p[2])
 	p[0] = Node("LabeledStmt", [p[1], p[2], p[3]])
 
@@ -1295,7 +1295,7 @@ def p_type_switch_case(p):
 		p[0] = Node("TypeSwitchCase", [p[1],p[2]])
 	else:
 		p[1] = Node(p[1])
-		p[0] = Node("", [])
+		p[0] = Node("TypeSwitchCase", [p[1]])
 
 
 def p_type_list(p):
@@ -1405,7 +1405,8 @@ def p_expressionlist_pure_opt(p):
 						   | epsilon'''
 	if p[1] == "epsilon":
 		p[0] = None
-	p[0] = Node("ExpressionListPureOpt", [p[1]])
+	else:
+		p[0] = Node("ExpressionListPureOpt", [p[1]])
 
 
 def p_break(p):
@@ -1505,7 +1506,7 @@ def p_import_spec_rep(p):
 		if p[1] != None:
 			mylist2.extend(p[1].children)
 		mylist2.append(p[2])
-		p[0] = Node("StatementRep",mylist2)
+		p[0] = Node("ImportSpecRep",mylist2)
 	else:
 		p[0] = None
 
@@ -1594,7 +1595,7 @@ def p_empty(p):
 
 def p_error(p):
 	print("Error in parsing!")
-	print("Error at: ", p.type)
+	print("Error occured at the token: ", p.type)
 	sys.exit()
 
 
@@ -1602,9 +1603,9 @@ parser = argparse.ArgumentParser(description='Scans and Parses the input .go fil
 
 # parser.add_argument('--cfg', dest='config_file_location', help='Location of the input .go file', required=True)
 
-parser.add_argument('--output', dest='out_file_location', help='Location of the output .html file', required=True)
+parser.add_argument('--output', dest='out_file_location', help='Location of the output .dot file', required=True)
 
-parser.add_argument('--input', dest='in_file_location', help='Location of the output .html file', required=True)
+parser.add_argument('--input', dest='in_file_location', help='Location of the input .go file', required=True)
 
 result = parser.parse_args()
 # config_file_location = str(result.config_file_location)
@@ -1642,7 +1643,7 @@ in_file.close()
 # out_file.write('strict digraph G {\n')
 #
 # data = in_file.read()
-# 
+#
 # # Iterate to get tokens
 # parser = yacc.yacc()
 # res = parser.parse(data)
