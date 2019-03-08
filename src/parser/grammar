@@ -1,0 +1,316 @@
+# -
+# -=
+# --
+# ------------------------START----------------------------
+start : SourceFile
+# -------------------------------------------------------
+# -----------------------TYPES---------------------------
+Type : TypeName
+					| TypeLit
+					| LPAREN Type RPAREN
+TypeName : TypeToken
+							| QualifiedIdent
+TypeToken : INT
+							 | FLOAT
+							 | STRING
+							 | BOOL
+							 | COMPLEX
+							 | TYPE IDENT
+TypeLit : ArrayType
+					   | StructType
+					   | PointerType
+TypeOpt : Type
+					   | epsilon
+# -------------------------------------------------------
+# ------------------- ARRAY TYPE -------------------------
+ArrayType : LBRACK ArrayLength RBRACK ElementType
+ ArrayLength : Expression 
+ ElementType : Type 
+# --------------------------------------------------------
+# ----------------- STRUCT TYPE ---------------------------
+StructType : STRUCT LBRACE FieldDeclRep RBRACE
+ FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
+									| epsilon 
+ FieldDecl : IdentifierList Type TagOpt
+ TagOpt : Tag
+				| epsilon 
+ Tag : STRING_LITERAL 
+# ---------------------------------------------------------
+# ------------------POINTER TYPES--------------------------
+PointerType : MUL BaseType
+BaseType : Type
+# ---------------------------------------------------------
+# ---------------FUNCTION TYPES----------------------------
+Signature : Parameters ResultOpt
+ResultOpt : Result
+							 | epsilon
+Result : Parameters
+					  | Type
+Parameters : LPAREN ParameterListOpt RPAREN
+ParameterListOpt : ParametersList
+													 | epsilon
+ParametersList : Type
+									  | IdentifierList Type
+									  | ParameterDeclCommaRep
+ParameterDeclCommaRep : ParameterDeclCommaRep COMMA ParameterDecl
+													 | ParameterDecl COMMA ParameterDecl
+ParameterDecl : IdentifierList Type
+									 | Type
+# ---------------------------------------------------------
+# -----------------------BLOCKS---------------------------
+Block : LBRACE StatementList RBRACE
+StatementList : StatementRep
+StatementRep : StatementRep Statement SEMICOLON
+									| epsilon
+# -------------------------------------------------------
+# ------------------DECLARATIONS and SCOPE------------------------
+Declaration : ConstDecl
+								   | TypeDecl
+								   | VarDecl
+TopLevelDecl : Declaration
+									| FunctionDecl
+# -------------------------------------------------------
+# ------------------CONSTANT DECLARATIONS----------------
+ConstDecl : CONST ConstSpec
+							 | CONST LPAREN ConstSpecRep RPAREN
+ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
+									| epsilon
+ConstSpec : IdentifierList TypeExprListOpt
+TypeExprListOpt : TypeOpt ASSIGN ExpressionList
+									   | epsilon
+IdentifierList : IDENT IdentifierRep
+IdentifierRep : IdentifierRep COMMA IDENT
+									 | epsilon
+ExpressionList : Expression ExpressionRep
+ExpressionRep : ExpressionRep COMMA Expression
+									 | epsilon
+# -------------------------------------------------------
+# ------------------TYPE DECLARATIONS-------------------
+TypeDecl : TYPE TypeSpec
+							| TYPE LPAREN TypeSpecRep RPAREN
+TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
+							   | epsilon
+TypeSpec : AliasDecl
+							| TypeDef
+AliasDecl : IDENT ASSIGN Type
+# -------------------------------------------------------
+# -------------------TYPE DEFINITIONS--------------------
+TypeDef : IDENT Type
+# -------------------------------------------------------
+# ----------------VARIABLE DECLARATIONS------------------
+VarDecl : VAR VarSpec
+					   | VAR LPAREN VarSpecRep RPAREN
+VarSpecRep : VarSpecRep VarSpec SEMICOLON
+							  | epsilon
+VarSpec : IdentifierList Type ExpressionListOpt
+					   | IdentifierList ASSIGN ExpressionList
+ExpressionListOpt : ASSIGN ExpressionList
+											 | epsilon
+# -------------------------------------------------------
+# ----------------SHORT VARIABLE DECLARATIONS-------------
+ ShortVarDecl : IDENT DEFINE Expression 
+# -------------------------------------------------------
+# ----------------FUNCTION DECLARATIONS------------------
+FunctionDecl : FUNC FunctionName Function
+									| FUNC FunctionName Signature
+FunctionName : IDENT
+Function : Signature FunctionBody
+FunctionBody : Block
+# -------------------------------------------------------
+# ----------------------OPERAND----------------------------
+Operand : Literal
+					   | OperandName
+					   | LPAREN Expression RPAREN
+Literal : BasicLit
+BasicLit : INT_LITERAL
+							| FLOAT_LITERAL
+							| STRING_LITERAL
+							| IMAG
+							
+OperandName : IDENT
+# ---------------------------------------------------------
+# -------------------QUALIFIED IDENT----------------
+QualifiedIdent : IDENT PERIOD TypeName
+# -------------------------------------------------------
+# -----------------COMPOSITE LITERALS----------------------
+CompositeLit : LiteralType LiteralValue
+LiteralType : ArrayType
+							   | ElementType
+							   | TypeName
+LiteralValue : LBRACE ElementListOpt RBRACE
+ElementListOpt : ElementList
+											   | epsilon
+ElementList : KeyedElement KeyedElementCommaRep
+KeyedElementCommaRep : KeyedElementCommaRep COMMA KeyedElement
+													| epsilon
+KeyedElement : Key COLON Element
+									| Element
+Key : FieldName
+			   | Expression
+			   | LiteralValue
+FieldName : IDENT
+Element : Expression
+					   | LiteralValue
+# ---------------------------------------------------------
+# ------------------PRIMARY EXPRESSIONS--------------------
+PrimaryExpr : Operand
+							   | PrimaryExpr Selector
+							   | Conversion
+							   | PrimaryExpr Index
+							   | PrimaryExpr Slice
+							   | PrimaryExpr TypeAssertion
+							   | PrimaryExpr Arguments
+Selector : PERIOD IDENT
+Index : LBRACK Expression RBRACK
+Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
+					 | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK
+TypeAssertion : PERIOD LPAREN Type RPAREN
+Arguments : LPAREN ExpressionListTypeOpt RPAREN
+ExpressionListTypeOpt : ExpressionList
+													 | epsilon
+ExpressionListCommaOpt : COMMA ExpressionList
+													  | epsilon
+# ---------------------------------------------------------
+# ----------------------OPERATORS-------------------------
+Expression : UnaryExpr
+							  | Expression BinaryOp Expression
+ExpressionOpt : Expression
+									 | epsilon
+UnaryExpr : PrimaryExpr
+							 | UnaryOp UnaryExpr
+							 | NOT UnaryExpr
+BinaryOp : LOR
+							| LAND
+							| RelOp
+							| AddMulOp
+RelOp : EQL
+					 | NEQ
+					 | LSS
+					 | GTR
+					 | LEQ
+					 | GEQ
+AddMulOp : UnaryOp
+							| OR
+							| XOR
+							| QUO
+							| REM
+							| SHL
+							| SHR
+UnaryOp : ADD
+					   | SUB
+					   | MUL
+					   | AND 
+# -------------------------------------------------------
+# -----------------CONVERSIONS-----------------------------
+Conversion : TYPECAST Type LPAREN Expression RPAREN
+# ---------------------------------------------------------
+# ---------------- STATEMENTS -----------------------
+Statement : Declaration
+							 | LabeledStmt
+							 | SimpleStmt
+							 | ReturnStmt
+							 | BreakStmt
+							 | ContinueStmt
+							 | GotoStmt
+							 | Block
+							 | IfStmt
+							 | SwitchStmt
+							 | ForStmt 
+ SimpleStmt : epsilon
+								   | ExpressionStmt
+								   | IncDecStmt
+								   | Assignment
+								   | ShortVarDecl 
+ LabeledStmt : Label COLON Statement 
+ Label : IDENT 
+ ExpressionStmt : Expression 
+ IncDecStmt : Expression INC
+								   | Expression DEC 
+ Assignment : ExpressionList assign_op ExpressionList
+ assign_op : AssignOp
+ AssignOp : ADD_ASSIGN
+							 | SUB_ASSIGN
+							 | MUL_ASSIGN
+							 | QUO_ASSIGN
+							 | REM_ASSIGN
+							 | AND_ASSIGN
+							 | OR_ASSIGN
+							 | XOR_ASSIGN
+							 | SHL_ASSIGN
+							 | SHR_ASSIGN
+							 | ASSIGN 
+ IfStmt : IF Expression Block ElseOpt 
+ SimpleStmtOpt : SimpleStmt SEMICOLON
+										  | epsilon 
+ ElseOpt : ELSE IfStmt
+							| ELSE Block
+							| epsilon 
+# ----------------------------------------------------------------
+# ----------- SWITCH STATEMENTS ---------------------------------
+ SwitchStmt : ExprSwitchStmt
+								   | TypeSwitchStmt 
+ ExprSwitchStmt : SWITCH ExpressionOpt LBRACE ExprCaseClauseRep RBRACE
+ ExprCaseClauseRep : ExprCaseClauseRep ExprCaseClause
+												  | epsilon
+ ExprCaseClause : ExprSwitchCase COLON StatementList
+ ExprSwitchCase : CASE ExpressionList
+										   | DEFAULT 
+ TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LBRACE TypeCaseClauseOpt RBRACE
+ TypeSwitchGuard : IdentifierOpt PrimaryExpr PERIOD LPAREN TYPE RPAREN 
+ IdentifierOpt : IDENT DEFINE
+										  | epsilon 
+ TypeCaseClauseOpt : TypeCaseClauseOpt TypeCaseClause
+												  | epsilon 
+ TypeCaseClause : TypeSwitchCase COLON StatementList
+ TypeSwitchCase : CASE TypeList
+										   | DEFAULT 
+ TypeList : Type TypeRep
+ TypeRep : TypeRep COMMA Type
+							| epsilon 
+# -----------------------------------------------------------
+# --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
+ForStmt : FOR ConditionBlockOpt Block
+ConditionBlockOpt : epsilon
+						   | Condition
+						   | ForClause
+						   | RangeClause
+Condition : Expression 
+ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt
+ConditionOpt : epsilon
+					| Condition 
+RangeClause : ExpressionIdentListOpt RANGE Expression
+ExpressionIdentListOpt : epsilon
+						   | ExpressionIdentifier
+ExpressionIdentifier : ExpressionList ASSIGN
+ReturnStmt : RETURN ExpressionListPureOpt
+ExpressionListPureOpt : ExpressionList
+						   | epsilon
+BreakStmt : BREAK LabelOpt
+ContinueStmt : CONTINUE LabelOpt
+LabelOpt : Label
+				  | epsilon 
+GotoStmt : GOTO Label 
+# -----------------------------------------------------------
+# ----------------  SOURCE FILE --------------------------------
+SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep
+ImportDeclRep : epsilon
+					 | ImportDeclRep ImportDecl SEMICOLON
+TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
+										   | epsilon
+# --------------------------------------------------------
+# ---------- PACKAGE CLAUSE --------------------
+PackageClause : PACKAGE PackageName
+PackageName : IDENT
+# -----------------------------------------------
+# --------- IMPORT DECLARATIONS ---------------
+ImportDecl : IMPORT ImportSpec
+					| IMPORT LPAREN ImportSpecRep RPAREN 
+ ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
+						  | epsilon 
+ ImportSpec : PackageNameDotOpt ImportPath 
+ PackageNameDotOpt : PERIOD
+												  | PackageName
+												  | epsilon
+ ImportPath : STRING_LITERAL 
+# -------------------------------------------------------
+epsilon : 

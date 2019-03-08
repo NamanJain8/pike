@@ -1,6 +1,7 @@
 from ply import lex
 from ply.lex import TOKEN
 import ply.yacc as yacc
+from lexer import *
 import json
 import argparse
 import sys
@@ -26,223 +27,7 @@ CITE:
   package of golang: https://golang.org/src/go/token/token.go
 """
 
-# reserved words in language
-reserved = {
-	'break':    'BREAK',
-	'default':    'DEFAULT',
-	'select':    'SELECT',
-	'func':    'FUNC',
-	'case':    'CASE',
-	'interface':    'INTERFACE',
-	'defer':    'DEFER',
-	'go':    'GO',
-	'struct':    'STRUCT',
-	'goto':    'GOTO',
-	'chan':    'CHAN',
-	'else':    'ELSE',
-	'map':    'MAP',
-	'fallthrough':    'FALLTHROUGH',
-	'package':    'PACKAGE',
-	'switch':    'SWITCH',
-	'const':    'CONST',
-	'range':    'RANGE',
-	'type':    'TYPE',
-	'if':    'IF',
-	'continue':    'CONTINUE',
-	'return':    'RETURN',
-	'for':    'FOR',
-	'import':    'IMPORT',
-	'var':    'VAR',
-	'int': 'INT',
-	'float': 'FLOAT',
-	'string': 'STRING',
-	'bool': 'BOOL',
-	'complex': 'COMPLEX',
-	'typecast': 'TYPECAST'
-}
-
-
-# token list (compulsary)
-tokens = [
-	# literals
-	'IDENT',            # main
-	'INT_LITERAL',              # 123
-	'FLOAT_LITERAL',            # 123.4
-	'IMAG',             # 123.4i
-	'CHAR',             # 'a'
-	'STRING_LITERAL',           # "abc"
-
-	# operator
-	'ADD',              # +
-	'SUB',              # -
-	'MUL',              # *
-	'QUO',              # /
-	'REM',              # %
-
-	'ADD_ASSIGN',       # +=
-	'SUB_ASSIGN',       # -=
-	'MUL_ASSIGN',       # *=
-	'QUO_ASSIGN',       # %=
-	'REM_ASSIGN',       # %=
-
-	# bitwise operators
-	'AND',              # &
-	'OR',               # |
-	'XOR',              # ^
-	'SHL',              # <<
-	'SHR',              # >>
-	'AND_NOT',          # &^
-
-	'AND_ASSIGN',       # &=
-	'OR_ASSIGN',        # |=
-	'XOR_ASSIGN',       # ^=
-	'SHL_ASSIGN',       # <<=
-	'SHR_ASSIGN',       # >>=
-	'AND_NOT_ASSIGN',   # &^=
-
-	'LAND',             # &&
-	'LOR',              # ||
-	'ARROW',            # <-
-	'INC',              # ++
-	'DEC',              # --
-
-	'EQL',              # ==
-	'LSS',              # <
-	'GTR',              # >
-	'ASSIGN',           # =
-	'NOT',              # !
-
-	'NEQ',              # !=
-	'LEQ',              # <=
-	'GEQ',              # >=
-	'DEFINE',           # :=
-	'ELLIPSIS',         # ...
-
-	'LPAREN',           # (
-	'LBRACK',           # [
-	'LBRACE',           # {
-	'COMMA',            # ,
-	'PERIOD',           # .
-
-	'RPAREN',           # )
-	'RBRACK',           # ]
-	'RBRACE',           # }
-	'SEMICOLON',        # ;
-	'COLON',            # :
-
-] + list(reserved.values())
-
-# Mathematical operators
-t_ADD = r"\+"
-t_SUB = r"-"
-t_MUL = r"\*"
-t_QUO = r"/"
-t_REM = r"%"
-
-t_ADD_ASSIGN = r"\+="
-t_SUB_ASSIGN = r"-="
-t_MUL_ASSIGN = r"\*="
-t_QUO_ASSIGN = r"/="
-t_REM_ASSIGN = r"%="
-
-# bitwise operators
-t_AND = r"&"
-t_OR = r"\|"
-t_XOR = r"\^"
-t_SHL = r"<<"
-t_SHR = r">>"
-t_AND_NOT = r"&\^"
-
-AND_ASSIGN = r"&="
-OR_ASSIGN = r"!="
-XOR_ASSIGN = r"\^="
-SHL_ASSIGN = r"<<="
-SHR_ASSIGN = r">>="
-AND_NOT_ASSIGN = r"&\^="
-
-t_LAND = r"&&"
-t_LOR = r"\|\|"
-t_ARROW = r"<-"
-t_INC = r"\+\+"
-t_DEC = r"--"
-
-t_EQL = r"=="
-t_LSS = r"<"
-t_GTR = r">"
-t_ASSIGN = r"="
-t_NOT = "!"
-
-t_NEQ = r"!="
-t_LEQ = r"<="
-t_GEQ = r">="
-t_DEFINE = r":="
-t_ELLIPSIS = r"\.\.\."
-
-t_LPAREN = r"\("
-t_LBRACK = r"\["
-t_LBRACE = r"\{"
-t_COMMA = r","
-t_PERIOD = r"\."
-
-t_RPAREN = r"\)"
-t_RBRACK = r"\]"
-t_RBRACE = r"\}"
-t_SEMICOLON = r";"
-t_COLON = r":"
-
-letter = r"[_A-Za-z]"
-decimal_digit = r"[0-9]"
-octal_digit = r"[0-7]"
-hexa_digit = r"[0-9a-fA-F]"
-
-identifier = letter + r"(" + letter + r"|" + decimal_digit + r")*"
-
-octal_literal = r"0[0-7]*"
-hexa_literal = r"0[xX][0-9a-fA-F]+"
-decimal_literal = r"[1-9][0-9]*"
-t_INT_LITERAL = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
-
-decimals = decimal_digit + r"(" + decimal_digit + r")*"
-exponent = r"(e|E)" + r"(\+|-)?" + decimals
-t_FLOAT_LITERAL = r"(" + decimals + r"\." + decimals + exponent + r")|(" + \
-	decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
-
-t_IMAG = r"(" + decimals + r"|" + t_FLOAT_LITERAL + r")" + r"i"
-
-t_ignore = " \t"
-
-# t_STRING_LITERAL = r"\"[.]+\""
 ctr = 1
-# Definig functions for each token
-
-
-@TOKEN(identifier)
-def t_IDENT(t):
-	t.type = reserved.get(t.value, "IDENT")
-	return t
-
-
-def t_NL(t):
-	r"\n+"
-	t.lexer.lineno += len(t.value)
-	pass
-
-
-def t_COMMENT(t):
-	r"(//.*)|(/\*(.|\n)*?)\*/"
-	pass
-
-
-def t_STRING_LITERAL(t):
-	r"(\"(.|\n)*?)\""
-	return t
-
-
-def t_error(t):
-	print("[ERROR] Invalid token:", t.value[0])
-	t.lexer.skip(1)  # skip ahead 1 character
-
-
 myout = ""
 
 
@@ -786,15 +571,11 @@ def p_operand(p):
 	if len(p) == 2:
 		p[0] = Node("Operand", [p[1]])
 	else:
-		# p[1] = Node(p[1])
-		# p[3] = Node(p[3])
-		# p[0] = Node("Operand", [p[1], p[2], p[3]])
 		p[0] = Node("Operand", [p[2]])
 
 
 def p_literal(p):
 	'''Literal : BasicLit'''
-	# | CompositeLit'''
 	p[0] = Node("Literal", [p[1]])
 
 
@@ -839,9 +620,6 @@ def p_lit_type(p):
 
 def p_lit_val(p):
 	'''LiteralValue : LBRACE ElementListOpt RBRACE'''
-	# p[1] = Node(p[1])
-	# p[3] = Node(p[3])
-	# p[0] = Node("LiteralValue", [p[1], p[2], p[3]])
 	p[0] = Node("LiteralValue", [p[2]])
 
 
@@ -923,9 +701,6 @@ def p_selector(p):
 
 def p_index(p):
 	'''Index : LBRACK Expression RBRACK'''
-	# p[1] = Node(p[1])
-	# p[3] = Node(p[3])
-	# p[0] = Node("Index", [p[1], p[2], p[3]])
 	p[0] = Node("Index", [p[2]])
 
 def p_slice(p):
@@ -969,14 +744,6 @@ def p_expr_list_type_opt(p):
 		p[0] = Node("ExpressionListTypeOpt", [p[1]])
 	else:
 		p[0] = None
-
-# def p_comma_opt(p):
-#    '''CommaOpt : COMMA
-#                | epsilon'''
-#    if p[1] == ",":
-#        p[0] = Node("", [])
-#    else:
-#        p[0] = Node("", [])
 
 
 def p_expr_list_comma_opt(p):
@@ -1345,14 +1112,6 @@ def p_forclause(p):
 	# p[0] = Node("ForClause", [p[1],p[2],p[3],p[4],p[5]])
 	p[0] = Node("ForClause", [p[1], p[3], p[5]])
 
-# def p_initstmtopt(p):
-#   '''InitStmtOpt : epsilon
-#            | InitStmt '''
-#   p[0] = Node("", [])
-
-# def p_init_stmt(p):
-#   ''' InitStmt : SimpleStmt'''
-#   p[0] = Node("", [])
 
 
 def p_conditionopt(p):
@@ -1362,15 +1121,6 @@ def p_conditionopt(p):
 		p[0] = None
 	else:
 		p[0] = Node("ConditionOpt", [p[1]])
-
-# def p_poststmtopt(p):
-#   '''PostStmtOpt : epsilon
-#            | PostStmt '''
-#   p[0] = Node("", [])
-
-# def p_post_stmt(p):
-#   ''' PostStmt : SimpleStmt '''
-#   # p[0] = Node("", [])
 
 
 def p_rageclause(p):
@@ -1540,54 +1290,6 @@ def p_empty(p):
 	'''epsilon : '''
 	p[0] = "epsilon"
 
-# def p_import_decl(p):
-
-
-# def p_start(p):
-#   '''start : expression'''
-#   # p[0] = "<start>" + p[1] + "</start>"
-#   p[0] = Node("", [])
-
-# def p_expression_plus(p):
-#     '''expression : expression ADD term
-#                   | expression SUB term'''
-#     if p[2] == '+':
-#         # p[0] = "<expr>" + p[1] + "</expr> + " + p[3]
-#         p[0] = Node("", [])
-#     else:
-#         # p[0] = "<expr>" + p[1] + "</expr> - " + p[3]
-#         p[0] = Node("", [])
-#         # p[0] = p[1] - p[3]
-# # def p_expression_minus(p):
-# #     'expression : '
-
-# def p_expression_term(p):
-#     'expression : term'
-#     # p[0] = "<term>" + p[1] + "</term>"
-#     p[0] = Node("", [])
-
-# def p_term_times(p):
-#     'term : term MUL factor'
-#     # p[0] = "<term>" + p[1] + "</term> * " + "<factor>" + p[3] + "</factor>"
-#     p[0] = Node("", [])
-
-
-# # def p_term_div(p):
-# #     'term : term QUO factor'
-# #     p[0] = p[1] / p[3]
-
-# def p_term_factor(p):
-#     'term : factor'
-#     p[0] = Node("", [])
-
-# def p_factor_num(p):
-#     'factor : INTEGER'
-#     # p[0] = str([p[1]])
-#     p[0] = Node("", [])
-
-# # def p_factor_expr(p):
-# #     'factor : LPAREN expression RPAREN'
-# #     p[0] = p[2]
 
 
 # Error rule for syntax errors
@@ -1634,21 +1336,3 @@ out_file.write("}\n")
 # Close file
 out_file.close()
 in_file.close()
-
-
-# # Read input file
-# in_file_location = "input.go"
-# in_file = open(in_file_location, 'r')
-# out_file = open("output.dot", "w")
-# out_file.write('strict digraph G {\n')
-#
-# data = in_file.read()
-#
-# # Iterate to get tokens
-# parser = yacc.yacc()
-# res = parser.parse(data)
-#
-# out_file.write("}\n")
-# # Close file
-# out_file.close()
-# in_file.close()
