@@ -813,17 +813,22 @@ def p_goto(p):
 # ----------------  SOURCE FILE --------------------------------
 def p_source_file(p):
 	'''SourceFile : PackageClause SEMICOLON ImportDeclRep TopLevelDeclRep'''
-
+	p[0] = p[4]
+	p[0].name = 'SourceFile'
 
 def p_import_decl_rep(p):
 	'''ImportDeclRep : epsilon
 					 | ImportDeclRep ImportDecl SEMICOLON'''
-
+	p[0] = Node('ImportDeclRep')
 
 
 def p_toplevel_decl_rep(p):
 	'''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
 										   | epsilon'''
+	p[0] = Node('TopLevelDeclRep')
+	if len(p) != 2:
+		p[0].code = p[1].code + p[2].code
+		
 
 # --------------------------------------------------------
 
@@ -849,34 +854,34 @@ def p_package_name(p):
 def p_import_decl(p):
 	'''ImportDecl : IMPORT ImportSpec
 					| IMPORT LPAREN ImportSpecRep RPAREN '''
-
-
+	p[0] = Node('ImportDecl')
 
 def p_import_spec_rep(p):
 	''' ImportSpecRep : ImportSpecRep ImportSpec SEMICOLON
 						  | epsilon '''
-
+	p[0] = Node('ImportSpecRep')
 
 
 def p_import_spec(p):
 	''' ImportSpec : PackageNameDotOpt ImportPath '''
-
+	p[0] = Node('ImportSpec')
 
 def p_package_name_dot_opt(p):
 	''' PackageNameDotOpt : PERIOD
 												  | PackageName
 												  | epsilon'''
-
+	p[0] = Node('PackageNameDotOpt')
 
 
 def p_import_path(p):
 	''' ImportPath : STRING_LITERAL '''
-
+	p[0] = Node('ImportPath')
 # -------------------------------------------------------
 
 
 def p_empty(p):
 	'''epsilon : '''
+	p[0] = Node('epsilon')
 
 
 # Error rule for syntax errors
