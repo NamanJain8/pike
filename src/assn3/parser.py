@@ -14,6 +14,13 @@ CITE:
   package of golang: https://golang.org/src/go/token/token.go
 """
 
+size_mp = {}
+size_mp['float']   = 4
+size_mp['int'] 	   = 4
+size_mp['bool']    = 1
+size_mp['complex'] = 8
+size_mp['string']  = 4
+
 precedence = (
 	('right', 'ASSIGN', 'NOT'),
 	('left', 'LOR'),
@@ -74,16 +81,15 @@ def p_type_token(p):
 	p[0] = Node('TypeToken')
 	if len(p) == 2:
 		p[0].typeList.append(p[1])
+		p[0].sizeList.append(size_mp[p[1]])
 	else:
 		if not helper.checkId(p[2],'default'):
 			compilation_errors.add('TypeError', line_number.get()+1,\
 						   'Type %s not defined'%p[2])
 		else:
 			info = helper.findInfo(p[2],'default')
-			if info == None:
-				compilation_errors.add('NameError', line_number.get()+1,\
-						   'Identifier %s not defined'%p[2])
 			p[0].typeList.append(info['type'])
+			p[0].sizeList.append(info['size'])
 
 
 

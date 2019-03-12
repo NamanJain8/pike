@@ -177,6 +177,7 @@ class Node:
         self.placeList = []
         self.identList = []
         self.name = name
+        self.sizeList = []
 
 class LineCount:
     def __init__(self):
