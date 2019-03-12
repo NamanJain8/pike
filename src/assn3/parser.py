@@ -146,7 +146,7 @@ def p_field_decl_rep(p):
 def p_field_decl(p):
 	''' FieldDecl : IdentifierList Type'''
     p[0] = p[1]
-    p[0].namr = 'FieldDecl'
+    p[0].name = 'FieldDecl'
 
     for i in p[0].idList:
         helper.symbolTables[helper.getScope()].update(i, 'type', p[2].typeList[0])
