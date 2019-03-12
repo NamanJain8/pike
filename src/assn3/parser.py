@@ -70,7 +70,7 @@ def p_type_token(p):
 							 | BOOL
 							 | COMPLEX
 							 | TYPE IDENT'''
-	
+
 	p[0] = Node('TypeToken')
 	if len(p) == 2:
 		p[0].typeList.append(p[1])
@@ -136,22 +136,33 @@ def p_struct_type(p):
 def p_field_decl_rep(p):
 	''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
 									| epsilon '''
-
+    p[0] = p[1]
+    p[0].name = 'FieldDeclRep'
+    if len(p) == 4:
+        p[0].idList += p[2].idList
+        p[0].typeList += p[2].typeList
 
 
 def p_field_decl(p):
-	''' FieldDecl : IdentifierList Type TagOpt'''
+	''' FieldDecl : IdentifierList Type'''
+    p[0] = p[1]
+    p[0].namr = 'FieldDecl'
+
+    for i in p[0].idList:
+        helper.symbolTables[helper.getScope()].update(i, 'type', p[2].typeList[0])
 
 
+# NOT REQUIRED
 
 def p_TagOpt(p):
 	''' TagOpt : Tag
 				| epsilon '''
-
+# Not used
 
 
 def p_Tag(p):
 	''' Tag : STRING_LITERAL '''
+# Not used
 
 # ---------------------------------------------------------
 
@@ -159,11 +170,15 @@ def p_Tag(p):
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
 	'''PointerType : MUL BaseType'''
-
+    p[0] = p[2]
+    p[0].name = 'PointerType'
+    p[0].typeList[0].insert('*', 0)
 
 
 def p_base_type(p):
 	'''BaseType : Type'''
+    p[0] = p[1]
+    p[0].name = 'BaseType'
 
 # ---------------------------------------------------------
 
@@ -317,7 +332,7 @@ def p_identifier_list(p):
 def p_identifier_rep(p):
 	'''IdentifierRep : IdentifierRep COMMA IDENT
 									 | epsilon'''
-	
+
 	p[0] = p[1]
 	p[0].name = 'IdentifierRep'
 	if len(p) == 4:
@@ -345,7 +360,7 @@ def p_expr_list(p):
 def p_expr_rep(p):
 	'''ExpressionRep : ExpressionRep COMMA Expression
 									 | epsilon'''
-	
+
 	p[0] = p[1]
 	p[0].name = 'ExpressionRep'
 	if len(p) == 4:
@@ -394,7 +409,13 @@ def p_alias_decl(p):
 # -------------------TYPE DEFINITIONS--------------------
 def p_type_def(p):
 	'''TypeDef : IDENT Type'''
+    p[0] = Node('Typedef')
 
+	if helper.checkId(p[1],'current'):
+		compilation_errors.add("Redeclare Error", line_number.get()+1,\
+			"%s already declared"%p[1])
+	else:
+		helper.symbolTables[helper.getScope()].add(p[1], p[2].TypeList[0])
 # -------------------------------------------------------
 
 
@@ -402,24 +423,35 @@ def p_type_def(p):
 def p_var_decl(p):
 	'''VarDecl : VAR VarSpec
 					   | VAR LPAREN VarSpecRep RPAREN'''
-
-
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = p[3]
+    p[0].name = 'VarDecl'
 
 def p_var_spec_rep(p):
 	'''VarSpecRep : VarSpecRep VarSpec SEMICOLON
 							  | epsilon'''
-
+    p[0] = p[1]
+    p[0].name = 'VarSpecRep'
+    if len(p) == 4:
+        p[0].code += p[2].code
 
 
 def p_var_spec(p):
 	'''VarSpec : IdentifierList Type ExpressionListOpt
 					   | IdentifierList ASSIGN ExpressionList'''
-
+    # TODO
 
 
 def p_expr_list_opt(p):
 	'''ExpressionListOpt : ASSIGN ExpressionList
 											 | epsilon'''
+    if len(p) == 3:
+        p[0] = p[2]
+    else:
+        p[0] = p[1]
+    p[0].name = 'ExpressionListOpt'
 
 # -------------------------------------------------------
 
@@ -429,6 +461,18 @@ def p_expr_list_opt(p):
 # ----------------SHORT VARIABLE DECLARATIONS-------------
 def p_short_var_decl(p):
 	''' ShortVarDecl : IDENT DEFINE Expression '''
+    p[0] = Node('IdentifierList')
+
+	if helper.checkId(p[1],'current'):
+		compilation_errors.add("Redeclare Error", line_number.get()+1,\
+			"%s already declared"%p[1])
+	else:
+		helper.symbolTables[helper.getScope()].add(p[1],None)
+		newTemp = helper.newVar()
+        p[0].code - p[3].code
+        p[0].code.append(['=', newTemp, p[3].placelist[0]])
+        helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
+        helper.symbolTables[helper.getScope()].update(p[1], 'type', p[3].typeList[0])
 # -------------------------------------------------------
 
 
@@ -458,12 +502,16 @@ def p_operand(p):
 	'''Operand : Literal
 					   | OperandName
 					   | LPAREN Expression RPAREN'''
-
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[2]
+    p[0].name = 'Operand'
 
 def p_literal(p):
 	'''Literal : BasicLit'''
-
-
+    p[0] = p[1]
+    p[0].name = 'Literal'
 
 def p_basic_lit(p):
 	'''BasicLit : INT_LITERAL
@@ -471,7 +519,6 @@ def p_basic_lit(p):
 							| STRING_LITERAL
 							| IMAG
 							'''
-
 
 
 def p_operand_name(p):
@@ -921,7 +968,7 @@ def p_toplevel_decl_rep(p):
 	p[0] = Node('TopLevelDeclRep')
 	if len(p) != 2:
 		p[0].code = p[1].code + p[2].code
-		
+
 
 # --------------------------------------------------------
 
