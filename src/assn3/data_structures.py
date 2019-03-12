@@ -119,6 +119,42 @@ class Helper:
     def endScope(self):
         self.scopeStack.pop()
         self.popOffset()
+
+    def checkId(self,identifier, type_='default'):
+        if type_ == 'global':
+            if self.symbolTables[0].lookUp(identifier) is not None:
+                return True
+            return False
+        
+        if type_ == "current":
+            if self.symbolTables[self.getScope()].lookUp(identifier) is not None:
+                return True
+            return False
+        
+        # wrong implemetation
+        # if type_ == "label":
+        #     if self.symbolTables[0].lookUp(identifier) is not None:
+        #         return True
+        #     return False  
+              
+        # Couldnt figure *!s
+
+        # Default case
+        for scope in self.scopeStack[::-1]:
+            if self.symbolTables[scope].lookUp(identifier) is not None:
+                return True
+            return False
+
+    def findInfo(self, identifier, type_='default'):
+        if type_ == 'global':
+            if self.symbolTables[0].get(identifier) is not None:
+                return self.symbolTables[0].get(identifier)
+        
+        else:
+            for scope in self.scopeStack[::-1]:
+                if self.symbolTables[scope].get(identifier) is not None:
+                    return self.symbolTables[scope].get(identifier)
+        return None
         
 
     def debug(self):

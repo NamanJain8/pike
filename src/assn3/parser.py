@@ -50,14 +50,18 @@ def p_type(p):
 	'''Type : TypeName
 					| TypeLit
 					| LPAREN Type RPAREN'''
-
+	if len(p) == 2:
+		p[0] = p[1]
+	else:
+		p[0] = p[2]
+	p[0].name = 'Type'
 
 
 def p_type_name(p):
 	'''TypeName : TypeToken
 							| QualifiedIdent'''
-
-
+	p[0] = p[1]
+	p[0].name = 'TypeName'
 
 def p_type_token(p):
 	'''TypeToken : INT
@@ -66,6 +70,20 @@ def p_type_token(p):
 							 | BOOL
 							 | COMPLEX
 							 | TYPE IDENT'''
+	
+	p[0] = Node('TypeToken')
+	if len(p) == 2:
+		p[0].typeList.append(p[1])
+	else:
+		if not helper.checkId(p[2],'default'):
+			compilation_errors.add('TypeError', line_number.get()+1,\
+						   'Type %s not defined'%p[2])
+		else:
+			info = helper.findInfo(p[2],'default')
+			if info == None:
+				compilation_errors.add('NameError', line_number.get()+1,\
+						   'Identifier %s not defined'%p[2])
+			p[0].typeList.append(info['type'])
 
 
 
@@ -73,12 +91,14 @@ def p_type_lit(p):
 	'''TypeLit : ArrayType
 					   | StructType
 					   | PointerType'''
-
-
+	p[0] = p[1]
+	p[0].name = 'TypeLit'
 
 def p_type_opt(p):
 	'''TypeOpt : Type
 					   | epsilon'''
+	p[0] = p[1]
+	p[0].name = 'TypeOpt'
 
 # -------------------------------------------------------
 
@@ -86,18 +106,21 @@ def p_type_opt(p):
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
 	'''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
-
-
-
+	# TODO
+	p[0] = Node('ArrayType')
+	p[0].code = p[2].code
+	p[0].typeList.append()
+	p[0].name = 'ArrayType'
 
 def p_array_length(p):
 	''' ArrayLength : Expression '''
-
-
+	p[0] = p[1]
+	p[0].name = 'ArrayLength'
 
 def p_element_type(p):
 	''' ElementType : Type '''
-
+	p[0] = p[1]
+	p[0].name = 'ElementType'
 
 # --------------------------------------------------------
 
@@ -105,8 +128,10 @@ def p_element_type(p):
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
 	'''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
-
-
+	# TODO
+	p[0] = p[4]
+	info = helper.findInfo(p[2],'default')
+	p[0].name = 'StructType'
 
 def p_field_decl_rep(p):
 	''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
@@ -196,17 +221,23 @@ def p_param_decl(p):
 # -----------------------BLOCKS---------------------------
 def p_block(p):
 	'''Block : LBRACE StatementList RBRACE'''
-
+	p[0] = p[2]
+	p[0].name = 'Block'
 
 
 def p_stat_list(p):
 	'''StatementList : StatementRep'''
-
+	p[0] = p[1]
+	p[0].name = 'StatementList'
 
 
 def p_stat_rep(p):
 	'''StatementRep : StatementRep Statement SEMICOLON
 									| epsilon'''
+	p[0] = p[1]
+	p[0].name = 'StatementRep'
+	if len(p) == 4:
+		p[0].code += p[2].code
 
 # -------------------------------------------------------
 
@@ -216,13 +247,14 @@ def p_decl(p):
 	'''Declaration : ConstDecl
 								   | TypeDecl
 								   | VarDecl'''
-
-
+	p[0] = p[1]
+	p[0].name = 'Declaration'
 
 def p_toplevel_decl(p):
 	'''TopLevelDecl : Declaration
 									| FunctionDecl'''
-
+	p[0] = p[1]
+	p[0].name = 'TopLevelDecl'
 # -------------------------------------------------------
 
 
@@ -230,18 +262,31 @@ def p_toplevel_decl(p):
 def p_const_decl(p):
 	'''ConstDecl : CONST ConstSpec
 							 | CONST LPAREN ConstSpecRep RPAREN'''
-
+	if len(p) == 3:
+		p[0] = p[2]
+	else:
+		p[0] = p[3]
+	p[0].name = 'ConstDecl'
 
 
 def p_const_spec_rep(p):
 	'''ConstSpecRep : ConstSpecRep ConstSpec SEMICOLON
 									| epsilon'''
-
+	p[0] = p[1]
+	p[0].name = 'ConstSpecRep'
+	if len(p) == 4:
+		p[0].code += p[2].code
 
 
 def p_const_spec(p):
 	'''ConstSpec : IdentifierList TypeExprListOpt'''
-
+	p[0] = Node('ConstSpec')
+	p[0].code = p[1].code + p[4].code
+	if len(p[1].placeList) != len(p[4].placeList):
+		compilation_errors.add('AssignmentError', line_number.get()+1,\
+			"Number of expressions does not match number of identifiers")
+	# else:
+	# 	for item in range(len)
 
 
 def p_type_expr_list(p):
