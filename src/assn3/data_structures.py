@@ -155,7 +155,11 @@ class Helper:
                 if self.symbolTables[scope].get(identifier) is not None:
                     return self.symbolTables[scope].get(identifier)
         return None
-        
+
+    def findScope(self, identifier):
+        for scope in self.scopeStack[::-1]:
+                if self.symbolTables[scope].get(identifier) is not None:
+                    return scope        
 
     def debug(self):
         print(self.varCount)

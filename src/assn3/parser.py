@@ -279,41 +279,80 @@ def p_const_spec_rep(p):
 
 
 def p_const_spec(p):
-	'''ConstSpec : IdentifierList TypeExprListOpt'''
+	'''ConstSpec : IdentifierList Type ASSIGN ExpressionList'''
 	p[0] = Node('ConstSpec')
 	p[0].code = p[1].code + p[4].code
 	if len(p[1].placeList) != len(p[4].placeList):
 		compilation_errors.add('AssignmentError', line_number.get()+1,\
 			"Number of expressions does not match number of identifiers")
-	# else:
-	# 	for item in range(len)
+	else:
+		for idx in range(len(p[1].placeList)):
+			# if condition not used
+			p[0].code.append(["=", p[1].placelist[idx], p[4].placelist[idx]])
+			p[1].placelist[idx] = p[4].placelist[idx]
 
+			scope = helper.findScope(p[1].identList[idx])
 
-def p_type_expr_list(p):
-	'''TypeExprListOpt : TypeOpt ASSIGN ExpressionList
-									   | epsilon'''
+			helper.symbolTables[scope].update(p[1].identList[idx], 'place', p[1].placeList[idx])
+			helper.symbolTables[scope].update(p[1].identList[idx], 'type', p[2].typeList[idx])
 
-
+			# TODO typechecking
 
 def p_identifier_list(p):
 	'''IdentifierList : IDENT IdentifierRep'''
+	p[0] = p[2]
+	p[0].name = 'IdentifierList'
+	p[0].identList.insert(0,p[1])
 
+	if helper.checkId(p[1],'current'):
+		compilation_errors.add("Redeclare Error", line_number.get()+1,\
+			"%s already declared"%p[1])
+	else:
+		helper.symbolTables[helper.getScope()].add(p[1],None)
+		newTemp = helper.newVar()
+		p[0].placeList.insert(0,newTemp)
+		helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
 
 
 def p_identifier_rep(p):
 	'''IdentifierRep : IdentifierRep COMMA IDENT
 									 | epsilon'''
-
+	
+	p[0] = p[1]
+	p[0].name = 'IdentifierRep'
+	if len(p) == 4:
+		if helper.checkId(p[3], 'current'):
+			compilation_errors.add("Redeclare Error", line_number.get()+1,\
+			"%s already declared"%p[1])
+		else:
+			helper.symbolTables[helper.getScope()].add(p[3],None)
+			newTemp = helper.newVar()
+			p[0].placelist.append(newTemp)
+			helper.symbolTables[helper.getScope()].update(p[3],'place',newTemp)
+			p[0].idList.append(p[3])
 
 
 def p_expr_list(p):
 	'''ExpressionList : Expression ExpressionRep'''
-
+	p[0] = p[1]
+	p[0].name = 'ExpressionList'
+	p[0].code += p[2].code
+	p[0].placeList += p[2].placeList
+	p[0].identList += p[2].identList
+	# TODO understand addrlist
 
 
 def p_expr_rep(p):
 	'''ExpressionRep : ExpressionRep COMMA Expression
 									 | epsilon'''
+	
+	p[0] = p[1]
+	p[0].name = 'ExpressionRep'
+	if len(p) == 4:
+		p[0].code += p[3].code
+		p[0].placeList += p[3].placeList
+		p[0].identList += p[3].identList
+	# TODO understand addrlist
 
 # -------------------------------------------------------
 
@@ -322,24 +361,33 @@ def p_expr_rep(p):
 def p_type_decl(p):
 	'''TypeDecl : TYPE TypeSpec
 							| TYPE LPAREN TypeSpecRep RPAREN'''
-
+	if len(p) == 5:
+		p[0] = p[3]
+	else:
+		p[0] = p[2]
+	p[0].name = 'TypeDecl'
 
 
 def p_type_spec_rep(p):
 	'''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
 							   | epsilon'''
-
+	if len(p) == 4:
+		p[0] = Node('TypeSpecRep')
+		# TODO ommitting RHS why?
+	else:
+		p[0] = p[1]
 
 
 def p_type_spec(p):
 	'''TypeSpec : AliasDecl
 							| TypeDef'''
-
+	p[0] = p[1]
+	p[0].name = 'TypeSpec'
 
 
 def p_alias_decl(p):
 	'''AliasDecl : IDENT ASSIGN Type'''
-
+	# Not used
 # -------------------------------------------------------
 
 
