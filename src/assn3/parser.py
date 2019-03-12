@@ -100,12 +100,6 @@ def p_type_lit(p):
     p[0] = p[1]
     p[0].name = 'TypeLit'
 
-def p_type_opt(p):
-    '''TypeOpt : Type
-                       | epsilon'''
-    p[0] = p[1]
-    p[0].name = 'TypeOpt'
-
 # -------------------------------------------------------
 
 
@@ -160,16 +154,6 @@ def p_field_decl(p):
 
 
 # NOT REQUIRED
-
-def p_TagOpt(p):
-    ''' TagOpt : Tag
-                | epsilon '''
-# Not used
-
-
-def p_Tag(p):
-    ''' Tag : STRING_LITERAL '''
-# Not used
 
 # ---------------------------------------------------------
 
@@ -427,7 +411,7 @@ def p_type_def(p):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
     else:
-        helper.symbolTables[helper.getScope()].add(p[1], p[2].TypeList[0])
+        helper.symbolTables[helper.getScope()].add(p[1], p[2].typeList[0])
 # -------------------------------------------------------
 
 
@@ -545,61 +529,6 @@ def p_quali_ident(p):
 # -------------------------------------------------------
 
 
-# -----------------COMPOSITE LITERALS----------------------
-def p_comp_lit(p):
-    '''CompositeLit : LiteralType LiteralValue'''
-
-
-
-def p_lit_type(p):
-    '''LiteralType : ArrayType
-                               | ElementType
-                               | TypeName'''
-
-
-
-def p_lit_val(p):
-    '''LiteralValue : LBRACE ElementListOpt RBRACE'''
-
-
-
-def p_elem_list_comma_opt(p):
-    '''ElementListOpt : ElementList
-                                               | epsilon'''
-
-
-
-def p_elem_list(p):
-    '''ElementList : KeyedElement KeyedElementCommaRep'''
-
-
-def p_key_elem_comma_rep(p):
-    '''KeyedElementCommaRep : KeyedElementCommaRep COMMA KeyedElement
-                                                    | epsilon'''
-
-
-def p_key_elem(p):
-    '''KeyedElement : Key COLON Element
-                                    | Element'''
-
-
-
-def p_key(p):
-    '''Key : FieldName
-               | Expression
-               | LiteralValue'''
-
-
-
-def p_field_name(p):
-    '''FieldName : IDENT'''
-
-
-
-def p_elem(p):
-    '''Element : Expression
-                       | LiteralValue'''
-
 # ---------------------------------------------------------
 
 
@@ -642,12 +571,6 @@ def p_argument(p):
 def p_expr_list_type_opt(p):
     '''ExpressionListTypeOpt : ExpressionList
                                                      | epsilon'''
-
-
-
-def p_expr_list_comma_opt(p):
-    '''ExpressionListCommaOpt : COMMA ExpressionList
-                                                      | epsilon'''
 
 # ---------------------------------------------------------
 
@@ -725,7 +648,6 @@ def p_statement(p):
                              | ContinueStmt
                              | Block
                              | IfStmt
-                             | SwitchStmt
                              | ForStmt '''
 
 
@@ -778,13 +700,6 @@ def p_if_statement(p):
     ''' IfStmt : IF Expression Block ElseOpt '''
 
 
-
-def p_SimpleStmtOpt(p):
-    ''' SimpleStmtOpt : SimpleStmt SEMICOLON
-                                          | epsilon '''
-
-
-
 def p_else_opt(p):
     ''' ElseOpt : ELSE IfStmt
                             | ELSE Block
@@ -792,78 +707,6 @@ def p_else_opt(p):
 
 
 # ----------------------------------------------------------------
-
-
-# ----------- SWITCH STATEMENTS ---------------------------------
-
-def p_switch_statement(p):
-    ''' SwitchStmt : ExprSwitchStmt
-                                   | TypeSwitchStmt '''
-
-
-
-def p_expr_switch_stmt(p):
-    ''' ExprSwitchStmt : SWITCH ExpressionOpt LBRACE ExprCaseClauseRep RBRACE'''
-
-
-
-def p_expr_case_clause_rep(p):
-    ''' ExprCaseClauseRep : ExprCaseClauseRep ExprCaseClause
-                                                  | epsilon'''
-
-
-
-def p_expr_case_clause(p):
-    ''' ExprCaseClause : ExprSwitchCase COLON StatementList'''
-
-
-
-def p_expr_switch_case(p):
-    ''' ExprSwitchCase : CASE ExpressionList
-                                           | DEFAULT '''
-
-
-
-def p_type_switch_stmt(p):
-    ''' TypeSwitchStmt : SWITCH SimpleStmtOpt TypeSwitchGuard LBRACE TypeCaseClauseOpt RBRACE'''
-
-
-
-def p_type_switch_guard(p):
-    ''' TypeSwitchGuard : IdentifierOpt PrimaryExpr PERIOD LPAREN TYPE RPAREN '''
-
-
-
-def p_identifier_opt(p):
-    ''' IdentifierOpt : IDENT DEFINE
-                                          | epsilon '''
-
-
-
-def p_type_case_clause_opt(p):
-    ''' TypeCaseClauseOpt : TypeCaseClauseOpt TypeCaseClause
-                                                  | epsilon '''
-
-
-
-def p_type_case_clause(p):
-    ''' TypeCaseClause : TypeSwitchCase COLON StatementList'''
-
-
-
-def p_type_switch_case(p):
-    ''' TypeSwitchCase : CASE TypeList
-                                           | DEFAULT '''
-
-
-
-def p_type_list(p):
-    ''' TypeList : Type TypeRep'''
-
-
-def p_type_rep(p):
-    ''' TypeRep : TypeRep COMMA Type
-                            | epsilon '''
 
 
 # -----------------------------------------------------------
@@ -928,7 +771,6 @@ def p_expressionlist_pure_opt(p):
 
 def p_break(p):
     '''BreakStmt : BREAK'''
-
 
 
 def p_continue(p):
