@@ -37,6 +37,10 @@ class Errors:
 class SymbolTable:
 
     def __init__(self, parent=None):
+        self.typeDefs = {} # this is a dictionary of dictionary, in which each type name is key
+                           # for each key, all the declarations are key in the new dict, with type, size tuple
+                           # In this dictionary we will also store the total size
+        self.functions = {} # we  need to store index of its symbol table, and the label from which code starts
         self.table = {}
         self.parent = parent
         self.metadata = {}
@@ -178,6 +182,7 @@ class Node:
         self.identList = []
         self.name = name
         self.sizeList = []
+        self.extra = {}
 
 class LineCount:
     def __init__(self):

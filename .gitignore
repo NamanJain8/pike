@@ -1,6 +1,8 @@
 *.o
 *.out
 *.html
+.vscode/
+src/*/__pycache__/
 src/lexer/__pycache__
 src/parser/__pycache__
 src/__pycache__
