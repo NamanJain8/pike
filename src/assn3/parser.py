@@ -327,9 +327,9 @@ def p_expr_list(p):
     '''ExpressionList : Expression ExpressionRep'''
     p[0] = p[1]
     p[0].name = 'ExpressionList'
-    p[0].code += p[2].code
+    # p[0].code += p[2].code
     p[0].placeList += p[2].placeList
-    p[0].identList += p[2].identList
+    p[0].typeList += p[2].typeList
     # TODO understand addrlist
 
 
@@ -342,7 +342,7 @@ def p_expr_rep(p):
     if len(p) == 4:
         p[0].code += p[3].code
         p[0].placeList += p[3].placeList
-        p[0].identList += p[3].identList
+        p[0].typeList += p[3].typeList
     # TODO understand addrlist
 
 # -------------------------------------------------------
@@ -472,12 +472,12 @@ def p_short_var_decl(p):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
     else:
-        helper.symbolTables[helper.getScope()].add(p[1],None)
-        newTemp = helper.newVar()
-        p[0].code - p[3].code
-        p[0].code.append(['=', newTemp, p[3].placelist[0]])
-        helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
-        helper.symbolTables[helper.getScope()].update(p[1], 'type', p[3].typeList[0])
+        helper.symbolTables[helper.getScope()].add(p[1],p[3].typeList[0])
+        # newTemp = helper.newVar()
+        # p[0].code - p[3].code
+        # p[0].code.append(['=', newTemp, p[3].placelist[0]])
+        # helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
+        # helper.symbolTables[helper.getScope()].update(p[1], 'type', p[3].typeList[0])
 # -------------------------------------------------------
 
 
@@ -504,7 +504,7 @@ def p_func_body(p):
 
 # ----------------------OPERAND----------------------------
 def p_operand(p):
-    '''Operand : Literal
+    '''Operand : BasicLit
                        | OperandName
                        | LPAREN Expression RPAREN'''
     if len(p) == 2:
@@ -512,21 +512,43 @@ def p_operand(p):
     else:
         p[0] = p[2]
     p[0].name = 'Operand'
+    # TODO handle operandName
 
-def p_literal(p):
-    '''Literal : BasicLit'''
-    p[0] = p[1]
-    p[0].name = 'Literal'
-
+ # new rules start
 def p_basic_lit(p):
-    '''BasicLit : INT_LITERAL
-                            | FLOAT_LITERAL
-                            | STRING_LITERAL
-                            '''
+    '''BasicLit : IntLit
+                | FloatLit
+                | StringLit
+                '''
+    p[0] = p[1]
+    p[0].name = 'BasicLit'
 
+def p_basic_lit_1(p):
+    '''IntLit : INT_LITERAL'''
+    p[0] = Node('IntLit')
+    p[0].typeList.append('int')
+
+def p_basic_lit_2(p):
+    '''FloatLit : FLOAT_LITERAL'''
+    p[0] = Node('FloatLit')
+    p[0].typeList.append('float')
+
+def p_basic_lit_3(p):
+    '''StringLit : STRING_LITERAL'''
+    p[0] = Node('StringLit')
+    p[0].typeList.append('string')
+
+# new rules finished
 
 def p_operand_name(p):
     '''OperandName : IDENT'''
+    p[0] = Node('OperandName')
+    if not helper.checkId(p[1],'default'):
+        compilation_errors.add('NameError', line_number.get()+1, '%s not declared'%p[1])
+    else:
+        type_ = helper.findInfo(p[1],'default')['type']
+        p[0].typeList.append(type_)
+    # TODO also place other things
 
 # ---------------------------------------------------------
 
@@ -541,7 +563,10 @@ def p_prim_expr(p):
                                | PrimaryExpr Slice
                                | PrimaryExpr TypeAssertion
                                | PrimaryExpr Arguments'''
-
+    # Handling only operand
+    if len(p)==2:
+        p[0] = p[1]
+    p[0].name = 'PrimaryExpr'
 
 
 def p_selector(p):
@@ -579,19 +604,37 @@ def p_expr_list_type_opt(p):
 def p_expr(p):
     '''Expression : UnaryExpr
                               | Expression BinaryOp Expression'''
-
-
+    p[0] = Node('Expression')
+    if len(p) == 2:
+        p[0].typeList = p[1].typeList
+        p[0].placeList = p[1].placeList
+    else:
+        # TODO typechecking
+        newVar = helper.newVar()
+        p[0].typeList = p[1].typeList
+        p[0].placeList.append(newVar)
 
 def p_expr_opt(p):
     '''ExpressionOpt : Expression
                                      | epsilon'''
-
+    p[0] = Node('ExpressionOpt')
+    p[0].typeList = p[1].typeList
+    p[0].placeList = p[1].placeList
 
 def p_unary_expr(p):
     '''UnaryExpr : PrimaryExpr
                              | UnaryOp UnaryExpr
                              | NOT UnaryExpr'''
-
+    p[0] = Node('UnaryExpr')
+    if len(p) == 2:
+        p[0].typeList = p[1].typeList
+        p[0].placeList = p[1].placeList
+    elif p[1] == '!':
+        p[0].typeList = p[2].typeList
+        p[0].placeList = p[2].placeList
+    else:
+        p[0].typeList = p[2].typeList
+        p[0].placeList = p[2].placeList
 
 
 def p_binary_op(p):
@@ -599,8 +642,7 @@ def p_binary_op(p):
                             | LAND
                             | RelOp
                             | AddMulOp'''
-
-
+    p[0] = p[1]
 
 def p_rel_op(p):
     '''RelOp : EQL
@@ -609,6 +651,7 @@ def p_rel_op(p):
                      | GTR
                      | LEQ
                      | GEQ'''
+    p[0] = p[1]
 
 
 
@@ -620,7 +663,7 @@ def p_add_mul_op(p):
                             | REM
                             | SHL
                             | SHR'''
-
+    p[0] = p[1]
 
 
 def p_unary_op(p):
@@ -628,6 +671,7 @@ def p_unary_op(p):
                        | SUB
                        | MUL
                        | AND '''
+    p[0] = p[1]
 
 # -------------------------------------------------------
 
@@ -856,7 +900,6 @@ def p_empty(p):
 
 # Error rule for syntax errors
 
-helper.debug()
 def p_error(p):
     # plus one as line number starts from 0
     compilation_errors.add('Parsing Error', line_number.get()+1,\
@@ -892,6 +935,9 @@ data = in_file.read()
 # Iterate to get tokens
 parser = yacc.yacc()
 res = parser.parse(data)
+
+# Debug here
+helper.debug()
 
 if compilation_errors.size() > 0:
     compilation_errors.printErrors()

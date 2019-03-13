@@ -45,6 +45,14 @@ class SymbolTable:
         self.parent = parent
         self.metadata = {}
 
+    def __str__(self):
+        print('typeDefs:',self.typeDefs)
+        print('functions:',self.functions)
+        print('parent:', self.parent)
+        print('table:', self.table)
+        print('metadata', self.metadata)
+        return ""
+
     # Checks whether "id" lies in the symbol table
     def lookUp(self, id):
         return (id in self.table.keys())
@@ -53,7 +61,7 @@ class SymbolTable:
     def add(self, id, type_):
         if (not self.lookUp(id)):
             (self.table)[id] = {}
-            (self.table)[id]["type"] = type_
+            (self.table)[id]['type'] = type_
 
     # Returns the argument list of the variable else returns None
     # Note that type is always a key in argument list
@@ -126,18 +134,18 @@ class Helper:
 
     def checkId(self,identifier, type_='default'):
         if type_ == 'global':
-            if self.symbolTables[0].lookUp(identifier) is not None:
+            if self.symbolTables[0].lookUp(identifier) is True:
                 return True
             return False
         
         if type_ == "current":
-            if self.symbolTables[self.getScope()].lookUp(identifier) is not None:
+            if self.symbolTables[self.getScope()].lookUp(identifier) is True:
                 return True
             return False
         
         # wrong implemetation
         # if type_ == "label":
-        #     if self.symbolTables[0].lookUp(identifier) is not None:
+        #     if self.symbolTables[0].lookUp(identifier) is False:
         #         return True
         #     return False  
               
@@ -145,7 +153,7 @@ class Helper:
 
         # Default case
         for scope in self.scopeStack[::-1]:
-            if self.symbolTables[scope].lookUp(identifier) is not None:
+            if self.symbolTables[scope].lookUp(identifier) is True:
                 return True
             return False
 
@@ -171,7 +179,8 @@ class Helper:
         print('scope:',self.scope)
         print('scopeStack:',self.scopeStack)
         print('offsetStack:',self.offsetStack)
-        print('symbolTables:',self.symbolTables)
+        for table in range(len(self.symbolTables)):
+            print('symbolTable %d:'%table,self.symbolTables[table])
 
 
 class Node:
