@@ -679,7 +679,15 @@ def p_unary_op(p):
 # -----------------CONVERSIONS-----------------------------
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
-
+    p[0] = p[4]
+    p[0].name = 'Conversion'
+    tmpMap = helper.symbolTables[helper.getScope()].typeDefs
+    type_ = p[2].typeList[0]
+    if (type_ not in tmpMap) and (type_ not in size_mp):
+       compilation_errors.add('TypeError',line_number.get()+1, "Type %s not defined"%type_) 
+    else:
+        p[0].typeList = p[2].typeList
+        p[0].sizeList = p[2].sizeList
 # ---------------------------------------------------------
 
 
