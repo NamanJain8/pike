@@ -261,7 +261,12 @@ def p_const_decl(p):
         p[0] = p[2]
     else:
         p[0] = p[3]
-    p[0].name = 'ConstDecl'
+    p[0].name = 'VarDecl'
+    for index_ in range(len(p[0].identList)):
+        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'is_const', True)
+    # TODO
+    # Assign value to the constants in the code generation process.
 
 
 def p_const_spec_rep(p):
@@ -270,31 +275,46 @@ def p_const_spec_rep(p):
     p[0] = p[1]
     p[0].name = 'ConstSpecRep'
     if len(p) == 4:
-        p[0].code += p[2].code
+        p[0].identList += p[2].identList
+        p[0].typeList += p[2].typeList
+        p[0].placeList += p[2].placeList
+    #    p[0].code += p[2].code
 
 
 def p_const_spec(p):
     '''ConstSpec : IdentifierList Type ASSIGN ExpressionList'''
-    p[0] = Node('ConstSpec')
-    p[0].code = p[4].code
-    if len(p[1].placeList) != len(p[4].placeList):
-        compilation_errors.add('AssignmentError', line_number.get()+1,\
-            "Number of expressions does not match number of identifiers")
-    else:
-        for idx in range(len(p[1].placeList)):
-            # if condition not used
-            if helper.checkId(p[1].identList[idx],'current'):
-                compilation_errors.add("Redeclare Error", line_number.get()+1,\
-                    "Constant %s already declared"%p[1].identList[idx])
-            else:
-                p[0].code.append(["=", p[1].placelist[idx], p[4].placelist[idx]])
-                p[1].placelist[idx] = p[4].placelist[idx]
+    p[0] = p[1]
+    for i in range(len(p[1].identList)):
+        p[0].typeList.append(p[2].typeList[0])
+    if len(p[1].identList) != len(p[4].typeList):
+        err_ = str(len(p[1].identList)) + ' constants but ' + str(len(p[4].typeList)) + ' values'
+        compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
+    for type_ in p[4].placeList:
+        if type_ != p[2].typeList[0]:
+            err_ = type_ + 'assigned to ' + p[2].typeList[0]
+            compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
+    p[0].placeList = p[4].placeList
+    p[0].name = 'ConstSpec'
+    # p[0] = Node('ConstSpec')
+    # p[0].code = p[4].code
+    # if len(p[1].placeList) != len(p[4].placeList):
+    #     compilation_errors.add('AssignmentError', line_number.get()+1,\
+    #         "Number of expressions does not match number of identifiers")
+    # else:
+    #     for idx in range(len(p[1].placeList)):
+    #         # if condition not used
+    #         if helper.checkId(p[1].identList[idx],'current'):
+    #             compilation_errors.add("Redeclare Error", line_number.get()+1,\
+    #                 "Constant %s already declared"%p[1].identList[idx])
+    #         else:
+    #             p[0].code.append(["=", p[1].placelist[idx], p[4].placelist[idx]])
+    #             p[1].placelist[idx] = p[4].placelist[idx]
 
-                # scope = helper.findScope(p[1].identList[idx])
-                helper.symbolTables[helper.getScope()].add(p[1].identList[idx],p[1].typeList[idx])
+    #             # scope = helper.findScope(p[1].identList[idx])
+    #             helper.symbolTables[helper.getScope()].add(p[1].identList[idx],p[1].typeList[idx])
 
-                helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'place', p[1].placeList[idx])
-                helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'type', p[2].typeList[idx])
+    #             helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'place', p[1].placeList[idx])
+    #             helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'type', p[2].typeList[idx])
 
                 # TODO typechecking
 
@@ -426,7 +446,7 @@ def p_var_spec(p):
     p[0].name = 'VarSpec'
     if p[2] == '=':
         if len(p[1].identList) != len(p[3].typeList):
-            err_ = str(len(p[1].identList)) + 'varaibles but ' + str(len(p[3].typeList)) + ' values'
+            err_ = str(len(p[1].identList)) + ' varaibles but ' + str(len(p[3].typeList)) + ' values'
             compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
         else:
             p[0].typeList = p[3].typeList
@@ -434,12 +454,12 @@ def p_var_spec(p):
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
-        if len(p[3].placeList) == 0:
+        if len(p[3].typeList) == 0:
             tmpArr = ['nil']
             p[0].placeList = tmpArr*len(p[0].identList)
-        if len(p[3].placeList) != 0: # going to empty
-            if len(p[0].identList) != len(p[3].placeList):
-                err_ = str(len(p[0].identList)) + 'varaibles but ' + str(len(p[3].typeList)) + ' values'
+        elif len(p[3].typeList) != 0: # going to empty
+            if len(p[0].identList) != len(p[3].typeList):
+                err_ = str(len(p[0].identList)) + ' varaibles but ' + str(len(p[3].typeList)) + ' values'
                 compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
                 return
             for type_ in p[3].typeList:
