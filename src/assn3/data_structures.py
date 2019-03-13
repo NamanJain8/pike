@@ -35,7 +35,7 @@ class Errors:
 
 
 class SymbolTable:
-
+    
     def __init__(self, parent=None):
         self.typeDefs = {} # this is a dictionary of dictionary, in which each type name is key
                            # for each key, all the declarations are key in the new dict, with type, size tuple
@@ -166,12 +166,12 @@ class Helper:
                     return scope        
 
     def debug(self):
-        print(self.varCount)
-        print(self.labelCount)
-        print(self.scope)
-        print(self.scopeStack)
-        print(self.offsetStack)
-        print(self.symbolTables)
+        print('varCount:',self.varCount)
+        print('lebelCount:',self.labelCount)
+        print('scope:',self.scope)
+        print('scopeStack:',self.scopeStack)
+        print('offsetStack:',self.offsetStack)
+        print('symbolTables:',self.symbolTables)
 
 
 class Node:

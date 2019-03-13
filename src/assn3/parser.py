@@ -69,23 +69,18 @@ def p_type_token(p):
                              | FLOAT
                              | STRING
                              | BOOL
-                             | COMPLEX
                              | TYPE IDENT'''
-
     p[0] = Node('TypeToken')
     if len(p) == 2:
         p[0].typeList.append(p[1])
         p[0].sizeList.append(size_mp[p[1]])
     else:
-        if not helper.checkId(p[2],'default'):
-            compilation_errors.add('TypeError', line_number.get()+1,\
-                           'Type %s not defined'%p[2])
+        tmpMap = helper.symbolTables[helper.getScope()].typeDefs[p[2]]
+        if tmpMap is None:
+            compilation_errors.add('Type Error', line_number.get()+1, 'undefined: '+p[2])
         else:
-            info = helper.findInfo(p[2],'default')
-            p[0].typeList.append(info['type'])
-            p[0].sizeList.append(info['size'])
-
-
+            p[0].sizeList.append(tmpMap['size'])
+            p[0].typeList.append(p[2])
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -236,8 +231,8 @@ def p_stat_rep(p):
                                     | epsilon'''
     p[0] = p[1]
     p[0].name = 'StatementRep'
-    if len(p) == 4:
-        p[0].code += p[2].code
+    # if len(p) == 4:
+    #     p[0].code += p[2].code
 
 # -------------------------------------------------------
 
@@ -437,7 +432,7 @@ def p_var_spec(p):
             p[0].typeList = p[3].typeList
             p[0].placeList = p[3].placeList
     else:
-        for i in range(p[1].identList):
+        for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
         if len(p[3].placeList) == 0:
             tmpArr = ['nil']
@@ -492,7 +487,7 @@ def p_short_var_decl(p):
 def p_func_decl(p):
     '''FunctionDecl : FUNC FunctionName Function
                                     | FUNC FunctionName Signature'''
-
+    p[0] = Node('FunctionDecl')
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
@@ -861,7 +856,7 @@ def p_empty(p):
 
 # Error rule for syntax errors
 
-
+helper.debug()
 def p_error(p):
     # plus one as line number starts from 0
     compilation_errors.add('Parsing Error', line_number.get()+1,\
