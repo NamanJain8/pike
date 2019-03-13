@@ -5,6 +5,7 @@
 src/*/__pycache__/
 src/lexer/__pycache__
 src/parser/__pycache__
+src/assn3/.vscode/
 src/__pycache__
 src/parser/parsetab.py
 src/*/parsetab.py

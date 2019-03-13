@@ -75,7 +75,8 @@ def p_type_token(p):
         p[0].typeList.append(p[1])
         p[0].sizeList.append(size_mp[p[1]])
     else:
-        tmpMap = helper.symbolTables[helper.getScope()].typeDefs[p[2]]
+        # tmpMap = helper.symbolTables[helper.getScope()].typeDefs.get(p[2])
+        tmpMap = helper.findInfo(p[2])
         if tmpMap is None:
             compilation_errors.add('Type Error', line_number.get()+1, 'undefined: '+p[2])
         else:
@@ -95,10 +96,8 @@ def p_type_lit(p):
 # ------------------- ARRAY TYPE -------------------------
 def p_array_type(p):
     '''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
-    # TODO
     p[0] = Node('ArrayType')
-    p[0].code = p[2].code
-    p[0].typeList.append(['array',p[2].extra['count'],p[4].typeList[0]])
+    p[0].typeList.append({'type':'array','count': p[2].extra['count'],'arraytype':p[4].typeList[0]})
     p[0].sizeList.append(int(p[2].extra['count']*p[4].sizeList[0]))
     p[0].name = 'ArrayType'
 
@@ -118,10 +117,14 @@ def p_element_type(p):
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
     '''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
-    # TODO create scope
-    p[0] = p[4]
-    info = helper.findInfo(p[2],'default')
-    p[0].name = 'StructType'
+    p[0] = Node('StructType')
+    for index_ in range(len(p[3].identList)):
+        if p[3].identList[index_] in p[3].identList[:index_]:
+            compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Field %s redeclared'%p[3].identList[index_])
+            return
+    p[0] = p[3]
+    p[0].extra['structType'] = True
+
 
 def p_field_decl_rep(p):
     ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
@@ -129,20 +132,18 @@ def p_field_decl_rep(p):
     p[0] = p[1]
     p[0].name = 'FieldDeclRep'
     if len(p) == 4:
-        p[0].idList += p[2].idList
+        p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
+        p[0].sizeList += p[2].sizeList
 
 
 def p_field_decl(p):
     ''' FieldDecl : IdentifierList Type'''
-    p[0] = Node('FieldDecl')
+    p[0] = p[1]
+    p[0].name = 'FieldDecl'
 
-    for identifier in p[1].identList:
-        helper.symbolTables[helper.getScope()].update(identifier, 'type', p[2].typeList[0])
-        helper.symbolTables[helper.getScope()].update(identifier, 'size', p[2].sizeList[0])
-
-
-# NOT REQUIRED
+    p[0].typeList = [p[2].typeList[0]]*len(p[1].identList)
+    p[0].sizeList = [p[2].sizeList[0]]*len(p[1].identList)
 
 # ---------------------------------------------------------
 
@@ -150,9 +151,10 @@ def p_field_decl(p):
 # ------------------POINTER TYPES--------------------------
 def p_point_type(p):
     '''PointerType : MUL BaseType'''
-    p[0] = p[2]
-    p[0].name = 'PointerType'
-    p[0].typeList[0].insert('*', 0)
+    p[0] = Node('PointerType')
+    p[0].typeList.append({'type':'pointer','pointertype':p[2].typeList[0]})
+    p[0].sizeList.append(4)
+    p[0].name = 'ArrayType'
 
 
 def p_base_type(p):
@@ -410,8 +412,15 @@ def p_type_def(p):
     if helper.checkId(p[1],'current'):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
+    elif 'structType' in p[2].extra:
+        dict_ = {}
+        for index_ in range(len(p[2].identList)):
+            dict_[p[2].identList[index_]] = {'type':p[2].typeList[index_]}
+        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type':'struct', 'structType': dict_, 'size': sum(p[2].sizeList)}
+
     else:
         helper.symbolTables[helper.getScope()].add(p[1], p[2].typeList[0])
+
 # -------------------------------------------------------
 
 
@@ -507,20 +516,26 @@ def p_short_var_decl(p):
 
 # ----------------FUNCTION DECLARATIONS------------------
 def p_func_decl(p):
-    '''FunctionDecl : FUNC FunctionName Function
-                                    | FUNC FunctionName Signature'''
+    '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope
+                                    | FUNC FunctionName CreateScope Signature EndScope'''
     p[0] = Node('FunctionDecl')
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
 
-
 def p_func(p):
     '''Function : Signature FunctionBody'''
 
-
 def p_func_body(p):
     '''FunctionBody : Block'''
+
+def p_create_scope(p):
+	'''CreateScope : '''
+	helper.newScope(helper.getScope())
+
+def p_delete_scope(p):
+	'''EndScope : '''
+	helper.endScope()
 # -------------------------------------------------------
 
 
@@ -588,16 +603,22 @@ def p_prim_expr(p):
     # Handling only operand
     if len(p)==2:
         p[0] = p[1]
+    # elif p[2].name == 'Index':
+    #     # TODO code
+    else:
+        p[0] = Node('PrimaryExpr')
     p[0].name = 'PrimaryExpr'
 
 
 def p_selector(p):
     '''Selector : PERIOD IDENT'''
 
-
-
 def p_index(p):
     '''Index : LBRACK Expression RBRACK'''
+    p[0] = p[2]
+    p[0].name = 'Index'
+    if p[2].typeList[0] != 'int':
+        compilation_errors.add('TypeError',line_number.get()+1, "Index type should be integer")
 
 
 def p_slice(p):
@@ -1007,9 +1028,9 @@ res = parser.parse(data)
 # Debug here
 helper.debug()
 
-if compilation_errors.size() > 0:
-    compilation_errors.printErrors()
-    sys.exit(0)
+# if compilation_errors.size() > 0:
+#     compilation_errors.printErrors()
+#     sys.exit(0)
 
 out_file.write("}\n")
 # Close file

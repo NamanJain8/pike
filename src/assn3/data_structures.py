@@ -13,6 +13,7 @@ class Errors:
         err_["msg"] = string
         # err_['colno'] = colno
         (self.error).append(err_)
+        self.printError(self.counter-1)
         return
 
     def printError(self, index):
@@ -46,6 +47,7 @@ class SymbolTable:
         self.metadata = {}
 
     def __str__(self):
+        print('\n')
         print('typeDefs:',self.typeDefs)
         print('functions:',self.functions)
         print('parent:', self.parent)
@@ -130,7 +132,11 @@ class Helper:
 
     def endScope(self):
         self.scopeStack.pop()
-        self.popOffset()
+        # remove try condition if offset handled
+        try:
+            self.popOffset()
+        except:
+            pass
 
     def checkId(self,identifier, type_='default'):
         if type_ == 'global':
@@ -166,12 +172,16 @@ class Helper:
             for scope in self.scopeStack[::-1]:
                 if self.symbolTables[scope].get(identifier) is not None:
                     return self.symbolTables[scope].get(identifier)
+
+            for scope in self.scopeStack[::-1]:
+                if self.symbolTables[scope].typeDefs.get(identifier) is not None:
+                    return self.symbolTables[scope].typeDefs.get(identifier)
         return None
 
     def findScope(self, identifier):
         for scope in self.scopeStack[::-1]:
                 if self.symbolTables[scope].get(identifier) is not None:
-                    return scope        
+                    return scope
 
     def debug(self):
         print('varCount:',self.varCount)
