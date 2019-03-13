@@ -20,6 +20,7 @@ size_mp['int']     = 4
 size_mp['bool']    = 1
 size_mp['complex'] = 8
 size_mp['string']  = 4
+size_mp['pointer'] = 4
 
 precedence = (
     ('right', 'ASSIGN', 'NOT'),
@@ -72,16 +73,15 @@ def p_type_token(p):
                              | TYPE IDENT'''
     p[0] = Node('TypeToken')
     if len(p) == 2:
-        p[0].typeList.append(p[1])
+        p[0].typeList.append([p[1]])
         p[0].sizeList.append(size_mp[p[1]])
     else:
-        # tmpMap = helper.symbolTables[helper.getScope()].typeDefs.get(p[2])
         tmpMap = helper.findInfo(p[2])
         if tmpMap is None:
             compilation_errors.add('Type Error', line_number.get()+1, 'undefined: '+p[2])
         else:
             p[0].sizeList.append(tmpMap['size'])
-            p[0].typeList.append(p[2])
+            p[0].typeList.append([p[2]])
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -97,7 +97,7 @@ def p_type_lit(p):
 def p_array_type(p):
     '''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
     p[0] = Node('ArrayType')
-    p[0].typeList.append({'type':'array','count': p[2].extra['count'],'arraytype':p[4].typeList[0]})
+    p[0].typeList.append(['array', p[4].typeList[0], p[2].extra['count']])
     p[0].sizeList.append(int(p[2].extra['count']*p[4].sizeList[0]))
     p[0].name = 'ArrayType'
 
@@ -123,8 +123,11 @@ def p_struct_type(p):
             compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Field %s redeclared'%p[3].identList[index_])
             return
     p[0] = p[3]
-    p[0].extra['structType'] = True
-
+    dict_ = {}
+    for index_ in range(len(p[3].identList)):
+        dict_[p[3].identList[index_]] = {'type':p[3].typeList[index_]}
+    p[0].typeList = [['struct', dict_]]
+    p[0].sizeList = [sum(p[3].sizeList)]
 
 def p_field_decl_rep(p):
     ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
@@ -152,9 +155,8 @@ def p_field_decl(p):
 def p_point_type(p):
     '''PointerType : MUL BaseType'''
     p[0] = Node('PointerType')
-    p[0].typeList.append({'type':'pointer','pointertype':p[2].typeList[0]})
+    p[0].typeList.append(['pointer', p[2].typeList[0]])
     p[0].sizeList.append(4)
-    p[0].name = 'ArrayType'
 
 
 def p_base_type(p):
@@ -291,9 +293,9 @@ def p_const_spec(p):
     if len(p[1].identList) != len(p[4].typeList):
         err_ = str(len(p[1].identList)) + ' constants but ' + str(len(p[4].typeList)) + ' values'
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
-    for type_ in p[4].placeList:
+    for type_ in p[4].typeList:
         if type_ != p[2].typeList[0]:
-            err_ = type_ + 'assigned to ' + p[2].typeList[0]
+            err_ = str(type_) + 'assigned to ' + str(p[2].typeList[0])
             compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
     p[0].placeList = p[4].placeList
     p[0].name = 'ConstSpec'
@@ -412,14 +414,10 @@ def p_type_def(p):
     if helper.checkId(p[1],'current'):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
-    elif 'structType' in p[2].extra:
-        dict_ = {}
-        for index_ in range(len(p[2].identList)):
-            dict_[p[2].identList[index_]] = {'type':p[2].typeList[index_]}
-        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type':'struct', 'structType': dict_, 'size': sum(p[2].sizeList)}
-
     else:
-        helper.symbolTables[helper.getScope()].add(p[1], p[2].typeList[0])
+        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[2].typeList[0], 'size': p[2].sizeList[0]}
+        size_mp[p[1]] = p[2].sizeList[0]
+        print(size_mp)
 
 # -------------------------------------------------------
 
@@ -473,7 +471,7 @@ def p_var_spec(p):
                 return
             for type_ in p[3].typeList:
                 if type_ != p[2].typeList[0]:
-                    err_ = type_ + ' assign to ' + p[2].typeList[0] 
+                    err_ = str(type_) + ' assign to ' + str(p[2].typeList[0]) 
                     compilation_errors.add('Type Mismatch', line_number.get()+1,err_)
                     return
             p[0].placeList = p[3].placeList
@@ -563,17 +561,18 @@ def p_basic_lit(p):
 def p_basic_lit_1(p):
     '''IntLit : INT_LITERAL'''
     p[0] = Node('IntLit')
-    p[0].typeList.append('int')
+    p[0].typeList.append(['int'])
 
 def p_basic_lit_2(p):
     '''FloatLit : FLOAT_LITERAL'''
     p[0] = Node('FloatLit')
-    p[0].typeList.append('float')
+    p[0].typeList.append(['float'])
 
 def p_basic_lit_3(p):
     '''StringLit : STRING_LITERAL'''
     p[0] = Node('StringLit')
-    p[0].typeList.append('string')
+    p[0].typeList.append(['string'])
+#TODO: what about bool literals
 
 # new rules finished
 
@@ -617,7 +616,7 @@ def p_index(p):
     '''Index : LBRACK Expression RBRACK'''
     p[0] = p[2]
     p[0].name = 'Index'
-    if p[2].typeList[0] != 'int':
+    if p[2].typeList[0] != ['int']:
         compilation_errors.add('TypeError',line_number.get()+1, "Index type should be integer")
 
 
@@ -654,7 +653,7 @@ def p_expr(p):
     else:
         if p[1].typeList[0] != p[3].typeList[0]:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
-        elif p[1].typeList[0] not in p[2].extra:
+        elif p[1].typeList[0][0] not in p[2].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for binary expression')
         else:
             newVar = helper.newVar()
@@ -678,13 +677,13 @@ def p_unary_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
     elif p[1] == '!':
-        if p[2].typeList[0] != 'bool':
+        if p[2].typeList[0] != ['bool']:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be boolean')
         else:
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
     else:
-        if p[2].typeList[0] not in p[1].extra:
+        if p[2].typeList[0][0] not in p[1].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
             p[0].typeList = p[2].typeList
@@ -764,7 +763,7 @@ def p_conversion(p):
     p[0].name = 'Conversion'
     tmpMap = helper.symbolTables[helper.getScope()].typeDefs
     type_ = p[2].typeList[0]
-    if (type_ not in tmpMap) and (type_ not in size_mp):
+    if (type_[0] not in tmpMap) and (type_[0] not in size_mp):
        compilation_errors.add('TypeError',line_number.get()+1, "Type %s not defined"%type_) 
     else:
         p[0].typeList = p[2].typeList
