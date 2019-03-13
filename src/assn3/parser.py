@@ -310,28 +310,6 @@ def p_const_spec(p):
             compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
     p[0].placeList = p[4].placeList
     p[0].name = 'ConstSpec'
-    # p[0] = Node('ConstSpec')
-    # p[0].code = p[4].code
-    # if len(p[1].placeList) != len(p[4].placeList):
-    #     compilation_errors.add('AssignmentError', line_number.get()+1,\
-    #         "Number of expressions does not match number of identifiers")
-    # else:
-    #     for idx in range(len(p[1].placeList)):
-    #         # if condition not used
-    #         if helper.checkId(p[1].identList[idx],'current'):
-    #             compilation_errors.add("Redeclare Error", line_number.get()+1,\
-    #                 "Constant %s already declared"%p[1].identList[idx])
-    #         else:
-    #             p[0].code.append(["=", p[1].placelist[idx], p[4].placelist[idx]])
-    #             p[1].placelist[idx] = p[4].placelist[idx]
-
-    #             # scope = helper.findScope(p[1].identList[idx])
-    #             helper.symbolTables[helper.getScope()].add(p[1].identList[idx],p[1].typeList[idx])
-
-    #             helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'place', p[1].placeList[idx])
-    #             helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'type', p[2].typeList[idx])
-
-                # TODO typechecking
 
 def p_identifier_list(p):
     '''IdentifierList : IDENT IdentifierRep'''
@@ -343,6 +321,7 @@ def p_identifier_list(p):
             "%s already declared"%p[1])
     else:
         p[0].identList.insert(0,p[1])
+        p[0].placeList.insert(0, p[1])
 
 
 def p_identifier_rep(p):
@@ -572,16 +551,22 @@ def p_basic_lit_1(p):
     '''IntLit : INT_LITERAL'''
     p[0] = Node('IntLit')
     p[0].typeList.append(['int'])
+    newVar = helper.newVar()
+    p[0].placeList.append(newVar)
 
 def p_basic_lit_2(p):
     '''FloatLit : FLOAT_LITERAL'''
     p[0] = Node('FloatLit')
     p[0].typeList.append(['float'])
+    newVar = helper.newVar()
+    p[0].placeList.append(newVar)
 
 def p_basic_lit_3(p):
     '''StringLit : STRING_LITERAL'''
     p[0] = Node('StringLit')
     p[0].typeList.append(['string'])
+    newVar = helper.newVar()
+    p[0].placeList.append(newVar)
 #TODO: what about bool literals
 
 # new rules finished
@@ -594,6 +579,7 @@ def p_operand_name(p):
     else:
         type_ = helper.findInfo(p[1],'default')['type']
         p[0].typeList.append(type_)
+        p[0].placeList.append(p[1])
     # TODO also place other things
 
 # ---------------------------------------------------------
@@ -661,7 +647,10 @@ def p_expr(p):
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for binary expression')
         else:
             newVar = helper.newVar()
-            p[0].typeList = p[1].typeList
+            if len(p[2].typeList) > 0:
+                p[0].typeList = p[2].typeList
+            else:
+                p[0].typeList = p[1].typeList
             p[0].placeList.append(newVar)
     # TODO: binary operator must be propogated for code generation
 
@@ -700,13 +689,18 @@ def p_binary_op(p):
                             | LAND
                             | RelOp
                             | AddMulOp'''
+    
     if isinstance(p[1], str):
         p[0] = Node('BinaryOp')
         p[0].extra['opcode'] = p[1]
         p[0].extra['bool'] = True
+        p[0].typeList.append(['bool'])
+    elif p[1].name == 'RelOp':
+        p[0] = p[1]
+        p[0].typeList.append(['bool'])
     else:
         p[0] = p[1]
-        p[0].name = 'BinaryOp'
+    p[0].name = 'BinaryOp'
 
 def p_rel_op(p):
     '''RelOp : EQL
@@ -785,7 +779,11 @@ def p_statement(p):
                              | CreateScope Block EndScope
                              | IfStmt
                              | ForStmt '''
-
+    if len(p) == 2:
+        p[0] = p[1]
+    else:
+        p[0] = p[2]
+    p[0].name = 'Statement'
 
 
 def p_simple_stmt(p):
@@ -794,27 +792,46 @@ def p_simple_stmt(p):
                                    | IncDecStmt
                                    | Assignment
                                    | ShortVarDecl '''
+    p[0] = p[1]
+    p[0].name = 'SimpleStmt'
 
 
 def p_expression_stmt(p):
     ''' ExpressionStmt : Expression '''
-
+    p[0] = p[1]
+    p[0].name = 'ExpressionStmt'
 
 
 def p_inc_dec(p):
     ''' IncDecStmt : Expression INC
                                    | Expression DEC '''
-
-
+    p[0] = p[1]
+    p[0].name = 'IncDecStmt'
+    if  p[1].typeList[0] != ['int']:
+        err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
+        compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
+    # TODO add increment code, for code generation
 
 def p_assignment(p):
     ''' Assignment : ExpressionList assign_op ExpressionList'''
-
-
+    p[0] = p[1]
+    if len(p[1].typeList) != len(p[3].placeList):
+        err_ = str(len(p[1].typeList)) + ' identifier on left, while ' + str(len(p[3].placeList)) + ' expression on right'
+        compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
+    else:
+        for index_,type_ in enumerate(p[3].typeList):
+            if type_ != p[1].typeList[index_] :
+                err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
+                compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
+            elif type_[0] not in p[2].extra:
+                compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
+    p[0].name = 'Assignment'
+    # TODO make the assignment in code generation, get the assign_op from extra
 
 def p_assign_op(p):
     ''' assign_op : AssignOp'''
-
+    p[0] = p[1]
+    p[0].name = 'assign_op'
 
 
 def p_AssignOp(p):
@@ -829,17 +846,26 @@ def p_AssignOp(p):
                              | SHL_ASSIGN
                              | SHR_ASSIGN
                              | ASSIGN '''
-
-
+    p[0] = Node('AssignOp')
+    p[0].extra['opcode'] = p[1]
+    if p[1] == '=':
+        p[0].extra['bool'] = True
+        p[0].extra['int'] = True
+        p[0].extra['string'] = True
+        p[0].extra['float'] = True
+    else:
+        p[0].extra['int'] = True
 
 def p_if_statement(p):
     ''' IfStmt : IF CreateScope Expression Block ElseOpt EndScope'''
+    p[0] = Node('IfStmt')
 
 
 def p_else_opt(p):
     ''' ElseOpt : ELSE CreateScope IfStmt EndScope
                             | ELSE CreateScope Block EndScope
                             | epsilon '''
+    p[0] = Node('ElseOpt')
 
 
 # ----------------------------------------------------------------
@@ -851,7 +877,9 @@ def p_else_opt(p):
 # --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
 def p_for(p):
     '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
-
+    p[0] = p[3]
+    p[0].code += p[4].code
+    p[0].name = 'ForStmt'
 
 
 def p_conditionblockopt(p):
@@ -859,59 +887,74 @@ def p_conditionblockopt(p):
                            | Condition
                            | ForClause
                            | RangeClause'''
+    p[0] = p[1]
+    p[0].name = 'ConditionBlockOpt'
 
 
 
 def p_condition(p):
     '''Condition : Expression '''
-
+    p[0] = p[1]
+    if p[1].typeList[0] != ['bool']:
+        compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expression type should be bool')
+    p[0].name = 'Condition'
 
 
 def p_forclause(p):
     '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
-
+    p[0] = p[1]
+    p[0].code += p[3].code
+    p[0].code += p[5].code
+    p[0].name = 'ForClause'
 
 
 def p_conditionopt(p):
     '''ConditionOpt : epsilon
                     | Condition '''
+    p[0] = p[1]
+    p[0].name = 'ConditionOpt'
 
 
 
 def p_rageclause(p):
     '''RangeClause : ExpressionIdentListOpt RANGE Expression'''
+    p[0] = Node('RangeClause')
 
 
 
 def p_expression_ident_listopt(p):
     '''ExpressionIdentListOpt : epsilon
                            | ExpressionIdentifier'''
+    p[0] = Node('ExpressionIdentListOpt')
 
 
 
 def p_expressionidentifier(p):
     '''ExpressionIdentifier : ExpressionList ASSIGN'''
+    p[0] = Node('ExpressionIdentifier')
 
 
 
 def p_return(p):
     '''ReturnStmt : RETURN ExpressionListPureOpt'''
+    p[0] = Node('ReturnStmt')
 
 
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
                            | epsilon'''
+    p[0] = Node('ExpressionListPureOpt')
 
 
 
 def p_break(p):
     '''BreakStmt : BREAK'''
-
+    p[0] = Node('BreakStmt')
 
 def p_continue(p):
     '''ContinueStmt : CONTINUE'''
-
+    p[0] = Node('ContinueStmt')
 
 # -----------------------------------------------------------
 

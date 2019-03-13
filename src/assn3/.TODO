@@ -7,3 +7,7 @@ if new scope (new block), push offset = 0, to offset stack
 need to make scope in case of: for, if, else, function (done), 
 
 Can add non terminal for append, to make slice working
+
+add try execpt blocks (better way is to add data in list despite error)
+
+Make constant modification error

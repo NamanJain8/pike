@@ -161,7 +161,7 @@ class Helper:
         for scope in self.scopeStack[::-1]:
             if self.symbolTables[scope].lookUp(identifier) is True:
                 return True
-            return False
+        return False
 
     def findInfo(self, identifier, type_='default'):
         if type_ == 'global':
