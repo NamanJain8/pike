@@ -54,7 +54,7 @@ def p_start(p):
 
 # -----------------------TYPES---------------------------
 def p_type(p):
-    '''Type : TypeName
+    '''Type : TypeToken
                     | TypeLit
                     | LPAREN Type RPAREN'''
     if len(p) == 2:
@@ -63,12 +63,6 @@ def p_type(p):
         p[0] = p[2]
     p[0].name = 'Type'
 
-
-def p_type_name(p):
-    '''TypeName : TypeToken
-                            | QualifiedIdent'''
-    p[0] = p[1]
-    p[0].name = 'TypeName'
 
 def p_type_token(p):
     '''TypeToken : INT
@@ -304,8 +298,8 @@ def p_const_spec(p):
                 # scope = helper.findScope(p[1].identList[idx])
                 helper.symbolTables[helper.getScope()].add(p[1].identList[idx],p[1].typeList[idx])
 
-                helper.symbolTables[scope].update(p[1].identList[idx], 'place', p[1].placeList[idx])
-                helper.symbolTables[scope].update(p[1].identList[idx], 'type', p[2].typeList[idx])
+                helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'place', p[1].placeList[idx])
+                helper.symbolTables[helper.getScope()].update(p[1].identList[idx], 'type', p[2].typeList[idx])
 
                 # TODO typechecking
 
@@ -313,34 +307,25 @@ def p_identifier_list(p):
     '''IdentifierList : IDENT IdentifierRep'''
     p[0] = p[2]
     p[0].name = 'IdentifierList'
-    p[0].identList.insert(0,p[1])
 
-    if helper.checkId(p[1],'current'):
+    if helper.checkId(p[1],'current') or (p[1] in p[2].identList):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
     else:
-        helper.symbolTables[helper.getScope()].add(p[1],None)
-        newTemp = helper.newVar()
-        p[0].placeList.insert(0,newTemp)
-        helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
+        p[0].identList.insert(0,p[1])
 
 
 def p_identifier_rep(p):
     '''IdentifierRep : IdentifierRep COMMA IDENT
                                      | epsilon'''
-
     p[0] = p[1]
     p[0].name = 'IdentifierRep'
     if len(p) == 4:
-        if helper.checkId(p[3], 'current'):
+        if helper.checkId(p[3], 'current') or (p[3] in p[0].identList):
             compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
         else:
-            helper.symbolTables[helper.getScope()].add(p[3],None)
-            newTemp = helper.newVar()
-            p[0].placelist.append(newTemp)
-            helper.symbolTables[helper.getScope()].update(p[3],'place',newTemp)
-            p[0].idList.append(p[3])
+            p[0].identList.append(p[3])
 
 
 def p_expr_list(p):
@@ -424,6 +409,10 @@ def p_var_decl(p):
     else:
         p[0] = p[3]
     p[0].name = 'VarDecl'
+    for index_ in range(len(p[0].identList)):
+        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
+    # TODO
+    # Add the values from placeList in the code generation part, when the placeList[i] = 'nil', dont add any code
 
 def p_var_spec_rep(p):
     '''VarSpecRep : VarSpecRep VarSpec SEMICOLON
@@ -431,14 +420,39 @@ def p_var_spec_rep(p):
     p[0] = p[1]
     p[0].name = 'VarSpecRep'
     if len(p) == 4:
-        p[0].code += p[2].code
-
+        p[0].identList += p[2].identList
+        p[0].typeList += p[2].typeList
+        p[0].placeList += p[2].placeList
 
 def p_var_spec(p):
     '''VarSpec : IdentifierList Type ExpressionListOpt
                        | IdentifierList ASSIGN ExpressionList'''
-    # TODO
-
+    p[0] = p[1]
+    p[0].name = 'VarSpec'
+    if p[2] == '=':
+        if len(p[1].identList) != len(p[3].typeList):
+            err_ = str(len(p[1].identList)) + 'varaibles but ' + str(len(p[3].typeList)) + ' values'
+            compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
+        else:
+            p[0].typeList = p[3].typeList
+            p[0].placeList = p[3].placeList
+    else:
+        for i in range(p[1].identList):
+            p[0].typeList.append(p[2].typeList[0])
+        if len(p[3].placeList) == 0:
+            tmpArr = ['nil']
+            p[0].placeList = tmpArr*len(p[0].identList)
+        if len(p[3].placeList) != 0: # going to empty
+            if len(p[0].identList) != len(p[3].placeList):
+                err_ = str(len(p[0].identList)) + 'varaibles but ' + str(len(p[3].typeList)) + ' values'
+                compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
+                return
+            for type_ in p[3].typeList:
+                if type_ != p[2].typeList[0]:
+                    err_ = type_ + ' assign to ' + p[2].typeList[0] 
+                    compilation_errors.add('Type Mismatch', line_number.get()+1,err_)
+                    return
+            p[0].placeList = p[3].placeList
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : ASSIGN ExpressionList
@@ -457,7 +471,7 @@ def p_expr_list_opt(p):
 # ----------------SHORT VARIABLE DECLARATIONS-------------
 def p_short_var_decl(p):
     ''' ShortVarDecl : IDENT DEFINE Expression '''
-    p[0] = Node('IdentifierList')
+    p[0] = Node('ShortVarDecl')
 
     if helper.checkId(p[1],'current'):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
@@ -521,15 +535,6 @@ def p_operand_name(p):
 
 # ---------------------------------------------------------
 
-
-# -------------------QUALIFIED IDENT----------------
-def p_quali_ident(p):
-    '''QualifiedIdent : IDENT PERIOD TypeName'''
-
-# -------------------------------------------------------
-
-
-# ---------------------------------------------------------
 
 
 # ------------------PRIMARY EXPRESSIONS--------------------
@@ -806,7 +811,7 @@ def p_toplevel_decl_rep(p):
 # ---------- PACKAGE CLAUSE --------------------
 def p_package_clause(p):
     '''PackageClause : PACKAGE PackageName'''
-    p[0] = p[1]
+    p[0] = p[2]
     p[0].name = 'PackageClause'
 
 
@@ -814,7 +819,7 @@ def p_package_clause(p):
 def p_package_name(p):
     '''PackageName : IDENT'''
     p[0] = Node('PackageName')
-    p[0].identlist.append(p[1])
+    p[0].identList.append(p[1])
     helper.symbolTables[helper.getScope()].updateMetadata('package', p[1])
 
 # -----------------------------------------------
