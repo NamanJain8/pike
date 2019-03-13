@@ -97,15 +97,26 @@ def p_type_lit(p):
 def p_array_type(p):
     '''ArrayType : LBRACK ArrayLength RBRACK ElementType'''
     p[0] = Node('ArrayType')
-    p[0].typeList.append(['array', p[4].typeList[0], p[2].extra['count']])
-    p[0].sizeList.append(int(p[2].extra['count']*p[4].sizeList[0]))
+    if p[2].extra['count'] == -208016:
+        # slice
+        p[0].typeList.append(['slice', p[4].typeList[0], 0])
+        p[0].sizeList.append(0)
+    else:
+        if p[2].extra['count'] < 0:
+            compilation_errors.add('Size Error', line_number.get()+1, 'array bound must be non-negative')
+            return
+        p[0].typeList.append(['array', p[4].typeList[0], p[2].extra['count']])
+        p[0].sizeList.append(int(p[2].extra['count']*p[4].sizeList[0]))
     p[0].name = 'ArrayType'
 
 def p_array_length(p):
-    ''' ArrayLength : INT_LITERAL'''
+    ''' ArrayLength : INT_LITERAL
+                            | epsilon'''
     p[0] = Node('ArrayLength')
-    p[0].extra['count'] = int(p[1])
-
+    if isinstance(p[1], str):
+        p[0].extra['count'] = int(p[1])
+    else:
+        p[0].extra['count'] = -208016
 def p_element_type(p):
     ''' ElementType : Type '''
     p[0] = p[1]
@@ -417,7 +428,6 @@ def p_type_def(p):
     else:
         helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[2].typeList[0], 'size': p[2].sizeList[0]}
         size_mp[p[1]] = p[2].sizeList[0]
-        print(size_mp)
 
 # -------------------------------------------------------
 
@@ -534,7 +544,7 @@ def p_create_scope(p):
 def p_delete_scope(p):
 	'''EndScope : '''
 	helper.endScope()
-# -------------------------------------------------------
+# ---------------------------------------------------------
 
 
 # ----------------------OPERAND----------------------------
@@ -597,7 +607,6 @@ def p_prim_expr(p):
                                | Conversion
                                | PrimaryExpr Index
                                | PrimaryExpr Slice
-                               | PrimaryExpr TypeAssertion
                                | PrimaryExpr Arguments'''
     # Handling only operand
     if len(p)==2:
@@ -623,11 +632,6 @@ def p_index(p):
 def p_slice(p):
     '''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
                      | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
-
-
-def p_type_assert(p):
-    '''TypeAssertion : PERIOD LPAREN Type RPAREN'''
-
 
 
 def p_argument(p):
@@ -778,7 +782,7 @@ def p_statement(p):
                              | ReturnStmt
                              | BreakStmt
                              | ContinueStmt
-                             | Block
+                             | CreateScope Block EndScope
                              | IfStmt
                              | ForStmt '''
 
@@ -829,12 +833,12 @@ def p_AssignOp(p):
 
 
 def p_if_statement(p):
-    ''' IfStmt : IF Expression Block ElseOpt '''
+    ''' IfStmt : IF CreateScope Expression Block ElseOpt EndScope'''
 
 
 def p_else_opt(p):
-    ''' ElseOpt : ELSE IfStmt
-                            | ELSE Block
+    ''' ElseOpt : ELSE CreateScope IfStmt EndScope
+                            | ELSE CreateScope Block EndScope
                             | epsilon '''
 
 
@@ -846,7 +850,7 @@ def p_else_opt(p):
 
 # --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
 def p_for(p):
-    '''ForStmt : FOR ConditionBlockOpt Block'''
+    '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
 
 
 

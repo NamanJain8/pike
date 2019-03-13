@@ -1,1 +1,9 @@
 offset need to be updated in VarSpec
+
+offset also need to be added in symbol table, while adding an ident, top offset need to be incremented by size of ident
+
+if new scope (new block), push offset = 0, to offset stack
+
+need to make scope in case of: for, if, else, function (done), 
+
+Can add non terminal for append, to make slice working
