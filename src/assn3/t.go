@@ -1,5 +1,9 @@
 package main;
 
 func main() {
-	var a, b int;
+	var a int;
+	var b bool;
+	var c string;
+	d := c + c;
+
 };

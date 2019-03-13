@@ -471,8 +471,10 @@ def p_short_var_decl(p):
     if helper.checkId(p[1],'current'):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
             "%s already declared"%p[1])
-    else:
+    try:
         helper.symbolTables[helper.getScope()].add(p[1],p[3].typeList[0])
+    except:
+        pass
         # newTemp = helper.newVar()
         # p[0].code - p[3].code
         # p[0].code.append(['=', newTemp, p[3].placelist[0]])
@@ -609,10 +611,15 @@ def p_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
     else:
-        # TODO typechecking
-        newVar = helper.newVar()
-        p[0].typeList = p[1].typeList
-        p[0].placeList.append(newVar)
+        if p[1].typeList[0] != p[3].typeList[0]:
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
+        elif p[1].typeList[0] not in p[2].extra:
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for binary expression')
+        else:
+            newVar = helper.newVar()
+            p[0].typeList = p[1].typeList
+            p[0].placeList.append(newVar)
+    # TODO: binary operator must be propogated for code generation
 
 def p_expr_opt(p):
     '''ExpressionOpt : Expression
@@ -630,11 +637,18 @@ def p_unary_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
     elif p[1] == '!':
-        p[0].typeList = p[2].typeList
-        p[0].placeList = p[2].placeList
+        if p[2].typeList[0] != 'bool':
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be boolean')
+        else:
+            p[0].typeList = p[2].typeList
+            p[0].placeList = p[2].placeList
     else:
-        p[0].typeList = p[2].typeList
-        p[0].placeList = p[2].placeList
+        if p[2].typeList[0] not in p[1].extra:
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
+        else:
+            p[0].typeList = p[2].typeList
+            p[0].placeList = p[2].placeList
+    # TODO: opeartor must be propogated from UnaryOp in code generation process
 
 
 def p_binary_op(p):
@@ -642,7 +656,13 @@ def p_binary_op(p):
                             | LAND
                             | RelOp
                             | AddMulOp'''
-    p[0] = p[1]
+    if isinstance(p[1], str):
+        p[0] = Node('BinaryOp')
+        p[0].extra['opcode'] = p[1]
+        p[0].extra['bool'] = True
+    else:
+        p[0] = p[1]
+        p[0].name = 'BinaryOp'
 
 def p_rel_op(p):
     '''RelOp : EQL
@@ -651,8 +671,17 @@ def p_rel_op(p):
                      | GTR
                      | LEQ
                      | GEQ'''
-    p[0] = p[1]
-
+    p[0] = Node('RelOp')
+    p[0].extra['opcode'] = p[1]
+    if p[1] in ['==', '!=']:
+        p[0].extra['bool'] = True
+        p[0].extra['int'] = True
+        p[0].extra['string'] = True
+        p[0].extra['float'] = True
+    else:
+        p[0].extra['int'] = True 
+        p[0].extra['float'] = True 
+        p[0].extra['string'] = True 
 
 
 def p_add_mul_op(p):
@@ -663,15 +692,26 @@ def p_add_mul_op(p):
                             | REM
                             | SHL
                             | SHR'''
-    p[0] = p[1]
-
+    if isinstance(p[1], str):
+        p[0] = Node('AddMulOp')
+        p[0].extra['opcode'] = p[1]
+        p[0].extra['int'] = True
+        if p[1] == '/':
+            p[0].extra['float'] = True
+    else:
+        p[0] = p[1]
+        p[0].name = 'AddMulOp'
 
 def p_unary_op(p):
     '''UnaryOp : ADD
                        | SUB
                        | MUL
                        | AND '''
-    p[0] = p[1]
+    p[0] = Node('UnaryOp')
+    p[0].extra['int'] = True
+    p[0].extra['float'] = True
+    p[0].extra['string'] = True
+    p[0].extra['opcode'] = p[1]
 
 # -------------------------------------------------------
 
