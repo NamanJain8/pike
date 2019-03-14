@@ -820,7 +820,10 @@ def p_assignment(p):
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
     else:
         for index_,type_ in enumerate(p[3].typeList):
-            if type_ != p[1].typeList[index_] :
+            info = helper.findInfo(p[1].placeList[index_])
+            if 'is_const' in info:
+                compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
+            elif type_ != p[1].typeList[index_] :
                 err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
             elif type_[0] not in p[2].extra:

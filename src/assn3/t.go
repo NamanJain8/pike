@@ -1,8 +1,10 @@
 package main;
 
 type a (*([]int));
+const b int = 10;
 
 func main() {
+	b = 10;
 	var a int;
 	for i := 1; i < 5;i++ {
 		var a float;
