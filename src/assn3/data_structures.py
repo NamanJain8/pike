@@ -58,6 +58,9 @@ class SymbolTable:
     # Checks whether "id" lies in the symbol table
     def lookUp(self, id):
         return (id in self.table.keys())
+    
+    def lookUpType(self,id):
+        return (id in self.typeDefs.keys())
 
     # Inserts if already not present
     def add(self, id, type_):
@@ -145,18 +148,27 @@ class Helper:
             if self.symbolTables[self.getScope()].lookUp(identifier) is True:
                 return True
             return False
-        
-        # wrong implemetation
-        # if type_ == "label":
-        #     if self.symbolTables[0].lookUp(identifier) is False:
-        #         return True
-        #     return False  
-              
-        # Couldnt figure *!s
 
         # Default case
         for scope in self.scopeStack[::-1]:
             if self.symbolTables[scope].lookUp(identifier) is True:
+                return True
+        return False
+
+    def checkType(self, identifier, type_='default'):
+        if type_ == 'global':
+            if self.symbolTables[0].lookUpType(identifier) is True:
+                return True
+            return False
+        
+        if type_ == 'current':
+            if self.symbolTables[self.getScope()].lookUpType(identifier) is True:
+                return True
+            return False
+
+        # Default case
+        for scope in self.scopeStack[::-1]:
+            if self.symbolTables[scope].lookUpType(identifier) is True:
                 return True
         return False
 

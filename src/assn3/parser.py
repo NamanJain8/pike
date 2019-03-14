@@ -403,7 +403,13 @@ def p_type_spec(p):
 def p_alias_decl(p):
     '''AliasDecl : IDENT ASSIGN Type'''
     p[0] = Node('AliasDecl')
-    helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[3].typeList[0], 'size': p[3].sizeList[0]}
+
+    if helper.checkType(p[1],'current'):
+        compilation_errors.add("Redeclare Error", line_number.get()+1,\
+            "Alias %s already declared"%p[1])
+    else:
+        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[3].typeList[0], 'size': p[3].sizeList[0]}
+        size_mp[p[1]] = p[3].sizeList[0]
 # -------------------------------------------------------
 
 
@@ -412,9 +418,9 @@ def p_type_def(p):
     '''TypeDef : IDENT Type'''
     p[0] = Node('Typedef')
 
-    if helper.checkId(p[1],'current'):
+    if helper.checkType(p[1],'current'):
         compilation_errors.add("Redeclare Error", line_number.get()+1,\
-            "%s already declared"%p[1])
+            "Type %s already declared"%p[1])
     else:
         helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[2].typeList[0], 'size': p[2].sizeList[0]}
         size_mp[p[1]] = p[2].sizeList[0]
@@ -554,6 +560,8 @@ def p_create_scope(p):
 def p_delete_scope(p):
     '''EndScope : '''
     p[0] = Node('EndScope')
+    for identifier in helper.symbolTables[helper.getScope()].typeDefs.keys():
+        del size_mp[identifier]
     helper.endScope()
 # ---------------------------------------------------------
 
@@ -568,7 +576,6 @@ def p_operand(p):
     else:
         p[0] = p[2]
     p[0].name = 'Operand'
-    # TODO handle operandName
 
  # new rules start
 def p_basic_lit(p):
@@ -606,7 +613,6 @@ def p_basic_lit_3(p):
     p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['string'])
-#TODO: what about bool literals
 
 def p_basic_lit_4(p):
     '''BoolLit : TRUE
@@ -630,7 +636,6 @@ def p_operand_name(p):
         p[0].typeList.append(info_['type'])
         p[0].placeList.append(p[1])
         p[0].sizeList.append(info_['size'])
-    # TODO also place other things
 
 # ---------------------------------------------------------
 
@@ -1178,7 +1183,8 @@ res = parser.parse(data)
 
 # Debug here
 helper.debug()
-print(rootNode.code)
+for idx_ in range(len(rootNode.code)):
+    print(rootNode.code[idx_])
 
 # if compilation_errors.size() > 0:
 #     compilation_errors.printErrors()
