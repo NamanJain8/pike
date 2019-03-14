@@ -7,11 +7,11 @@ import json
 import argparse
 import sys
 
-class DevNull:
-    def write(self, msg):
-        pass
+# class DevNull:
+#     def write(self, msg):
+#         pass
 
-sys.stderr = DevNull()
+# sys.stderr = DevNull()
 
 """
 CITE:
@@ -312,6 +312,7 @@ def p_const_spec_rep(p):
 def p_const_spec(p):
     '''ConstSpec : IdentifierList Type ASSIGN ExpressionList'''
     p[0] = p[1]
+    p[0].code += p[4].code
     for i in range(len(p[1].identList)):
         p[0].typeList.append(p[2].typeList[0])
         p[0].sizeList.append(p[2].sizeList[0])
@@ -950,12 +951,33 @@ def p_assignment(p):
     else:
         for index_,type_ in enumerate(p[3].typeList):
             info = helper.findInfo(p[1].placeList[index_])
+            bool_ = True
+            try:
+                tp_3 = helper.findInfo(type_[0])
+                if tp_3['type'] == p[1].typeList[index_]:
+                    bool_ = False
+            except:
+                pass
+            try:
+                tp_1 = helper.findInfo(p[1].typeList[index_][0])
+                if tp_1['type'] == type_:
+                    bool_ = False
+            except:
+                pass
+            try:
+                tp_1 = helper.findInfo(p[1].typeList[index_][0])
+                tp_3 = helper.findInfo(type_[0])
+                if tp_1['type'] == tp_3['type']:
+                    bool_ = False
+            except:
+                pass
             if info is None:
                 info = []
             if 'is_const' in info:
                 compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
-            elif type_ != p[1].typeList[index_]:
+            elif (type_ != p[1].typeList[index_]) and bool_:
                 err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
+                print(p[1].typeList[index_])
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
             elif type_[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
@@ -1346,13 +1368,12 @@ data = in_file.read()
 parser = yacc.yacc()
 res = parser.parse(data)
 
-if compilation_errors.size() > 0:
-    sys.exit()
-
 # Dubug Mode
 if isDebug in ['true', 't','T','True']:
     helper.debug()
 
+if compilation_errors.size() > 0:
+    sys.exit()
 generateCSV(csv_file)
 
 for idx_ in range(len(rootNode.code)):
