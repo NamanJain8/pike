@@ -442,7 +442,6 @@ def p_var_decl(p):
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
         helper.updateOffset(p[0].sizeList[index_])
-
     # TODO
     # Add the values from placeList in the code generation part, when the placeList[i] = 'nil', dont add any code
 
@@ -462,6 +461,7 @@ def p_var_spec(p):
     '''VarSpec : IdentifierList Type ExpressionListOpt
                        | IdentifierList ASSIGN ExpressionList'''
     p[0] = p[1]
+    p[0].code = p[3].code
     p[0].name = 'VarSpec'
     if p[2] == '=':
         if len(p[1].identList) != len(p[3].typeList):
@@ -472,7 +472,7 @@ def p_var_spec(p):
             p[0].placeList = p[3].placeList
             p[0].sizeList = p[3].sizeList
             for idx_ in range(len(p[3].placeList)):
-                p[0].code.append('=', p[1].identList[idx_], p[3].placeList[idx_])
+                p[0].code.append(['=', p[1].identList[idx_], p[3].placeList[idx_]])
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
@@ -493,7 +493,7 @@ def p_var_spec(p):
                     return
             p[0].placeList = p[3].placeList
             for idx_ in range(len(p[3].placeList)):
-                p[0].code.append('=', p[1].identList[idx_], p[3].placeList[idx_])
+                p[0].code.append(['=', p[1].identList[idx_], p[3].placeList[idx_]])
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : ASSIGN ExpressionList
@@ -556,6 +556,23 @@ def p_create_scope(p):
     '''CreateScope : '''
     p[0] = Node('CreateScope')
     helper.newScope(helper.getScope())
+    type_ = 'none'
+    if isinstance(p[-1], str):
+        type_ = p[-1]
+    elif isinstance(p[-1], Node):
+        if p[-1].name == 'FunctionName':
+            type_ = 'func'
+        
+    label1 = helper.newLabel()
+    label2 = helper.newLabel()
+    label3 = helper.newLabel()
+    label4 = helper.newLabel()
+    helper.symbolTables[helper.getScope()].updateMetadata('start', label1)
+    helper.symbolTables[helper.getScope()].updateMetadata('end', label2)
+    helper.symbolTables[helper.getScope()].updateMetadata('name', type_)
+    helper.symbolTables[helper.getScope()].updateMetadata('update',label3)
+    helper.symbolTables[helper.getScope()].updateMetadata('condition', label4)
+    
 
 def p_delete_scope(p):
     '''EndScope : '''
@@ -1002,7 +1019,13 @@ def p_else_opt(p):
 def p_for(p):
     '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
     p[0] = p[3]
+    start = helper.symbolTables[helper.lastScope].metadata['start']
+    update = helper.symbolTables[helper.lastScope].metadata['update']
+    end = helper.symbolTables[helper.lastScope].metadata['end']
+    p[0].code += [[start]]
     p[0].code += p[4].code
+    p[0].code += [['goto', update]]
+    p[0].code += [[end]]
     p[0].name = 'ForStmt'
 
 
@@ -1011,30 +1034,50 @@ def p_conditionblockopt(p):
                            | Condition
                            | ForClause
                            | RangeClause'''
+    
     p[0] = p[1]
+    condition = helper.symbolTables[helper.getScope()].metadata['condition']
+    update = helper.symbolTables[helper.getScope()].metadata['update']
+    if p[1].name != 'ForClause':
+        p[0].code.insert(0, [condition])
+    if p[1].name == 'epsilon':
+        p[0].extra['isInfinite'] = True
+        p[0].code += [[update]]
     p[0].name = 'ConditionBlockOpt'
 
 
-
 def p_condition(p):
-    '''Condition : Expression '''
+    '''Condition : Expression'''
     p[0] = p[1]
+    end = helper.symbolTables[helper.getScope()].metadata['end']
+    p[0].code.append(['if', p[1].placeList[0], '==', 'False', 'goto', end])
     if p[1].typeList[0] != ['bool']:
         compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expression type should be bool')
     p[0].name = 'Condition'
+    update = helper.symbolTables[helper.getScope()].metadata['update']
+    p[0].code += [[update]]
 
 
 def p_forclause(p):
     '''ForClause : SimpleStmt SEMICOLON ConditionOpt SEMICOLON SimpleStmt'''
     p[0] = p[1]
+    condition = helper.symbolTables[helper.getScope()].metadata['condition']
+    update = helper.symbolTables[helper.getScope()].metadata['update']
+    start = helper.symbolTables[helper.getScope()].metadata['start']
+    p[0].code += [[condition]]
     p[0].code += p[3].code
+    p[0].code += [['goto', start]]
+    p[0].code += [[update]]
     p[0].code += p[5].code
+    p[0].code += [['goto', condition]]
     p[0].name = 'ForClause'
+
+    p[0].extra = p[3].extra
 
 
 def p_conditionopt(p):
     '''ConditionOpt : epsilon
-                    | Condition '''
+                    | Condition'''
     p[0] = p[1]
     p[0].name = 'ConditionOpt'
     if p[1].name == 'epsilon':
@@ -1064,26 +1107,42 @@ def p_expressionidentifier(p):
 def p_return(p):
     '''ReturnStmt : RETURN ExpressionListPureOpt'''
     p[0] = Node('ReturnStmt')
-    p[0].code = [['return']]
+    # TODO: return data should also be handled
+    scope_ = helper.getNearest('func')
+    if scope_ == -1:
+        compilation_errors.add('Scope Error', line_number.get()+1, 'return is not in a function')
+        return
+    symTab = helper.symbolTables[scope_]
+    p[0].code = [['goto', symTab.metadata['end']]]
+    # TODO:  this should not be end, return label must be given before
 
 
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
                            | epsilon'''
-    p[0] = Node('ExpressionListPureOpt')
-
-
+    p[0] = p[1]
+    p[0].name = 'ExpressionListPureOpt'
 
 def p_break(p):
     '''BreakStmt : BREAK'''
     p[0] = Node('BreakStmt')
-    p[0].code = [['break']]
+    scope_ = helper.getNearest('for')
+    if scope_ == -1:
+        compilation_errors.add('Scope Error', line_number.get()+1, 'break is not in a loop')
+        return
+    symTab = helper.symbolTables[scope_]
+    p[0].code = [['goto', symTab.metadata['end']]]
 
 def p_continue(p):
     '''ContinueStmt : CONTINUE'''
     p[0] = Node('ContinueStmt')
-    p[0].code = [['continue']]
+    scope_ = helper.getNearest('for')
+    if scope_ == -1:
+        compilation_errors.add('Scope Error', line_number.get()+1, 'continue is not in a loop')
+        return
+    symTab = helper.symbolTables[scope_]
+    p[0].code = [['goto', symTab.metadata['update']]]
 
 # -----------------------------------------------------------
 

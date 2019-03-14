@@ -45,6 +45,7 @@ class SymbolTable:
         self.table = {}
         self.parent = parent
         self.metadata = {}
+        self.metadata['name'] = 'global'
 
     def __str__(self):
         print('\n')
@@ -99,6 +100,7 @@ class Helper:
         self.scopeStack = []
         self.offsetStack = []
         self.symbolTables = []
+        self.lastScope = 0
 
     def newVar(self):
         var = 't' + str(self.varCount)
@@ -118,7 +120,7 @@ class Helper:
         return self.offsetStack[-1]
 
     def popOffset(self):
-        self.offsetStack.pop()
+        return self.offsetStack.pop()
 
     def updateOffset(self, size):
         self.offsetStack[-1] += size
@@ -135,7 +137,7 @@ class Helper:
         return self.scopeStack[-1]
 
     def endScope(self):
-        self.scopeStack.pop()
+        self.lastScope = self.scopeStack.pop()
         self.popOffset()
 
     def checkId(self,identifier, type_='default'):
@@ -191,6 +193,13 @@ class Helper:
         for scope in self.scopeStack[::-1]:
                 if self.symbolTables[scope].get(identifier) is not None:
                     return scope
+
+    def getNearest(self, type_):
+        # return nearest parent scope with name = type_(func, for), -1 if no such scope exist
+        for scope in self.scopeStack[::-1]:
+            if self.symbolTables[scope].metadata['name'] == type_:
+                return scope
+        return -1
 
     def debug(self):
         print('varCount:',self.varCount)
