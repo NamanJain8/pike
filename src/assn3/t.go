@@ -4,12 +4,10 @@ import "fmt";
 type person struct {
 	age bool;
 	sex string;
+	name string;
 };
 
 func main() {
-	var a float;
-	b := typecast int(a);
 	var p type person;
-
 };
 

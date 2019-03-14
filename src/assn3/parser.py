@@ -135,8 +135,10 @@ def p_struct_type(p):
             return
     p[0] = p[3]
     dict_ = {}
+    offset_ = 0
     for index_ in range(len(p[3].identList)):
-        dict_[p[3].identList[index_]] = {'type':p[3].typeList[index_]}
+        dict_[p[3].identList[index_]] = {'type':p[3].typeList[index_], 'size': p[3].sizeList[index_], 'offset':offset_}
+        offset_ += p[3].sizeList[index_]
     p[0].typeList = [['struct', dict_]]
     p[0].sizeList = [sum(p[3].sizeList)]
 
