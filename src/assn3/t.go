@@ -9,5 +9,6 @@ type person struct {
 
 func main() {
 	var p type person;
+	p.age = true;
 };
 

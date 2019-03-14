@@ -646,15 +646,34 @@ def p_prim_expr(p):
     # Handling only operand
     if len(p)==2:
         p[0] = p[1]
-    # elif p[2].name == 'Index':
-    #     # TODO code
+    elif p[2].name == 'Selector':
+        
+        try:
+            name_ = p[1].typeList[0]
+            defn = helper.findInfo(name_)
+            ident = p[2].extra['ident']
+            if defn['type'][0] != 'struct':
+                compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before the period we must have struct type')
+            elif ident not in defn['type'][1]:
+                err_ = 'Name ' + name_ + ' has no field, or method called ' + ident
+                compilation_errors.add('Field Error', line_number.get()+1, err_)
+            else:
+                
+                print('dsf')
+        except:
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
+    elif p[2].name == 'Index':
+        print('lol')
+    elif p[2].name == 'Slice':
+        print('lol')
     else:
-        p[0] = Node('PrimaryExpr')
-    p[0].name = 'PrimaryExpr'
+        print('lol')
 
 
 def p_selector(p):
     '''Selector : PERIOD IDENT'''
+    p[0] = Node('Selector')
+    p[0].extra['ident'] = p[2]
 
 def p_index(p):
     '''Index : LBRACK Expression RBRACK'''
