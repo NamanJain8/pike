@@ -14,6 +14,9 @@ compilation_errors = Errors()
 line_number = LineCount()
 
 reserved = {
+    'nil': 'NIL',
+    'true': 'TRUE',
+    'false': 'FALSE',
     'break':    'BREAK',
     'default':    'DEFAULT',
     'select':    'SELECT',

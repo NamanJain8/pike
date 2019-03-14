@@ -246,8 +246,8 @@ def p_stat_rep(p):
                                     | epsilon'''
     p[0] = p[1]
     p[0].name = 'StatementRep'
-    # if len(p) == 4:
-    #     p[0].code += p[2].code
+    if len(p) == 4:
+        p[0].code += p[2].code
 
 # -------------------------------------------------------
 
@@ -281,6 +281,7 @@ def p_const_decl(p):
         helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'is_const', True)
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
         helper.updateOffset(p[0].sizeList[index_])
     # TODO
     # Assign value to the constants in the code generation process.
@@ -296,7 +297,7 @@ def p_const_spec_rep(p):
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
         p[0].sizeList += p[2].sizeList
-    #    p[0].code += p[2].code
+        p[0].code += p[2].code
 
 
 def p_const_spec(p):
@@ -312,6 +313,8 @@ def p_const_spec(p):
         if type_ != p[2].typeList[0]:
             err_ = str(type_) + 'assigned to ' + str(p[2].typeList[0])
             compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
+    for idx_ in range(len(p[1].identList)):
+        p[0].code.append(['=', p[1].identList[idx_], p[4].placeList[idx_]])
     p[0].placeList = p[4].placeList
     p[0].name = 'ConstSpec'
 
@@ -345,12 +348,11 @@ def p_expr_list(p):
     '''ExpressionList : Expression ExpressionRep'''
     p[0] = p[1]
     p[0].name = 'ExpressionList'
-    # p[0].code += p[2].code
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
     p[0].sizeList += p[2].sizeList
-    # TODO understand addrlist
-
+    # TODO: understand addrlist
+    p[0].code += p[2].code
 
 def p_expr_rep(p):
     '''ExpressionRep : ExpressionRep COMMA Expression
@@ -363,7 +365,7 @@ def p_expr_rep(p):
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
         p[0].sizeList += p[3].sizeList
-    # TODO understand addrlist
+    # TODO: understand addrlist
 
 # -------------------------------------------------------
 
@@ -382,7 +384,7 @@ def p_type_decl(p):
 def p_type_spec_rep(p):
     '''TypeSpecRep : TypeSpecRep TypeSpec SEMICOLON
                                | epsilon'''
-    if len(p) == 4:
+    if len(p) == 2:
         p[0] = Node('TypeSpecRep')
         # TODO ommitting RHS why?
     else:
@@ -398,7 +400,8 @@ def p_type_spec(p):
 
 def p_alias_decl(p):
     '''AliasDecl : IDENT ASSIGN Type'''
-    # Not used
+    p[0] = Node('AliasDecl')
+    helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[3].typeList[0], 'size': p[3].sizeList[0]}
 # -------------------------------------------------------
 
 
@@ -429,6 +432,7 @@ def p_var_decl(p):
     for index_ in range(len(p[0].identList)):
         helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
         helper.updateOffset(p[0].sizeList[index_])
 
     # TODO
@@ -444,6 +448,7 @@ def p_var_spec_rep(p):
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
         p[0].sizeList += p[2].sizeList
+        p[0].code += p[2].code
 
 def p_var_spec(p):
     '''VarSpec : IdentifierList Type ExpressionListOpt
@@ -458,6 +463,8 @@ def p_var_spec(p):
             p[0].typeList = p[3].typeList
             p[0].placeList = p[3].placeList
             p[0].sizeList = p[3].sizeList
+            for idx_ in range(len(p[3].placeList)):
+                p[0].code.append('=', p[1].identList[idx_], p[3].placeList[idx_])
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
@@ -466,7 +473,7 @@ def p_var_spec(p):
         if len(p[3].typeList) == 0:
             tmpArr = ['nil']
             p[0].placeList = tmpArr*len(p[0].identList)
-        elif len(p[3].typeList) != 0: # going to empty
+        elif len(p[3].typeList) != 0: # not going to empty
             if len(p[0].identList) != len(p[3].typeList):
                 err_ = str(len(p[0].identList)) + ' varaibles but ' + str(len(p[3].typeList)) + ' values'
                 compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
@@ -477,6 +484,8 @@ def p_var_spec(p):
                     compilation_errors.add('Type Mismatch', line_number.get()+1,err_)
                     return
             p[0].placeList = p[3].placeList
+            for idx_ in range(len(p[3].placeList)):
+                p[0].code.append('=', p[1].identList[idx_], p[3].placeList[idx_])
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : ASSIGN ExpressionList
@@ -503,7 +512,9 @@ def p_short_var_decl(p):
     try:
         helper.symbolTables[helper.getScope()].add(p[1],p[3].typeList[0])
         helper.symbolTables[helper.getScope()].update(p[1], 'offset', helper.getOffset())
+        helper.symbolTables[helper.getScope()].update(p[1], 'size', p[3].sizeList[0])
         helper.updateOffset(p[3].sizeList[0])
+        p[0].code.append('=', p[1], p[3].placeList[0])
     except:
         pass
 # -------------------------------------------------------
@@ -515,24 +526,32 @@ def p_short_var_decl(p):
 def p_func_decl(p):
     '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope
                                     | FUNC FunctionName CreateScope Signature EndScope'''
-    p[0] = Node('FunctionDecl')
+    p[0] = p[4]
+    p[0].name = 'FunctionDecl'
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
+    p[0] = Node('FunctionName')
 
 def p_func(p):
     '''Function : Signature FunctionBody'''
+    p[0] = p[2]
+    p[0].name = 'Function'
 
 def p_func_body(p):
     '''FunctionBody : Block'''
+    p[0] = p[1]
+    p[0].name = 'FunctionBody'
 
 def p_create_scope(p):
-	'''CreateScope : '''
-	helper.newScope(helper.getScope())
+    '''CreateScope : '''
+    p[0] = Node('CreateScope')
+    helper.newScope(helper.getScope())
 
 def p_delete_scope(p):
-	'''EndScope : '''
-	helper.endScope()
+    '''EndScope : '''
+    p[0] = Node('EndScope')
+    helper.endScope()
 # ---------------------------------------------------------
 
 
@@ -553,6 +572,7 @@ def p_basic_lit(p):
     '''BasicLit : IntLit
                 | FloatLit
                 | StringLit
+                | BoolLit
                 '''
     p[0] = p[1]
     p[0].name = 'BasicLit'
@@ -562,6 +582,7 @@ def p_basic_lit_1(p):
     p[0] = Node('IntLit')
     p[0].typeList.append(['int'])
     newVar = helper.newVar()
+    p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['int'])
 
@@ -570,6 +591,7 @@ def p_basic_lit_2(p):
     p[0] = Node('FloatLit')
     p[0].typeList.append(['float'])
     newVar = helper.newVar()
+    p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['float'])
 
@@ -578,9 +600,20 @@ def p_basic_lit_3(p):
     p[0] = Node('StringLit')
     p[0].typeList.append(['string'])
     newVar = helper.newVar()
+    p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['string'])
 #TODO: what about bool literals
+
+def p_basic_lit_4(p):
+    '''BoolLit : TRUE
+                    | FALSE'''
+    p[0] = Node('BoolLit')
+    p[0].typeList.append(['bool'])
+    newVar = helper.newVar()
+    p[0].code.append(['=', newVar, p[1]])
+    p[0].placeList.append(newVar)
+    p[0].sizeList.append(size_mp['bool'])
 
 # new rules finished
 
@@ -780,13 +813,8 @@ def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = p[4]
     p[0].name = 'Conversion'
-    tmpMap = helper.symbolTables[helper.getScope()].typeDefs
-    type_ = p[2].typeList[0]
-    if (type_[0] not in tmpMap) and (type_[0] not in size_mp):
-       compilation_errors.add('TypeError',line_number.get()+1, "Type %s not defined"%type_) 
-    else:
-        p[0].typeList = p[2].typeList
-        p[0].sizeList = p[2].sizeList
+    p[0].typeList = p[2].typeList
+    p[0].sizeList = p[2].sizeList
 # ---------------------------------------------------------
 
 

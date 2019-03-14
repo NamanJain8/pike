@@ -2,4 +2,6 @@ Can add non terminal for append, to make slice working
 
 add try execpt blocks (better way is to add data in list despite error)
 
-typecasting as in case (a = 1 + 2.0)
+remove all the typedef when the scope ends from the size_mp
+
+4 byte allignment should be tackled in offset
