@@ -762,7 +762,7 @@ def p_expr(p):
                 p[0].typeList = p[1].typeList
             p[0].code = p[1].code
             p[0].code += p[3].code
-            p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
+            p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
             p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
 

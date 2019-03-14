@@ -1,8 +1,13 @@
 package main;
 
 func main() {
-	for i := 1; i < 10; ; {
-		a := 1;
-	};
+
+	var a float;
+	a = 10.0+2.0;
+	var b int;
+	b = 10 * 5;
+	var c string;
+	c = "Hello" + " World!";
+
 };
 
