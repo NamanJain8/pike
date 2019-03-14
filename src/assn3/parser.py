@@ -7,6 +7,12 @@ import json
 import argparse
 import sys
 
+class DevNull:
+    def write(self, msg):
+        pass
+
+sys.stderr = DevNull()
+
 """
 CITE:
   Most of the token definations are taken from documentation
@@ -763,7 +769,10 @@ def p_expr(p):
                 p[0].typeList = p[1].typeList
             p[0].code = p[1].code
             p[0].code += p[3].code
-            p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
+            if len(p[2].extra) < 3:
+                p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
+            else:
+                p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
             p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
 
@@ -1252,12 +1261,13 @@ def getCodeString(codeList):
         elif op == '!':
             return '    ' + codeList[1] + ' = !(' + codeList[2] + ')'
         elif op == '++':
-            return '    ' + codeList[1] + ' = ' + codeList[2] + ' + 1'
+            return '    ' + codeList[1] + ' = ' + codeList[2] + ' +int 1'
         elif op == '--':
-            return '    ' + codeList[1] + ' = ' + codeList[2] + ' - 1'
+            return '    ' + codeList[1] + ' = ' + codeList[2] + ' -int 1'
         elif len(op) == 2 and (op[1] == '=' and op[0] not in ['=', '!', ':', '>', '<']):
             return '    ' + codeList[1] + ' = ' + codeList[1] + ' ' + op[0] + ' ' + codeList[2]
-
+        elif len(op) == 3:
+            return '    ' + codeList[1] + ' = ' + codeList[1] + ' ' + op[0:2] + ' ' + codeList[2]
         else:
             return '    ' + codeList[1] + ' ' + codeList[0] + ' ' + codeList[2]
     elif len_ == 4:

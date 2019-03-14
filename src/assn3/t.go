@@ -6,17 +6,8 @@ type person struct {
 };
 
 func main() {
-	var a bool;
-	a = !true;
-	var b, c int;
-	b += c;
-	a = a && a;
-	b = b + c;
-	for i := b; i == c;i++ {
-		var a type person;
-		a.age = 21;
-		a.name = "Mukesh";
-	};
-
+	var a type nodeclaredbeech;
+	b := true;
+	c := b / b;
 };
 
