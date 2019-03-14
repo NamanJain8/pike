@@ -3,12 +3,14 @@ import "fmt";
 
 type person struct {
 	age bool;
-	sex string;
+	sex int;
 	name string;
 };
 
 func main() {
 	var p type person;
-	p.age = true;
+	var b, c int;
+	a := (10 + 5 + 4) * 3;
+	p.sex = (b+c - p.sex);
 };
 

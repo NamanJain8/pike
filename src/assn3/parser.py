@@ -516,7 +516,8 @@ def p_short_var_decl(p):
         helper.symbolTables[helper.getScope()].update(p[1], 'offset', helper.getOffset())
         helper.symbolTables[helper.getScope()].update(p[1], 'size', p[3].sizeList[0])
         helper.updateOffset(p[3].sizeList[0])
-        p[0].code.append('=', p[1], p[3].placeList[0])
+        p[0].code = p[3].code
+        p[0].code.append(['=', p[1], p[3].placeList[0]])
     except:
         pass
 # -------------------------------------------------------
@@ -647,27 +648,36 @@ def p_prim_expr(p):
     if len(p)==2:
         p[0] = p[1]
     elif p[2].name == 'Selector':
-        
+        p[0] = p[1]
         try:
-            name_ = p[1].typeList[0]
+            name_ = p[1].typeList[0][0]
             defn = helper.findInfo(name_)
             ident = p[2].extra['ident']
             if defn['type'][0] != 'struct':
-                compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before the period we must have struct type')
+                compilation_errors.add('TypeMismatch1', line_number.get()+1, 'Before the period we must have struct type')
             elif ident not in defn['type'][1]:
                 err_ = 'Name ' + name_ + ' has no field, or method called ' + ident
                 compilation_errors.add('Field Error', line_number.get()+1, err_)
             else:
-                
-                print('dsf')
+                # offset_ = defn['offset'] + defn['type'][1][ident]['offset']
+                newVar1 = helper.newVar()
+                p[0].code.append(['=', newVar1, '&'+p[1].placeList[0]])
+                p[0].code.append(['+', newVar1, newVar1, defn['type'][1][ident]['offset']])
+                p[0].code.append(['=', newVar1, '*' + newVar1])
+                p[0].placeList = [newVar1]
+                p[0].sizeList = [defn['type'][1][ident]['size']]
+                p[0].typeList = [defn['type'][1][ident]['type']]
+                # TODO: store the offset of temporary also (needed in dereferencing)
         except:
-            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
+            compilation_errors.add('TypeMismatch2', line_number.get()+1, 'Before period we must have struct')
     elif p[2].name == 'Index':
-        print('lol')
+        p[0] = p[1]
     elif p[2].name == 'Slice':
-        print('lol')
+        p[0] = p[1]
     else:
-        print('lol')
+        p[0] = p[1]
+    # TODO: type checking for the remaining stuff
+    p[0].name = 'PrimaryExpr'
 
 
 def p_selector(p):
@@ -686,17 +696,23 @@ def p_index(p):
 def p_slice(p):
     '''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
                      | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
-
+    p[0] = p[2]
+    p[0].code += p[4].code
+    if len(p) == 8:
+        p[0].code += p[6].code
+    p[0].name = 'Slice'
 
 def p_argument(p):
     '''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
-
+    p[0] = p[2]
+    p[0].name = 'Arguments'
 
 
 def p_expr_list_type_opt(p):
     '''ExpressionListTypeOpt : ExpressionList
                                                      | epsilon'''
-
+    p[0] = p[1]
+    p[0].name = 'ExpressionListTypeOpt'
 # ---------------------------------------------------------
 
 
@@ -709,6 +725,7 @@ def p_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
         p[0].sizeList = p[1].sizeList
+        p[0].code = p[1].code
     else:
         if p[1].typeList[0] != p[3].typeList[0]:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
@@ -717,13 +734,15 @@ def p_expr(p):
         else:
             newVar = helper.newVar()
             if len(p[2].typeList) > 0:
+                # for boolean
                 p[0].typeList = p[2].typeList
-                p[0].sizeList = p[1].sizeList
             else:
                 p[0].typeList = p[1].typeList
-                p[0].sizeList = p[1].sizeList
+            p[0].code = p[1].code
+            p[0].code += p[3].code
+            p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
+            p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
-    # TODO: binary operator must be propogated for code generation
 
 def p_expr_opt(p):
     '''ExpressionOpt : Expression
@@ -732,6 +751,7 @@ def p_expr_opt(p):
     p[0].typeList = p[1].typeList
     p[0].placeList = p[1].placeList
     p[0].sizeList = p[1].sizeList
+    p[0].code = p[1].code
 
 def p_unary_expr(p):
     '''UnaryExpr : PrimaryExpr
@@ -742,6 +762,7 @@ def p_unary_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
         p[0].sizeList = p[1].sizeList
+        p[0].code = p[1].code
     elif p[1] == '!':
         if p[2].typeList[0] != ['bool']:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be boolean')
@@ -749,14 +770,19 @@ def p_unary_expr(p):
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
             p[0].sizeList = p[2].sizeList
+            p[0].code = p[2].code
+            newVar = helper.newVar()
+            p[0].code.append(['!', newVar, p[2].placeList[0]])
     else:
         if p[2].typeList[0][0] not in p[1].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
-            p[0].sizeList = p[2].sizeList 
-    # TODO: opeartor must be propogated from UnaryOp in code generation process
+            p[0].sizeList = p[2].sizeList
+            p[0].code = p[2].code
+            newVar = helper.newVar()
+            p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
 
 
 def p_binary_op(p):
@@ -880,7 +906,8 @@ def p_inc_dec(p):
     if  p[1].typeList[0] != ['int']:
         err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
         compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
-    # TODO add increment code, for code generation
+    newVar = helper.newVar()
+    p[0].code.append([p[2], newVar, p[1].placeList[0]])
 
 def p_assignment(p):
     ''' Assignment : ExpressionList assign_op ExpressionList'''
@@ -891,15 +918,19 @@ def p_assignment(p):
     else:
         for index_,type_ in enumerate(p[3].typeList):
             info = helper.findInfo(p[1].placeList[index_])
+            if info is None:
+                info = []
             if 'is_const' in info:
                 compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
-            elif type_ != p[1].typeList[index_] :
+            elif type_ != p[1].typeList[index_]:
                 err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
             elif type_[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
     p[0].name = 'Assignment'
-    # TODO make the assignment in code generation, get the assign_op from extra
+    p[0].code += p[3].code
+    for idx_ in range(len(p[3].typeList)):
+        p[0].code.append([p[2].extra['opcode'], p[1].placeList[idx_], p[3].placeList[idx_]])
 
 def p_assign_op(p):
     ''' assign_op : AssignOp'''
@@ -1047,9 +1078,10 @@ def p_import_decl_rep(p):
 def p_toplevel_decl_rep(p):
     '''TopLevelDeclRep : TopLevelDeclRep TopLevelDecl SEMICOLON
                                            | epsilon'''
-    p[0] = Node('TopLevelDeclRep')
+    p[0] = p[1]
+    p[0].name = 'TopLevelDeclRep'
     if len(p) != 2:
-        p[0].code = p[1].code + p[2].code
+        p[0].code += p[2].code
 
 
 # --------------------------------------------------------
@@ -1146,6 +1178,7 @@ res = parser.parse(data)
 
 # Debug here
 helper.debug()
+print(rootNode.code)
 
 # if compilation_errors.size() > 0:
 #     compilation_errors.printErrors()
