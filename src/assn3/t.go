@@ -7,9 +7,7 @@ type person struct {
 };
 
 func main() {
-	var a float;
-	b := typecast int(a);
 	var p type person;
-
+	p.age = true;
 };
 
