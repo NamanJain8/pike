@@ -38,7 +38,8 @@ precedence = (
 
 # declarations
 helper = Helper()
-rootNode = None
+rootNode = Node('rootNode')
+rootNode.code.append([helper.newLabel()])
 helper.newScope()
 # ------------------------START----------------------------
 
@@ -48,7 +49,7 @@ def p_start(p):
     p[0] = p[1]
     p[0].name = 'start'
     global rootNode
-    rootNode = p[0]
+    rootNode.code += p[0].code
 
 # -------------------------------------------------------
 
@@ -1229,18 +1230,55 @@ def p_error(p):
     compilation_errors.add('Parsing Error', line_number.get()+1,\
                            'Error occured at the token: %s'%p.type)
 
+def getCodeString(codeList):
+    len_ = len(codeList)
+    tmpList = []
+    for x in codeList:
+        tmpList.append(str(x))
+    codeList = tmpList
+    if len_ == 0:
+        return ''
+    elif len_ == 1:
+        return codeList[0] + ':'
+    elif len_ == 2:
+        return '    goto: ' + codeList[1]
+    elif len_ == 3:
+        op = codeList[0]
+        if op == '=':
+            operand_ = codeList[2]
+            if codeList[2][0] in ['&', '*']:
+                operand_ = codeList[2][0] + '(' + codeList[2][1:] + ')'
+            return '    ' + codeList[1] + ' = ' + operand_
+        elif op == '!':
+            return '    ' + codeList[1] + ' = !(' + codeList[2] + ')'
+        elif op == '++':
+            return '    ' + codeList[1] + ' = ' + codeList[2] + ' + 1'
+        elif op == '--':
+            return '    ' + codeList[1] + ' = ' + codeList[2] + ' - 1'
+        elif len(op) == 2 and (op[1] == '=' and op[0] not in ['=', '!', ':', '>', '<']):
+            return '    ' + codeList[1] + ' = ' + codeList[1] + ' ' + op[0] + ' ' + codeList[2]
 
-parser = argparse.ArgumentParser(description='Scans and Parses the input .go file and builds the corresponding AST')
+        else:
+            return '    ' + codeList[1] + ' ' + codeList[0] + ' ' + codeList[2]
+    elif len_ == 4:
+        return '    ' + codeList[1] + ' = ' + codeList[2] + ' ' + codeList[0] + ' ' + codeList[3]
+    else:
+        str_ = '    '
+        for x in codeList:
+            str_ += (x + ' ')
+        return str_
 
-# parser.add_argument('--cfg', dest='config_file_location', help='Location of the input .go file', required=True)
+parser = argparse.ArgumentParser(description='Does Semantic Analysis and generates 3AC')
 
-parser.add_argument('--output', dest='out_file_location', help='Location of the output .dot file', required=True)
+parser.add_argument('--code', dest='code_file_location', help='Location of the output .code file for 3AC', required=True)
+
+parser.add_argument('--csv', dest='csv_file_location', help='Location of the output .csv file for symbol tables', required=True)
 
 parser.add_argument('--input', dest='in_file_location', help='Location of the input .go file', required=True)
 
 result = parser.parse_args()
-# config_file_location = str(result.config_file_location)
-out_file_location = str(result.out_file_location)
+code_file_location = str(result.code_file_location)
+csv_file_location = str(result.csv_file_location)
 in_file_location = str(result.in_file_location)
 
 
@@ -1250,9 +1288,8 @@ lexer = lex.lex()
 # Read input file
 in_file = open(in_file_location,'r')
 
-# Open output file
-out_file = open(out_file_location,"w+")
-out_file.write('strict digraph G {\n')
+# csv output file
+code_file = open(code_file_location,"w+")
 
 data = in_file.read()
 
@@ -1260,16 +1297,13 @@ data = in_file.read()
 parser = yacc.yacc()
 res = parser.parse(data)
 
-# Debug here
+if compilation_errors.size() > 0:
+    sys.exit()
 helper.debug()
+
 for idx_ in range(len(rootNode.code)):
-    print(rootNode.code[idx_])
+    code_file.write(getCodeString(rootNode.code[idx_]))
+    code_file.write('\n')
 
-# if compilation_errors.size() > 0:
-#     compilation_errors.printErrors()
-#     sys.exit(0)
-
-out_file.write("}\n")
-# Close file
-out_file.close()
+code_file.close()
 in_file.close()

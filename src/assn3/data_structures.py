@@ -108,7 +108,10 @@ class Helper:
         return var
 
     def newLabel(self):
-        label = 'label' + str(self.labelCount)
+        if (self.labelCount == 0): # just to make 3AC pretty!
+            label = 'Program Start'
+        else:
+            label = 'label' + str(self.labelCount)
         self.labelCount += 1
         return label
 

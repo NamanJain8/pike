@@ -1,8 +1,21 @@
 package main;
 
+type person struct {
+	age int;
+	name string;
+};
+
 func main() {
-	for i := 1; i < 10; ; {
-		a := 1;
+	var a bool;
+	a = !true;
+	var b, c int;
+	b += c;
+	a = a && a;
+	b = b + c;
+	for i := b; i == c;i++ {
+		var a type person;
+		a.age = 21;
+		a.name = "Mukesh";
 	};
 };
 
