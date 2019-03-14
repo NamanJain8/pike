@@ -3,13 +3,13 @@ Program Start:
     t1 = !(t0)
     a = t0
     b = b + c
-    t2 = a && a
+    t2 = a &&bool a
     a = t2
-    t3 = b + c
+    t3 = b +int c
     b = t3
     i = b
 label8:
-    t4 = i == c
+    t4 = i ==int c
     if t4 == False goto label6 
 label7:
     goto: label5
