@@ -1278,6 +1278,38 @@ def getCodeString(codeList):
             str_ += (x + ' ')
         return str_
 
+def generateCSV(filename):
+    import csv
+    csvfile = filename
+    writer = csv.writer(csvfile)
+
+    writer.writerow(['-------', '-------', '-------','------'])
+    writer.writerow(['Identifier', 'Type', 'Size','Offset'])
+    writer.writerow(['-------', '-------', '-------','------'])
+
+    for idx_, table in enumerate(helper.symbolTables):
+        # create rows
+        writer.writerow(['','','',''])
+        writer.writerow(['======','Symbol Table Number:'+ str(idx_),'======','======'])
+        writer.writerow(['','','',''])
+
+        symTable = table.table
+        ident = symTable.keys()
+        type_ = [symTable[key]['type'] for key in ident]
+        size_ = [symTable[key]['size'] for key in ident]
+        offset_ = [symTable[key]['offset'] for key in ident]
+        rows = []
+        for idx_,key in enumerate(ident):
+            # typeLst = [str(i) for i in type_[idx_]]
+            # typestr = ':'.join(typeLst)
+            row = [key,type_[idx_],size_[idx_],offset_[idx_]]
+            rows.append(row)
+        writer.writerows(rows)
+
+        writer.writerow(['','','',''])
+        writer.writerow(['======','======','======','======'])
+        writer.writerow(['','','',''])
+
 parser = argparse.ArgumentParser(description='Does Semantic Analysis and generates 3AC')
 
 parser.add_argument('--code', dest='code_file_location', help='Location of the output .code file for 3AC', required=True)
@@ -1286,10 +1318,13 @@ parser.add_argument('--csv', dest='csv_file_location', help='Location of the out
 
 parser.add_argument('--input', dest='in_file_location', help='Location of the input .go file', required=True)
 
+parser.add_argument('--debug', dest='isDebug', help='for dubugging mode [t/F]', required=False)
+
 result = parser.parse_args()
 code_file_location = str(result.code_file_location)
 csv_file_location = str(result.csv_file_location)
 in_file_location = str(result.in_file_location)
+isDebug = str(result.isDebug)
 
 
 # Build lexer
@@ -1298,7 +1333,11 @@ lexer = lex.lex()
 # Read input file
 in_file = open(in_file_location,'r')
 
-# csv output file
+
+# CSV output File
+csv_file = open(csv_file_location,"w+")
+
+# 3AC output file
 code_file = open(code_file_location,"w+")
 
 data = in_file.read()
@@ -1309,7 +1348,12 @@ res = parser.parse(data)
 
 if compilation_errors.size() > 0:
     sys.exit()
-helper.debug()
+
+# Dubug Mode
+if isDebug in ['true', 't','T','True']:
+    helper.debug()
+
+generateCSV(csv_file)
 
 for idx_ in range(len(rootNode.code)):
     code_file.write(getCodeString(rootNode.code[idx_]))

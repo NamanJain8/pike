@@ -1,0 +1,31 @@
+Program Start:
+    t0 = true
+    t1 = !(t0)
+    a = t0
+    b = b + c
+    t2 = a &&bool a
+    a = t2
+    t3 = b +int c
+    b = t3
+    i = b
+label8:
+    t4 = i ==int c
+    if t4 == False goto label6 
+label7:
+    goto: label5
+label7:
+    t5 = i + 1
+    goto: label8
+label5:
+    t6 = &(a)
+    t6 = t6 + 0
+    t6 = *(t6)
+    t7 = 21
+    t6 = t7
+    t8 = &(a)
+    t8 = t8 + 4
+    t8 = *(t8)
+    t9 = "Mukesh"
+    t8 = t9
+    goto: label7
+label6:
