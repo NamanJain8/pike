@@ -6,7 +6,6 @@ type person struct {
 	sex int;
 	name string;
 };
-type person=int;
 
 type x=int;
 
@@ -14,13 +13,17 @@ func main() {
 	type x=float;
 	var p type person;
 	var b, c int;
-	for {
-		type men struct{
-			sex string;
-			roll int;
+	if true {
+		var a int;
+		a = 10;
+		if false{
+			var b bool;
+			b = false;
+		}
+		else{
+			a = 10;
+			var a int;
 		};
 	};
-	a := (10 + 5 + 4) * 3;
-	p.sex = (b+c - p.sex);
 };
 

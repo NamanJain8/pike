@@ -967,14 +967,29 @@ def p_AssignOp(p):
 
 def p_if_statement(p):
     ''' IfStmt : IF CreateScope Expression Block ElseOpt EndScope'''
-    p[0] = Node('IfStmt')
-
+    p[0] = p[3]
+    if p[3].typeList[0] != ['bool']:
+        compilation_errors.add('TypeError',line_number.get()+1, 'Non-bool expression (%s) used as if condition'%p[3].typeList[0])
+    # if x relopy gotoL
+    newLabel1 = helper.newLabel()
+    p[0].code.append(['if',p[3].placeList[0],'==','False', 'goto',newLabel1])
+    p[0].code += p[4].code
+    newLabel2 = helper.newLabel()
+    p[0].code.append(['goto', newLabel2])
+    p[0].code.append([newLabel1])
+    p[0].code += p[5].code
+    p[0].code.append([newLabel2])
 
 def p_else_opt(p):
     ''' ElseOpt : ELSE CreateScope IfStmt EndScope
                             | ELSE CreateScope Block EndScope
                             | epsilon '''
-    p[0] = Node('ElseOpt')
+    if len(p)==2:
+        p[0] = p[1]
+        p[0].extra['isEmpty'] = True
+    else:
+        p[0] = p[3]
+    p[0].name = 'ElseOpt'
 
 
 # ----------------------------------------------------------------
@@ -1022,10 +1037,12 @@ def p_conditionopt(p):
                     | Condition '''
     p[0] = p[1]
     p[0].name = 'ConditionOpt'
+    if p[1].name == 'epsilon':
+        p[0].extra['isInfinite'] = True
 
 
 
-def p_rageclause(p):
+def p_rangeclause(p):
     '''RangeClause : ExpressionIdentListOpt RANGE Expression'''
     p[0] = Node('RangeClause')
 
@@ -1047,6 +1064,7 @@ def p_expressionidentifier(p):
 def p_return(p):
     '''ReturnStmt : RETURN ExpressionListPureOpt'''
     p[0] = Node('ReturnStmt')
+    p[0].code = [['return']]
 
 
 
@@ -1060,10 +1078,12 @@ def p_expressionlist_pure_opt(p):
 def p_break(p):
     '''BreakStmt : BREAK'''
     p[0] = Node('BreakStmt')
+    p[0].code = [['break']]
 
 def p_continue(p):
     '''ContinueStmt : CONTINUE'''
     p[0] = Node('ContinueStmt')
+    p[0].code = [['continue']]
 
 # -----------------------------------------------------------
 
