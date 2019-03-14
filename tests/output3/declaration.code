@@ -1,0 +1,15 @@
+Program Start:
+    t0 = 2019
+    year = t0
+    t1 = "March"
+    month = t1
+    t2 = false
+    is_leap = t2
+    t3 = "India"
+    place = t3
+    t4 = "CS335"
+    course = t4
+    t5 = "A*"
+    grade = t5
+    t6 = "Amey"
+    instructor = t6

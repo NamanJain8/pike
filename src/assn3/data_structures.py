@@ -102,8 +102,12 @@ class Helper:
         self.symbolTables = []
         self.lastScope = 0
 
-    def newVar(self):
+    def newVar(self, type_, size_):
         var = 't' + str(self.varCount)
+        self.symbolTables[self.getScope()].add(var, type_)
+        self.symbolTables[self.getScope()].update(var, 'size', size_)
+        self.symbolTables[self.getScope()].update(var, 'offset', self.getOffset())
+        self.updateOffset(size_)
         self.varCount += 1
         return var
 

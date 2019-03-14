@@ -1,0 +1,25 @@
+-------,-------,-------,------
+Identifier,Type,Size,Offset
+-------,-------,-------,------
+,,,
+======,Symbol Table Number:0,======,======
+,,,
+year,['int'],4,0
+month,['string'],4,4
+is_leap,['bool'],1,8
+place,['string'],4,9
+temperature,['float'],8,13
+,,,
+======,======,======,======
+,,,
+,,,
+======,Symbol Table Number:1,======,======
+,,,
+course,['string'],4,0
+grade,['string'],4,4
+temperature,['float'],8,8
+instructor,['string'],4,16
+hostels,"['array', ['pointer', ['int']], 10]",40,20
+,,,
+======,======,======,======
+,,,

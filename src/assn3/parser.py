@@ -616,7 +616,8 @@ def p_basic_lit_1(p):
     '''IntLit : INT_LITERAL'''
     p[0] = Node('IntLit')
     p[0].typeList.append(['int'])
-    newVar = helper.newVar()
+    newVar = helper.newVar(['int'], size_mp['int'])
+
     p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['int'])
@@ -625,7 +626,7 @@ def p_basic_lit_2(p):
     '''FloatLit : FLOAT_LITERAL'''
     p[0] = Node('FloatLit')
     p[0].typeList.append(['float'])
-    newVar = helper.newVar()
+    newVar = helper.newVar(['float'], size_mp['float'])
     p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['float'])
@@ -634,7 +635,7 @@ def p_basic_lit_3(p):
     '''StringLit : STRING_LITERAL'''
     p[0] = Node('StringLit')
     p[0].typeList.append(['string'])
-    newVar = helper.newVar()
+    newVar = helper.newVar(['string'], size_mp['string'])
     p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['string'])
@@ -644,7 +645,7 @@ def p_basic_lit_4(p):
                     | FALSE'''
     p[0] = Node('BoolLit')
     p[0].typeList.append(['bool'])
-    newVar = helper.newVar()
+    newVar = helper.newVar(['bool'], size_mp['bool'])
     p[0].code.append(['=', newVar, p[1]])
     p[0].placeList.append(newVar)
     p[0].sizeList.append(size_mp['bool'])
@@ -762,12 +763,12 @@ def p_expr(p):
         elif p[1].typeList[0][0] not in p[2].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for binary expression')
         else:
-            newVar = helper.newVar()
             if len(p[2].typeList) > 0:
                 # for boolean
                 p[0].typeList = p[2].typeList
             else:
                 p[0].typeList = p[1].typeList
+            newVar = helper.newVar(p[0].typeList[0], p[1].sizeList[0])
             p[0].code = p[1].code
             p[0].code += p[3].code
             if len(p[2].extra) < 3:
@@ -804,7 +805,7 @@ def p_unary_expr(p):
             p[0].placeList = p[2].placeList
             p[0].sizeList = p[2].sizeList
             p[0].code = p[2].code
-            newVar = helper.newVar()
+            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
             p[0].code.append(['!', newVar, p[2].placeList[0]])
     else:
         if p[2].typeList[0][0] not in p[1].extra:
@@ -814,7 +815,7 @@ def p_unary_expr(p):
             p[0].placeList = p[2].placeList
             p[0].sizeList = p[2].sizeList
             p[0].code = p[2].code
-            newVar = helper.newVar()
+            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
             p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
 
 
@@ -939,7 +940,7 @@ def p_inc_dec(p):
     if  p[1].typeList[0] != ['int']:
         err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
         compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
-    newVar = helper.newVar()
+    newVar = helper.newVar(['int'], size_mp['int'])
     p[0].code.append([p[2], newVar, p[1].placeList[0]])
 
 def p_assignment(p):
