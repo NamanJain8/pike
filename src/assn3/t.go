@@ -17,5 +17,6 @@ func main() {
 		a.age = 21;
 		a.name = "Mukesh";
 	};
+
 };
 
