@@ -304,7 +304,7 @@ def p_const_spec(p):
     p[0] = p[1]
     for i in range(len(p[1].identList)):
         p[0].typeList.append(p[2].typeList[0])
-        p[0].sizeList.append(size_mp[p[2].typeList[i][0]])
+        p[0].sizeList.append(p[2].sizeList[0])
     if len(p[1].identList) != len(p[4].typeList):
         err_ = str(len(p[1].identList)) + ' constants but ' + str(len(p[4].typeList)) + ' values'
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
@@ -461,7 +461,7 @@ def p_var_spec(p):
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
-            p[0].sizeList.append(size_mp[p[2].typeList[i][0]])
+            p[0].sizeList.append(p[2].sizeList[0])
 
         if len(p[3].typeList) == 0:
             tmpArr = ['nil']
