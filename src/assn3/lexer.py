@@ -190,8 +190,8 @@ t_INT_LITERAL = decimal_literal + r"|" + octal_literal + r"|" + hexa_literal
 
 decimals = decimal_digit + r"(" + decimal_digit + r")*"
 exponent = r"(e|E)" + r"(\+|-)?" + decimals
-t_FLOAT_LITERAL = r"(" + decimals + r"\." + decimals + exponent + r")|(" + \
-    decimals + exponent + r")|(" + r"\." + decimals + exponent + r")"
+t_FLOAT_LITERAL = r"(" + decimals + r"\.(" + decimals + r")?(" + exponent + r")?" + r")|(" + decimals + exponent + r")|("+ \
+    r"\." + decimals + r"(" + exponent + r")?" + r")"
 
 t_IMAG = r"(" + decimals + r"|" + t_FLOAT_LITERAL + r")" + r"i"
 

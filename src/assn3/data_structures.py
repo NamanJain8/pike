@@ -125,6 +125,7 @@ class Helper:
         newTable.updateMetadata('scopeNo', self.scope)
         self.symbolTables.append(newTable)
         self.scopeStack.append(self.scope)
+        self.newOffset()
         self.scope += 1
 
     def getScope(self):
@@ -132,11 +133,7 @@ class Helper:
 
     def endScope(self):
         self.scopeStack.pop()
-        # remove try condition if offset handled
-        try:
-            self.popOffset()
-        except:
-            pass
+        self.popOffset()
 
     def checkId(self,identifier, type_='default'):
         if type_ == 'global':

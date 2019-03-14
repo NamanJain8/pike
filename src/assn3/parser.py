@@ -15,7 +15,7 @@ CITE:
 """
 
 size_mp = {}
-size_mp['float']   = 4
+size_mp['float']   = 8
 size_mp['int']     = 4
 size_mp['bool']    = 1
 size_mp['complex'] = 8
@@ -276,10 +276,12 @@ def p_const_decl(p):
         p[0] = p[2]
     else:
         p[0] = p[3]
-    p[0].name = 'VarDecl'
+    p[0].name = 'ConstDecl'
     for index_ in range(len(p[0].identList)):
         helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'is_const', True)
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
+        helper.updateOffset(p[0].sizeList[index_])
     # TODO
     # Assign value to the constants in the code generation process.
 
@@ -293,6 +295,7 @@ def p_const_spec_rep(p):
         p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
+        p[0].sizeList += p[2].sizeList
     #    p[0].code += p[2].code
 
 
@@ -301,6 +304,7 @@ def p_const_spec(p):
     p[0] = p[1]
     for i in range(len(p[1].identList)):
         p[0].typeList.append(p[2].typeList[0])
+        p[0].sizeList.append(size_mp[p[2].typeList[i][0]])
     if len(p[1].identList) != len(p[4].typeList):
         err_ = str(len(p[1].identList)) + ' constants but ' + str(len(p[4].typeList)) + ' values'
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
@@ -344,6 +348,7 @@ def p_expr_list(p):
     # p[0].code += p[2].code
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
+    p[0].sizeList += p[2].sizeList
     # TODO understand addrlist
 
 
@@ -357,6 +362,7 @@ def p_expr_rep(p):
         p[0].code += p[3].code
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
+        p[0].sizeList += p[3].sizeList
     # TODO understand addrlist
 
 # -------------------------------------------------------
@@ -422,6 +428,9 @@ def p_var_decl(p):
     p[0].name = 'VarDecl'
     for index_ in range(len(p[0].identList)):
         helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
+        helper.updateOffset(p[0].sizeList[index_])
+
     # TODO
     # Add the values from placeList in the code generation part, when the placeList[i] = 'nil', dont add any code
 
@@ -434,6 +443,7 @@ def p_var_spec_rep(p):
         p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
+        p[0].sizeList += p[2].sizeList
 
 def p_var_spec(p):
     '''VarSpec : IdentifierList Type ExpressionListOpt
@@ -447,9 +457,12 @@ def p_var_spec(p):
         else:
             p[0].typeList = p[3].typeList
             p[0].placeList = p[3].placeList
+            p[0].sizeList = p[3].sizeList
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
+            p[0].sizeList.append(size_mp[p[2].typeList[i][0]])
+
         if len(p[3].typeList) == 0:
             tmpArr = ['nil']
             p[0].placeList = tmpArr*len(p[0].identList)
@@ -489,13 +502,10 @@ def p_short_var_decl(p):
             "%s already declared"%p[1])
     try:
         helper.symbolTables[helper.getScope()].add(p[1],p[3].typeList[0])
+        helper.symbolTables[helper.getScope()].update(p[1], 'offset', helper.getOffset())
+        helper.updateOffset(p[3].sizeList[0])
     except:
         pass
-        # newTemp = helper.newVar()
-        # p[0].code - p[3].code
-        # p[0].code.append(['=', newTemp, p[3].placelist[0]])
-        # helper.symbolTables[helper.getScope()].update(p[1],'place',newTemp)
-        # helper.symbolTables[helper.getScope()].update(p[1], 'type', p[3].typeList[0])
 # -------------------------------------------------------
 
 
@@ -553,6 +563,7 @@ def p_basic_lit_1(p):
     p[0].typeList.append(['int'])
     newVar = helper.newVar()
     p[0].placeList.append(newVar)
+    p[0].sizeList.append(size_mp['int'])
 
 def p_basic_lit_2(p):
     '''FloatLit : FLOAT_LITERAL'''
@@ -560,6 +571,7 @@ def p_basic_lit_2(p):
     p[0].typeList.append(['float'])
     newVar = helper.newVar()
     p[0].placeList.append(newVar)
+    p[0].sizeList.append(size_mp['float'])
 
 def p_basic_lit_3(p):
     '''StringLit : STRING_LITERAL'''
@@ -567,6 +579,7 @@ def p_basic_lit_3(p):
     p[0].typeList.append(['string'])
     newVar = helper.newVar()
     p[0].placeList.append(newVar)
+    p[0].sizeList.append(size_mp['string'])
 #TODO: what about bool literals
 
 # new rules finished
@@ -577,9 +590,10 @@ def p_operand_name(p):
     if not helper.checkId(p[1],'default'):
         compilation_errors.add('NameError', line_number.get()+1, '%s not declared'%p[1])
     else:
-        type_ = helper.findInfo(p[1],'default')['type']
-        p[0].typeList.append(type_)
+        info_ = helper.findInfo(p[1],'default')
+        p[0].typeList.append(info_['type'])
         p[0].placeList.append(p[1])
+        p[0].sizeList.append(info_['size'])
     # TODO also place other things
 
 # ---------------------------------------------------------
@@ -640,6 +654,7 @@ def p_expr(p):
     if len(p) == 2:
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
+        p[0].sizeList = p[1].sizeList
     else:
         if p[1].typeList[0] != p[3].typeList[0]:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
@@ -649,8 +664,10 @@ def p_expr(p):
             newVar = helper.newVar()
             if len(p[2].typeList) > 0:
                 p[0].typeList = p[2].typeList
+                p[0].sizeList = p[1].sizeList
             else:
                 p[0].typeList = p[1].typeList
+                p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
     # TODO: binary operator must be propogated for code generation
 
@@ -660,6 +677,7 @@ def p_expr_opt(p):
     p[0] = Node('ExpressionOpt')
     p[0].typeList = p[1].typeList
     p[0].placeList = p[1].placeList
+    p[0].sizeList = p[1].sizeList
 
 def p_unary_expr(p):
     '''UnaryExpr : PrimaryExpr
@@ -669,18 +687,21 @@ def p_unary_expr(p):
     if len(p) == 2:
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
+        p[0].sizeList = p[1].sizeList
     elif p[1] == '!':
         if p[2].typeList[0] != ['bool']:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be boolean')
         else:
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
+            p[0].sizeList = p[2].sizeList
     else:
         if p[2].typeList[0][0] not in p[1].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
+            p[0].sizeList = p[2].sizeList 
     # TODO: opeartor must be propogated from UnaryOp in code generation process
 
 
