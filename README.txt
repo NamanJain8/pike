@@ -12,5 +12,5 @@ In test directory there are 4 sub directories
 	3. output
 		contain symbol table and code for all the files of input directory above.
 	4. error_msgs
-		contains the error message for buggy programs of semantic_error dir codes.
+		contains the error message for buggy programs of buggy_codes dir codes.
 
