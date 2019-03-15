@@ -1,2 +1,0 @@
-python3 parser_final.py
-dot -Tps output.dot -o out.ps
