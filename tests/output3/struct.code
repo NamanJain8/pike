@@ -1,8 +1,15 @@
 Program Start:
-    t0 = &(p1)
-    t0 = t0 + 4
-    t0 = *(t0)
-    t1 = &(p3)
-    t1 = t1 + 4
-    t1 = *(t1)
-    t0 = t1
+    t0 = p1 + 4
+    t1 = p3 + 4
+    *t0 = *(t1)
+    t2 = p1 + 0
+    ageP1 = *(t2)
+    t3 = p3 + 0
+    ageP3 = *(t3)
+    t4 = ageP1 <int ageP3
+    if t4 == False goto label9 
+    t5 = "hello old man, said person 1"
+    msg = t5
+    goto: label10
+label9:
+label10:

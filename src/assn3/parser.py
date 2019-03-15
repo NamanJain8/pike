@@ -673,7 +673,6 @@ def p_prim_expr(p):
                                | PrimaryExpr Selector
                                | Conversion
                                | PrimaryExpr Index
-                               | PrimaryExpr Slice
                                | PrimaryExpr Arguments'''
     # Handling only operand
     if len(p)==2:
@@ -692,10 +691,8 @@ def p_prim_expr(p):
             else:
                 # offset_ = defn['offset'] + defn['type'][1][ident]['offset']
                 newVar1 = helper.newVar(defn['type'][1][ident]['type'],defn['type'][1][ident]['size'])
-                p[0].code.append(['=', newVar1, '&'+p[1].placeList[0]])
-                p[0].code.append(['+', newVar1, newVar1, defn['type'][1][ident]['offset']])
-                p[0].code.append(['=', newVar1, '*' + newVar1])
-                p[0].placeList = [newVar1]
+                p[0].code.append(['+', newVar1, p[1].placeList[0], defn['type'][1][ident]['offset']])
+                p[0].placeList = ['*' + newVar1]
                 p[0].sizeList = [defn['type'][1][ident]['size']]
                 p[0].typeList = [defn['type'][1][ident]['type']]
                 # TODO: store the offset of temporary also (needed in dereferencing)
@@ -703,9 +700,18 @@ def p_prim_expr(p):
             compilation_errors.add('TypeMismatch2', line_number.get()+1, 'Before period we must have struct')
     elif p[2].name == 'Index':
         p[0] = p[1]
-        
-    elif p[2].name == 'Slice':
-        p[0] = p[1]
+        p[0].code += p[2].code
+        if p[2].typeList[0] != ['int']:
+            return # error handling already done in Index : rule
+        elif not isinstance(p[1].typeList[0], list) or p[1].typeList[0][0] != 'array':
+            compilation_errors.add('Invalid Operation', line_number.get()+1, 'type ' + str(p[1].typeList[0]) + ' does not support indexing')
+        else:
+            newVar1 = helper.newVar(p[1].typeList[0][1], size_mp[p[1].typeList[0][1][0]])
+            p[0].code.append(['*', newVar1, p[2].placeList[0], size_mp[p[1].typeList[0][1][0]]])
+            p[0].code.append(['+', newVar1, p[1].placeList[0], newVar1])
+            p[0].placeList = ['*' + newVar1]
+            p[0].sizeList = [size_mp[p[1].typeList[0][1][0]]]
+            p[0].typeList = [p[1].typeList[0][1]]
     else:
         p[0] = p[1]
     # TODO: type checking for the remaining stuff
@@ -723,16 +729,6 @@ def p_index(p):
     p[0].name = 'Index'
     if p[2].typeList[0] != ['int']:
         compilation_errors.add('TypeError',line_number.get()+1, "Index type should be integer")
-
-
-def p_slice(p):
-    '''Slice : LBRACK ExpressionOpt COLON ExpressionOpt RBRACK
-                     | LBRACK ExpressionOpt COLON Expression COLON Expression RBRACK'''
-    p[0] = p[2]
-    p[0].code += p[4].code
-    if len(p) == 8:
-        p[0].code += p[6].code
-    p[0].name = 'Slice'
 
 def p_argument(p):
     '''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
@@ -778,15 +774,6 @@ def p_expr(p):
                 p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
             p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
-
-def p_expr_opt(p):
-    '''ExpressionOpt : Expression
-                                     | epsilon'''
-    p[0] = Node('ExpressionOpt')
-    p[0].typeList = p[1].typeList
-    p[0].placeList = p[1].placeList
-    p[0].sizeList = p[1].sizeList
-    p[0].code = p[1].code
 
 def p_unary_expr(p):
     '''UnaryExpr : PrimaryExpr
@@ -894,9 +881,13 @@ def p_unary_op(p):
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = p[4]
+    newVar = helper.newVar(p[2].typeList[0], p[2].sizeList[0])
+    p[0].code.append(['=', newVar, '(' + str(p[2].typeList[0]) + ')' + str(p[4].placeList[0])])
     p[0].name = 'Conversion'
+    p[0].placeList = [newVar]
     p[0].typeList = p[2].typeList
     p[0].sizeList = p[2].sizeList
+
 # ---------------------------------------------------------
 
 
@@ -1066,8 +1057,7 @@ def p_for(p):
 def p_conditionblockopt(p):
     '''ConditionBlockOpt : epsilon
                            | Condition
-                           | ForClause
-                           | RangeClause'''
+                           | ForClause'''
     
     p[0] = p[1]
     condition = helper.symbolTables[helper.getScope()].metadata['condition']
@@ -1089,7 +1079,6 @@ def p_condition(p):
         compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expression type should be bool')
     p[0].name = 'Condition'
     update = helper.symbolTables[helper.getScope()].metadata['update']
-    p[0].code += [[update]]
 
 
 def p_forclause(p):
@@ -1116,25 +1105,6 @@ def p_conditionopt(p):
     p[0].name = 'ConditionOpt'
     if p[1].name == 'epsilon':
         p[0].extra['isInfinite'] = True
-
-
-
-def p_rangeclause(p):
-    '''RangeClause : ExpressionIdentListOpt RANGE Expression'''
-    p[0] = Node('RangeClause')
-
-
-
-def p_expression_ident_listopt(p):
-    '''ExpressionIdentListOpt : epsilon
-                           | ExpressionIdentifier'''
-    p[0] = Node('ExpressionIdentListOpt')
-
-
-
-def p_expressionidentifier(p):
-    '''ExpressionIdentifier : ExpressionList ASSIGN'''
-    p[0] = Node('ExpressionIdentifier')
 
 
 

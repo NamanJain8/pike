@@ -5,3 +5,5 @@ add try execpt blocks (better way is to add data in list despite error)
 4 byte allignment should be tackled in offset
 
 print is_const in the final csv
+
+expand the code gen for struct assignment, to do element by element assignment

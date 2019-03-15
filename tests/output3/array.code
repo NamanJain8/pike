@@ -1,0 +1,22 @@
+Program Start:
+    t0 = 0
+    i = t0
+label8:
+    t1 = 101
+    t2 = i <int t1
+    if t2 == False goto label6 
+label7:
+    goto: label5
+label7:
+    t3 = i +int 1
+    goto: label8
+label5:
+    t4 = i * 4
+    t4 = studentList + t4
+    t5 = 6
+    t6 = i % t5
+    t7 = t6 * 4
+    t7 = tutors + t7
+    *t4 = *(t7)
+    goto: label7
+label6:
