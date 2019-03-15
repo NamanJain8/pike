@@ -1,0 +1,2 @@
+[Field Error]: Name person has no field, or method called sex (line: 13)
+[TypeMismatch]: Invalid Type for operator = (line: 13)

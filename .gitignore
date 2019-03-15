@@ -13,4 +13,5 @@ bin/*
 src/parser/*.pyc
 src/parser/*.ps
 src/parser/*.dot
+*.swp
 !bin/README.md

@@ -1,0 +1,4 @@
+[NameError]: a not declared (line: 8)
+[Scope Error]: break is not in a loop (line: 10)
+[Scope Error]: break is not in a loop (line: 12)
+[Scope Error]: continue is not in a loop (line: 15)

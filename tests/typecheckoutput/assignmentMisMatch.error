@@ -1,0 +1,3 @@
+[Assignment Mismatch]: 2 constants but 3 values (line: 3)
+[Assignment Mismatch]: 2 varaibles but 1 values (line: 6)
+[Assignment Mismatch]: 2 identifier on left, while 1 expression on right (line: 10)

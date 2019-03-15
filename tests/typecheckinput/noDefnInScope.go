@@ -22,5 +22,4 @@ func main() {
 			continue; // this also works
 		};
 	};
-
 };

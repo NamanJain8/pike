@@ -1,0 +1,6 @@
+[Redeclaration Error]: Type person already declared (line: 11)
+[Redeclaration Error]: Alias person already declared (line: 13)
+[Redeclaration Error]: ClassStrength already declared (line: 17)
+[Assignment Mismatch]: 0 constants but 1 values (line: 17)
+[Redeclaration Error]: a already declared (line: 22)
+[Redeclaration Error]: b already declared (line: 26)

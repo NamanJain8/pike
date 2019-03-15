@@ -7,11 +7,11 @@ import json
 import argparse
 import sys
 
-# class DevNull:
-#     def write(self, msg):
-#         pass
+class DevNull:
+    def write(self, msg):
+        pass
 
-# sys.stderr = DevNull()
+sys.stderr = DevNull()
 
 """
 CITE:
@@ -322,7 +322,7 @@ def p_const_spec(p):
     for type_ in p[4].typeList:
         if type_ != p[2].typeList[0]:
             err_ = str(type_) + 'assigned to ' + str(p[2].typeList[0])
-            compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
+            compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
     for idx_ in range(len(p[1].identList)):
         p[0].code.append(['=', p[1].identList[idx_], p[4].placeList[idx_]])
     p[0].placeList = p[4].placeList
@@ -334,7 +334,7 @@ def p_identifier_list(p):
     p[0].name = 'IdentifierList'
 
     if helper.checkId(p[1],'current') or (p[1] in p[2].identList):
-        compilation_errors.add("Redeclare Error", line_number.get()+1,\
+        compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "%s already declared"%p[1])
     else:
         p[0].identList.insert(0,p[1])
@@ -348,7 +348,7 @@ def p_identifier_rep(p):
     p[0].name = 'IdentifierRep'
     if len(p) == 4:
         if helper.checkId(p[3], 'current') or (p[3] in p[0].identList):
-            compilation_errors.add("Redeclare Error", line_number.get()+1,\
+            compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "%s already declared"%p[1])
         else:
             p[0].identList.append(p[3])
@@ -413,7 +413,7 @@ def p_alias_decl(p):
     p[0] = Node('AliasDecl')
 
     if helper.checkType(p[1],'current'):
-        compilation_errors.add("Redeclare Error", line_number.get()+1,\
+        compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "Alias %s already declared"%p[1])
     else:
         helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[3].typeList[0], 'size': p[3].sizeList[0]}
@@ -427,7 +427,7 @@ def p_type_def(p):
     p[0] = Node('Typedef')
 
     if helper.checkType(p[1],'current'):
-        compilation_errors.add("Redeclare Error", line_number.get()+1,\
+        compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "Type %s already declared"%p[1])
     else:
         helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[2].typeList[0], 'size': p[2].sizeList[0]}
@@ -497,7 +497,7 @@ def p_var_spec(p):
             for type_ in p[3].typeList:
                 if type_ != p[2].typeList[0]:
                     err_ = str(type_) + ' assign to ' + str(p[2].typeList[0]) 
-                    compilation_errors.add('Type Mismatch', line_number.get()+1,err_)
+                    compilation_errors.add('TypeMismatch', line_number.get()+1,err_)
                     return
             p[0].placeList = p[3].placeList
             for idx_ in range(len(p[3].placeList)):
@@ -523,7 +523,7 @@ def p_short_var_decl(p):
     p[0] = Node('ShortVarDecl')
 
     if helper.checkId(p[1],'current'):
-        compilation_errors.add("Redeclare Error", line_number.get()+1,\
+        compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "%s already declared"%p[1])
     try:
         helper.symbolTables[helper.getScope()].add(p[1],p[3].typeList[0])
@@ -684,7 +684,7 @@ def p_prim_expr(p):
             defn = helper.findInfo(name_)
             ident = p[2].extra['ident']
             if defn['type'][0] != 'struct':
-                compilation_errors.add('TypeMismatch1', line_number.get()+1, 'Before the period we must have struct type')
+                compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before the period we must have struct type')
             elif ident not in defn['type'][1]:
                 err_ = 'Name ' + name_ + ' has no field, or method called ' + ident
                 compilation_errors.add('Field Error', line_number.get()+1, err_)
@@ -697,7 +697,7 @@ def p_prim_expr(p):
                 p[0].typeList = [defn['type'][1][ident]['type']]
                 # TODO: store the offset of temporary also (needed in dereferencing)
         except:
-            compilation_errors.add('TypeMismatch2', line_number.get()+1, 'Before period we must have struct')
+            compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
     elif p[2].name == 'Index':
         p[0] = p[1]
         p[0].code += p[2].code
@@ -728,7 +728,7 @@ def p_index(p):
     p[0] = p[2]
     p[0].name = 'Index'
     if p[2].typeList[0] != ['int']:
-        compilation_errors.add('TypeError',line_number.get()+1, "Index type should be integer")
+        compilation_errors.add('TypeError',line_number.get(), "Index type should be integer")
 
 def p_argument(p):
     '''Arguments : LPAREN ExpressionListTypeOpt RPAREN'''
@@ -931,7 +931,7 @@ def p_inc_dec(p):
     p[0].name = 'IncDecStmt'
     if  p[1].typeList[0] != ['int']:
         err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
-        compilation_errors.add('Type Mismatch', line_number.get()+1, err_)
+        compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
     newVar = helper.newVar(['int'], size_mp['int'])
     p[0].code.append([p[2], newVar, p[1].placeList[0]])
 
@@ -970,7 +970,6 @@ def p_assignment(p):
                 compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
             elif (type_ != p[1].typeList[index_]) and bool_:
                 err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
-                print(p[1].typeList[index_])
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
             elif type_[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])

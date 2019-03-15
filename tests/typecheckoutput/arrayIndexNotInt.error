@@ -1,0 +1,2 @@
+[TypeError]: Index type should be integer (line: 5)
+[Parsing Error]: Error occured at the token: SUB (line: 8)
