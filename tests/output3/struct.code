@@ -1,0 +1,8 @@
+Program Start:
+    t0 = &(p1)
+    t0 = t0 + 4
+    t0 = *(t0)
+    t1 = &(p3)
+    t1 = t1 + 4
+    t1 = *(t1)
+    t0 = t1

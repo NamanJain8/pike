@@ -1,25 +1,32 @@
--------,-------,-------,------
-Identifier,Type,Size,Offset
--------,-------,-------,------
-,,,
-======,Symbol Table Number:0,======,======
-,,,
-year,['int'],4,0
-month,['string'],4,4
-is_leap,['bool'],1,8
-place,['string'],4,9
-temperature,['float'],8,13
-,,,
-======,======,======,======
-,,,
-,,,
-======,Symbol Table Number:1,======,======
-,,,
-course,['string'],4,0
-grade,['string'],4,4
-temperature,['float'],8,8
-instructor,['string'],4,16
-hostels,"['array', ['pointer', ['int']], 10]",40,20
-,,,
-======,======,======,======
-,,,
+-------,-------,-------,------,------
+Identifier,Type,Size,Offset,is_Constant
+-------,-------,-------,------,------
+,,,,
+======,Symbol Table Number:0,======,======,======
+,,,,
+t0,['int'],4,0,False
+t1,['string'],4,4,False
+t2,['bool'],1,8,False
+year,['int'],4,9,True
+month,['string'],4,13,True
+is_leap,['bool'],1,17,True
+t3,['string'],4,18,False
+place,['string'],4,22,True
+temperature,['float'],8,26,False
+,,,,
+======,======,======,======,======
+,,,,
+,,,,
+======,Symbol Table Number:1,======,======,======
+,,,,
+t4,['string'],4,0,False
+course,['string'],4,4,False
+t5,['string'],4,8,False
+grade,['string'],4,12,False
+t6,['string'],4,16,False
+temperature,['float'],8,20,False
+instructor,['string'],4,28,False
+hostels,"['array', ['pointer', ['int']], 10]",40,32,False
+,,,,
+======,======,======,======,======
+,,,,

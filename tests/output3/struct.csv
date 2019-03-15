@@ -10,15 +10,11 @@ Identifier,Type,Size,Offset,is_Constant
 ,,,,
 ======,Symbol Table Number:1,======,======,======
 ,,,,
-hostels,['address'],40,0,False
-marks,['foo'],4,40,False
-t0,['int'],4,44,False
-t1,['int'],4,48,False
-t2,['int'],4,52,False
-t3,['int'],4,56,False
-t4,['int'],4,60,False
-t5,['int'],4,64,False
-t6,['int'],4,68,False
+p1,['person'],8,0,False
+p3,['person'],8,8,False
+t0,['string'],4,16,False
+t1,['string'],4,20,False
+a,"['pointer', ['int']]",4,24,False
 ,,,,
 ======,======,======,======,======
 ,,,,

@@ -691,7 +691,7 @@ def p_prim_expr(p):
                 compilation_errors.add('Field Error', line_number.get()+1, err_)
             else:
                 # offset_ = defn['offset'] + defn['type'][1][ident]['offset']
-                newVar1 = helper.newVar()
+                newVar1 = helper.newVar(defn['type'][1][ident]['type'],defn['type'][1][ident]['size'])
                 p[0].code.append(['=', newVar1, '&'+p[1].placeList[0]])
                 p[0].code.append(['+', newVar1, newVar1, defn['type'][1][ident]['offset']])
                 p[0].code.append(['=', newVar1, '*' + newVar1])
@@ -703,6 +703,7 @@ def p_prim_expr(p):
             compilation_errors.add('TypeMismatch2', line_number.get()+1, 'Before period we must have struct')
     elif p[2].name == 'Index':
         p[0] = p[1]
+        
     elif p[2].name == 'Slice':
         p[0] = p[1]
     else:
@@ -1306,32 +1307,31 @@ def generateCSV(filename):
     csvfile = filename
     writer = csv.writer(csvfile)
 
-    writer.writerow(['-------', '-------', '-------','------'])
-    writer.writerow(['Identifier', 'Type', 'Size','Offset'])
-    writer.writerow(['-------', '-------', '-------','------'])
+    writer.writerow(['-------', '-------', '-------','------','------'])
+    writer.writerow(['Identifier', 'Type', 'Size','Offset','is_Constant'])
+    writer.writerow(['-------', '-------', '-------','------','------'])
 
     for idx_, table in enumerate(helper.symbolTables):
         # create rows
-        writer.writerow(['','','',''])
-        writer.writerow(['======','Symbol Table Number:'+ str(idx_),'======','======'])
-        writer.writerow(['','','',''])
+        writer.writerow(['','','','',''])
+        writer.writerow(['======','Symbol Table Number:'+ str(idx_),'======','======','======'])
+        writer.writerow(['','','','',''])
 
         symTable = table.table
         ident = symTable.keys()
         type_ = [symTable[key]['type'] for key in ident]
         size_ = [symTable[key]['size'] for key in ident]
         offset_ = [symTable[key]['offset'] for key in ident]
+        is_const = ['is_const' in symTable[key] for key in ident]
         rows = []
         for idx_,key in enumerate(ident):
-            # typeLst = [str(i) for i in type_[idx_]]
-            # typestr = ':'.join(typeLst)
-            row = [key,type_[idx_],size_[idx_],offset_[idx_]]
+            row = [key,type_[idx_],size_[idx_],offset_[idx_],is_const[idx_]]
             rows.append(row)
         writer.writerows(rows)
 
-        writer.writerow(['','','',''])
-        writer.writerow(['======','======','======','======'])
-        writer.writerow(['','','',''])
+        writer.writerow(['','','','',''])
+        writer.writerow(['======','======','======','======','======'])
+        writer.writerow(['','','','',''])
 
 parser = argparse.ArgumentParser(description='Does Semantic Analysis and generates 3AC')
 
