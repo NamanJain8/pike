@@ -292,7 +292,6 @@ def p_const_decl(p):
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
         helper.updateOffset(p[0].sizeList[index_])
-    # TODO
     # Assign value to the constants in the code generation process.
 
 
@@ -361,7 +360,6 @@ def p_expr_list(p):
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
     p[0].sizeList += p[2].sizeList
-    # TODO: understand addrlist
     p[0].code += p[2].code
 
 def p_expr_rep(p):
@@ -375,7 +373,6 @@ def p_expr_rep(p):
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
         p[0].sizeList += p[3].sizeList
-    # TODO: understand addrlist
 
 # -------------------------------------------------------
 
@@ -396,7 +393,6 @@ def p_type_spec_rep(p):
                                | epsilon'''
     if len(p) == 2:
         p[0] = Node('TypeSpecRep')
-        # TODO ommitting RHS why?
     else:
         p[0] = p[1]
 
@@ -450,7 +446,6 @@ def p_var_decl(p):
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
         helper.updateOffset(p[0].sizeList[index_])
-    # TODO
     # Add the values from placeList in the code generation part, when the placeList[i] = 'nil', dont add any code
 
 def p_var_spec_rep(p):
@@ -695,7 +690,6 @@ def p_prim_expr(p):
                 p[0].placeList = ['*' + newVar1]
                 p[0].sizeList = [defn['type'][1][ident]['size']]
                 p[0].typeList = [defn['type'][1][ident]['type']]
-                # TODO: store the offset of temporary also (needed in dereferencing)
         except:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
     elif p[2].name == 'Index':
@@ -714,7 +708,6 @@ def p_prim_expr(p):
             p[0].typeList = [p[1].typeList[0][1]]
     else:
         p[0] = p[1]
-    # TODO: type checking for the remaining stuff
     p[0].name = 'PrimaryExpr'
 
 
@@ -1110,15 +1103,12 @@ def p_conditionopt(p):
 def p_return(p):
     '''ReturnStmt : RETURN ExpressionListPureOpt'''
     p[0] = Node('ReturnStmt')
-    # TODO: return data should also be handled
     scope_ = helper.getNearest('func')
     if scope_ == -1:
         compilation_errors.add('Scope Error', line_number.get()+1, 'return is not in a function')
         return
     symTab = helper.symbolTables[scope_]
     p[0].code = [['goto', symTab.metadata['end']]]
-    # TODO:  this should not be end, return label must be given before
-
 
 
 def p_expressionlist_pure_opt(p):
