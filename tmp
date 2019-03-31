@@ -1,0 +1,46 @@
+Program Start:
+    t0 = 57
+    p = t0
+    t1 = 0
+    divisor = t1
+    t2 = "57 is prime"
+    defaultMsg = t2
+    t3 = 1
+    i = t3
+label8:
+    t4 = i <int p
+    if t4 == False goto label6 
+    goto: label5
+label7:
+    t5 = i +int 1
+    goto: label8
+label5:
+    t6 = p % i
+    rem = t6
+    t7 = 0
+    t8 = rem ==int t7
+    if t8 == False goto label13 
+    t9 = 1
+    divisor = divisor + t9
+    goto: label14
+label13:
+label14:
+    goto: label7
+label6:
+    t10 = "This variable will be printed to screen"
+    msg = t10
+    t11 = 0
+    t12 = divisor ==int t11
+    if t12 == False goto label23 
+    msg = defaultMsg
+    goto: label24
+label23:
+    t13 = "57 is not prime, it has "
+    msg = t13
+    t14 = (['string'])divisor
+    t15 = msg +string t14
+    msg = t15
+    t16 = " divisor/s"
+    t17 = msg +string t16
+    msg = t17
+label24:
