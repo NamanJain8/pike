@@ -189,50 +189,28 @@ def p_base_type(p):
 
 # ---------------FUNCTION TYPES----------------------------
 def p_sign(p):
-    '''Signature : Parameters ResultOpt'''
+    '''Signature : LPAREN ParameterListOpt RPAREN ResultOpt'''
     # update the parameters in the function scope
 
 
 def p_result_opt(p):
-    '''ResultOpt : Result
+    '''ResultOpt : Type
                              | epsilon'''
 
 
-
-def p_result(p):
-    '''Result : Parameters
-                      | Type'''
-
-
-
-def p_params(p):
-    '''Parameters : LPAREN ParameterListOpt RPAREN'''
-
-
-
-
 def p_param_list_opt(p):
-    '''ParameterListOpt : ParametersList
+    '''ParameterListOpt : ParameterDeclCommaRep
                                                      | epsilon'''
-
-
-
-def p_param_list(p):
-    '''ParametersList : Type
-                                      | IdentifierList Type
-                                      | ParameterDeclCommaRep'''
-
 
 
 def p_param_decl_comma_rep(p):
     '''ParameterDeclCommaRep : ParameterDeclCommaRep COMMA ParameterDecl
-                                                     | ParameterDecl COMMA ParameterDecl'''
+                                                     | ParameterDecl'''
 
 
 
 def p_param_decl(p):
-    '''ParameterDecl : IdentifierList Type
-                                     | Type'''
+    '''ParameterDecl : IDENT Type '''
 
 # ---------------------------------------------------------
 
@@ -571,6 +549,7 @@ def p_create_scope(p):
     elif isinstance(p[-1], Node):
         if p[-1].name == 'FunctionName':
             type_ = 'func'
+            helper.makeSymTabFunc()
         
     label1 = helper.newLabel()
     label2 = helper.newLabel()
