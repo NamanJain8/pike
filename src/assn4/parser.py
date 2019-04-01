@@ -210,11 +210,11 @@ def p_param_list_opt(p):
     if p[1].name != 'epsilon':
         p[0] = p[1]
         p[0].name = 'ParameterListOpt'
-        for _index in range(len(p[1].typeList)):
-            helper.symbolTables[helper.getScope()].add(p[1].identList[_index], p[1].typeList[_index])
-            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'size', p[1].sizeList[_index])
-            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'offset', helper.getOffset())
-            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'is_arg', True)
+        for index_ in range(len(p[1].typeList)):
+            helper.symbolTables[helper.getScope()].add(p[1].identList[index_], p[1].typeList[index_])
+            helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'size', p[1].sizeList[index_])
+            helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'offset', helper.getOffset())
+            helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'is_arg', True)
             helper.updateOffset(p[0].sizeList[index_])
 
 def p_param_decl_comma_rep(p):

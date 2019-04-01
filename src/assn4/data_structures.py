@@ -212,7 +212,7 @@ class Helper:
 
     def addFunc(self, name):
         # add the name in the current(global for now :P) symbol table with its scope
-        self.symbolTables[0].functions[name] = self.scope + 1
+        self.symbolTables[0].functions[name] = self.scope
 
     def makeSymTabFunc(self):
         # make the current symbol table as a function symbol table
