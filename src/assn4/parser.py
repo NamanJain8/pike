@@ -191,26 +191,53 @@ def p_base_type(p):
 def p_sign(p):
     '''Signature : LPAREN ParameterListOpt RPAREN ResultOpt'''
     # update the parameters in the function scope
-
+    p[0] = Node('Signature')
+    helper.updateSignature(p[2].typeList)
+    helper.updateRetValType(p[4].typeList[0])
 
 def p_result_opt(p):
     '''ResultOpt : Type
                              | epsilon'''
-
+    p[0] = Node('ResultOpt')
+    if p[1].name != 'epsilon':
+        p[0] = p[1]
+        p[0].name = 'ResultOpt'
 
 def p_param_list_opt(p):
     '''ParameterListOpt : ParameterDeclCommaRep
                                                      | epsilon'''
-
+    p[0] = Node('ParameterListOpt')
+    if p[1].name != 'epsilon':
+        p[0] = p[1]
+        p[0].name = 'ParameterListOpt'
+        for _index in range(len(p[1].typeList)):
+            helper.symbolTables[helper.getScope()].add(p[1].identList[_index], p[1].typeList[_index])
+            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'size', p[1].sizeList[_index])
+            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'offset', helper.getOffset())
+            helper.symbolTables[helper.getScope()].update(p[1].identList[_index], 'is_arg', True)
+            helper.updateOffset(p[0].sizeList[index_])
 
 def p_param_decl_comma_rep(p):
     '''ParameterDeclCommaRep : ParameterDeclCommaRep COMMA ParameterDecl
                                                      | ParameterDecl'''
-
+    if len(p) == 2:
+        p[0] = p[1]
+        p[0].name = 'ParameterDeclCommaRep'
+    else:
+        p[0] = p[1]
+        p[0].placeList += p[3].placeList
+        p[0].identList += p[3].identList
+        p[0].sizeList += p[3].sizeList
+        p[0].typeList += p[3].typeList
 
 
 def p_param_decl(p):
     '''ParameterDecl : IDENT Type '''
+    p[0] = Node('ParameterDecl')
+    p[0].placeList = [p[1]]
+    p[0].identList = [p[1]]
+    p[0].typeList = p[2].typeList
+    p[0].sizeList = p[2].sizeList
 
 # ---------------------------------------------------------
 
