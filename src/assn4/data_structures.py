@@ -150,6 +150,9 @@ class Helper:
         self.popOffset()
 
     def checkId(self,identifier, type_='default'):
+        if identifier in self.symbolTables[0].functions.keys():
+            return True
+            
         if type_ == 'global':
             if self.symbolTables[0].lookUp(identifier) is True:
                 return True
@@ -237,6 +240,22 @@ class Helper:
         assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
         self.symbolTables[self.getScope()].metadata['retval'] = retval
 
+    def getRetType(self, scope):
+        # returns the return type of a function provided the scope number of that function
+        funcMeta = self.symbolTables[scope].metadata
+        return funcMeta['retvaltype']
+
+    def updateSize(self,sizeList):
+        # update the signature in function symbol table
+        # signature is stored as a list of argument size
+        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
+        self.symbolTables[self.getScope()].metadata['retvalsize'] = sizeList
+    
+    def getRetSize(self,scope):
+        # returns the return size of a function provided the scope number of that function
+        funcMeta = self.symbolTables[scope].metadata
+        return funcMeta['retvalsize']
+
     def lookUpfunc(self, name):
         # checks if the function is defined in the global scope, and returns its scope
         # if it is not defined it returns -1
@@ -258,7 +277,7 @@ class Helper:
         
         for i in range(len(arguments)):
             if arguments[i] != funcMeta['signature'][i]:
-                return str(i) + 'argument is expected to be ' + str(funcMeta['signature'][i]) + \
+                return 'Argument ' + str(i+1) + ' is expected to be ' + str(funcMeta['signature'][i]) + \
                         ' but given ' + str(arguments[i])
         
         return 'cool'

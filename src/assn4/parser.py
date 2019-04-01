@@ -193,7 +193,8 @@ def p_sign(p):
     # update the parameters in the function scope
     p[0] = Node('Signature')
     helper.updateSignature(p[2].typeList)
-    helper.updateRetValType(p[4].typeList[0])
+    helper.updateRetValType(p[4].typeList)
+    helper.updateSize(p[4].sizeList)
 
 def p_result_opt(p):
     '''ResultOpt : Type
@@ -549,11 +550,14 @@ def p_func_decl(p):
     '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope '''
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
+    p[0].code.insert(0,[p[2].extra['name']+':'])
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
     p[0] = Node('FunctionName')
     p[0].extra['name'] = p[1]
+    if p[1] in helper.symbolTables[0].functions.keys():
+        compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Function %s redeclared'%p[1])
     helper.addFunc(p[1])
 
 def p_func(p):
@@ -680,7 +684,7 @@ def p_prim_expr(p):
                                | PrimaryExpr Selector
                                | Conversion
                                | PrimaryExpr Index
-                               | PrimaryExpr Arguments'''
+                               | IDENT Arguments'''
     # Handling only operand
     if len(p)==2:
         p[0] = p[1]
@@ -705,6 +709,7 @@ def p_prim_expr(p):
                 # TODO: store the offset of temporary also (needed in dereferencing)
         except:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
+
     elif p[2].name == 'Index':
         p[0] = p[1]
         p[0].code += p[2].code
@@ -719,9 +724,27 @@ def p_prim_expr(p):
             p[0].placeList = ['*' + newVar1]
             p[0].sizeList = [size_mp[p[1].typeList[0][1][0]]]
             p[0].typeList = [p[1].typeList[0][1]]
+
     elif p[2].name == 'Arguments':
-        # TODO: 
-        print("a")
+        p[0] = p[2]
+        isValid = helper.checkArguments(p[1],p[2].typeList)
+        if isValid != 'cool':
+            compilation_errors.add('Type Error',line_number.get()+1, isValid)
+        else:
+            funcScope = helper.lookUpfunc(p[1])
+            if funcScope == -1:
+                compilation_errors.add('Declaration Error', line_number.get()+1, 'Function %s not defined'%p[1])
+            else:
+                for arg in p[2].placeList:
+                    p[0].code.append(['param', arg])
+                p[0].code.append(['call', p[1], len(p[2].placeList)])
+                type_ = helper.getRetType(funcScope)
+                size_ = helper.getRetSize(funcScope)
+                p[0].typeList.append(type_[0])
+                p[0].identList.append('_temp_')
+                p[0].sizeList.append(size_[0])
+                p[0].placeList.append('_temp_')
+                # TODO: see what can be there
     else:
         p[0] = p[1]
     # TODO: type checking for the remaining stuff
@@ -1120,16 +1143,21 @@ def p_conditionopt(p):
 def p_return(p):
     '''ReturnStmt : RETURN ExpressionListPureOpt'''
     p[0] = Node('ReturnStmt')
-    # TODO: return data should also be handled
+
     scope_ = helper.getNearest('func')
     if scope_ == -1:
         compilation_errors.add('Scope Error', line_number.get()+1, 'return is not in a function')
         return
-    symTab = helper.symbolTables[scope_]
-    p[0].code = [['goto', symTab.metadata['end']]]
-    # TODO:  this should not be end, return label must be given before
-
-
+    
+    typeList = helper.getRetType(scope_)
+    if len(typeList) != len(p[2].typeList):
+        error_ = 'Expected ' + str(len(typeList)) + ' arguments got ' + str(len(p[2].typeList))
+        compilation_errors.add('Type Mismatch', line_number.get()+1,error_)
+    elif len(typeList) != 0 and p[2].typeList[0] != typeList[0]:
+        compilation_errors.add('Type Error',line_number.get()+1, 'return type does not match')
+    else:
+        helper.updateRetVal(p[2].placeList[0])
+    p[0].code = ['return', p[2].placeList[0]]
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
@@ -1362,3 +1390,4 @@ for idx_ in range(len(rootNode.code)):
 
 code_file.close()
 in_file.close()
+print(rootNode.code)
