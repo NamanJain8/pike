@@ -47,6 +47,8 @@ class SymbolTable:
         self.metadata = {}
         self.metadata['name'] = 'global'
 
+        # metadata has a key 'is_function' to check if the current symbol table is activation record.
+
     def __str__(self):
         print('\n')
         print('typeDefs:',self.typeDefs)
@@ -207,6 +209,59 @@ class Helper:
             if self.symbolTables[scope].metadata['name'] == type_:
                 return scope
         return -1
+
+    def addFunc(self, name):
+        # add the name in the current(global for now :P) symbol table with its scope
+        self.symbolTables[0].functions[name] = self.scope + 1
+
+    def makeSymTabFunc(self):
+        # make the current symbol table as a function symbol table
+        self.symbolTables[self.getScope()].metadata['is_function'] = 1
+
+    def updateSignature(self, typeList):
+        # update the signature in function symbol table
+        # signature is stored as a list of argument types
+        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
+        self.symbolTables[self.getScope()].metadata['num_arg'] = len(typeList)
+        self.symbolTables[self.getScope()].metadata['signature'] = typeList
+
+    def updateRetValType(self, retval):
+        # needed when we do checking inside the function body, on return statement.
+        # set the variable which stores the return value type in the symbol table of current scope
+        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
+        self.symbolTables[self.getScope()].metadata['retvaltype'] = retval
+
+    def updateRetVal(self, retval):
+        # needed when we want to find the place holder of return value.
+        # set the variable which stores the return value in the symbol table of current scope
+        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
+        self.symbolTables[self.getScope()].metadata['retval'] = retval
+
+    def lookUpfunc(self, name):
+        # checks if the function is defined in the global scope, and returns its scope
+        # if it is not defined it returns -1
+        if name in self.symbolTables[0].functions.keys():
+            return self.symbolTables[0].functions[name]
+        else:
+            return -1
+
+    def checkArguments(self, name, arguments):
+        # checks for a given function name and argument type list, matches with the function signature
+        # returns 'cool' if no error found
+        funcScope = self.lookUpfunc(name)
+        if funcScope == -1:
+            return 'function ' + name + ' not declared'
+        
+        funcMeta = self.symbolTables[funcScope].metadata
+        if len(arguments) != funcMeta['num_arg']:
+            return 'number of arguments do not match the function signature'
+        
+        for i in range(len(arguments)):
+            if arguments[i] != funcMeta['signature'][i]:
+                return str(i) + 'argument is expected to be ' + str(funcMeta['signature'][i]) + \
+                        ' but given ' + str(arguments[i])
+        
+        return 'cool'
 
     def debug(self):
         print('varCount:',self.varCount)

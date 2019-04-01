@@ -190,7 +190,7 @@ def p_base_type(p):
 # ---------------FUNCTION TYPES----------------------------
 def p_sign(p):
     '''Signature : Parameters ResultOpt'''
-
+    # update the parameters in the function scope
 
 
 def p_result_opt(p):
@@ -548,6 +548,8 @@ def p_func_decl(p):
 def p_func_name(p):
     '''FunctionName : IDENT'''
     p[0] = Node('FunctionName')
+    p[0].extra['name'] = p[1]
+    helper.addFunc(p[1])
 
 def p_func(p):
     '''Function : Signature FunctionBody'''
