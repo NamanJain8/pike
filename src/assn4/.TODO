@@ -1,7 +1,23 @@
+passing parameters by reference.
+
+keeping track of scope in 3AC for each varible.
+
+2-D arrays cannot be declared as of now.
+
+Linked list does not work.
+
+Returning of structure from a function call.
+
+Type storage should modified to enhance working.
+
+Addressing mode.
+
+
+
 4 byte allignment should be tackled in offset
 
 expand the code gen for struct assignment, to do element by element assignment
 
-PrimaryExpr line 672 need to be tackled to handle function calling.
+
 
 
