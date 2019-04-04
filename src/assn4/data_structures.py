@@ -100,7 +100,7 @@ class Helper:
         self.labelCount = 0
         self.scope = 0
         self.scopeStack = []
-        self.offsetStack = []
+        self.offsetStack = [0]
         self.symbolTables = []
         self.lastScope = 0
 
@@ -122,7 +122,7 @@ class Helper:
         return label
 
     def newOffset(self):
-        self.offsetStack.append(0)
+        self.offsetStack.append(self.getOffset())
         return
 
     def getOffset(self):
