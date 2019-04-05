@@ -224,21 +224,25 @@ class Helper:
     def updateSignature(self, typeList):
         # update the signature in function symbol table
         # signature is stored as a list of argument types
-        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
-        self.symbolTables[self.getScope()].metadata['num_arg'] = len(typeList)
-        self.symbolTables[self.getScope()].metadata['signature'] = typeList
+        scope_ = self.getNearest('func')
+        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        self.symbolTables[scope_].metadata['num_arg'] = len(typeList)
+        self.symbolTables[scope_].metadata['signature'] = typeList
 
     def updateRetValType(self, retval):
         # needed when we do checking inside the function body, on return statement.
         # set the variable which stores the return value type in the symbol table of current scope
-        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
-        self.symbolTables[self.getScope()].metadata['retvaltype'] = retval
+        scope_ = self.getNearest('func')
+        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        self.symbolTables[scope_].metadata['retvaltype'] = retval
 
     def updateRetVal(self, retval):
         # needed when we want to find the place holder of return value.
         # set the variable which stores the return value in the symbol table of current scope
-        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
-        self.symbolTables[self.getScope()].metadata['retval'] = retval
+
+        scope_ = self.getNearest('func')
+        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        self.symbolTables[scope_].metadata['retval'] = retval
 
     def getRetType(self, scope):
         # returns the return type of a function provided the scope number of that function
@@ -248,8 +252,9 @@ class Helper:
     def updateSize(self,sizeList):
         # update the signature in function symbol table
         # signature is stored as a list of argument size
-        assert(self.symbolTables[self.getScope()].metadata['is_function'] == 1)
-        self.symbolTables[self.getScope()].metadata['retvalsize'] = sizeList
+        scope_ = self.getNearest('func')
+        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        self.symbolTables[scope_].metadata['retvalsize'] = sizeList
     
     def getRetSize(self,scope):
         # returns the return size of a function provided the scope number of that function

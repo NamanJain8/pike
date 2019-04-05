@@ -740,10 +740,14 @@ def p_prim_expr(p):
                 p[0].code.append(['call', p[1], len(p[2].placeList)])
                 type_ = helper.getRetType(funcScope)
                 size_ = helper.getRetSize(funcScope)
-                p[0].typeList.append(type_[0])
-                p[0].identList.append('_temp_')
-                p[0].sizeList.append(size_[0])
-                p[0].placeList.append('_temp_')
+                p[0].typeList = [type_[0]]
+                argList = ''
+                for arg in p[2].placeList:
+                    argList += str(arg) + ', '
+                argList = argList[:-2]
+                p[0].identList = [p[1] + '(' + argList + ')']
+                p[0].sizeList = [size_[0]]
+                p[0].placeList = [p[1] + '(' + argList + ')']
                 # TODO: see what can be there
     else:
         p[0] = p[1]
@@ -1171,7 +1175,7 @@ def p_return(p):
         compilation_errors.add('Type Error',line_number.get()+1, 'return type does not match')
     else:
         helper.updateRetVal(p[2].placeList[0])
-    p[0].code = ['return', p[2].placeList[0]]
+    p[0].code = p[2].code + [['return', p[2].placeList[0]]]
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
@@ -1404,4 +1408,5 @@ for idx_ in range(len(rootNode.code)):
 
 code_file.close()
 in_file.close()
-print(rootNode.code)
+for code in rootNode.code:
+    print(code)
