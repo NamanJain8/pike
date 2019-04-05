@@ -829,14 +829,28 @@ def p_unary_expr(p):
             newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
             p[0].code.append(['!', newVar, p[2].placeList[0]])
     else:
-        if p[2].typeList[0][0] not in p[1].extra:
+        updateNeeded = True
+        ck = False
+        if p[1].extra['opcode'] == '*':
+            ck = True
+            if p[2].typeList[0][0] != 'pointer':
+                compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expected pointer type')
+            else:
+                p[0].typeList = [p[2].typeList[0][1]]
+                p[0].sizeList = [4]
+                updateNeeded = False
+        if p[2].typeList[0][0] not in p[1].extra and not ck:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
-            p[0].typeList = p[2].typeList
-            p[0].placeList = p[2].placeList
-            p[0].sizeList = p[2].sizeList
-            p[0].code = p[2].code
             newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
+            p[0].placeList = p[2].placeList
+            if updateNeeded:
+                p[0].typeList = p[2].typeList
+                p[0].sizeList = p[2].sizeList
+            else:
+                p[0].placeList = [newVar]
+                p[0].identList = [newVar]
+            p[0].code = p[2].code
             p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
 
 
