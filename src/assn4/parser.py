@@ -134,20 +134,29 @@ def p_element_type(p):
 
 # ----------------- STRUCT TYPE ---------------------------
 def p_struct_type(p):
-    '''StructType : STRUCT LBRACE FieldDeclRep RBRACE'''
+    '''StructType : STRUCT LBRACE structInit FieldDeclRep RBRACE structDeInit'''
     p[0] = Node('StructType')
-    for index_ in range(len(p[3].identList)):
-        if p[3].identList[index_] in p[3].identList[:index_]:
-            compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Field %s redeclared'%p[3].identList[index_])
+    for index_ in range(len(p[4].identList)):
+        if p[4].identList[index_] in p[4].identList[:index_]:
+            compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Field %s redeclared'%p[4].identList[index_])
             return
-    p[0] = p[3]
+    p[0] = p[4]
     dict_ = {}
     offset_ = 0
-    for index_ in range(len(p[3].identList)):
-        dict_[p[3].identList[index_]] = {'type':p[3].typeList[index_], 'size': p[3].sizeList[index_], 'offset':offset_}
-        offset_ += p[3].sizeList[index_]
+    for index_ in range(len(p[4].identList)):
+        dict_[p[4].identList[index_]] = {'type':p[4].typeList[index_], 'size': p[4].sizeList[index_], 'offset':offset_}
+        offset_ += p[4].sizeList[index_]
     p[0].typeList = [['struct', dict_]]
-    p[0].sizeList = [sum(p[3].sizeList)]
+    p[0].sizeList = [sum(p[4].sizeList)]
+
+def p_structInit(p):
+    '''structInit : epsilon'''
+    helper.symbolTables[helper.getScope()].typeDefs[p[-3]] = {'type': ['struct', ['int']], 'size': [4]}
+    size_mp[p[-3]] = 4
+
+def p_structDeInit(p):
+    '''structDeInit : epsilon'''
+    helper.symbolTables[helper.getScope()].typeDefs.pop(p[-6], None)
 
 def p_field_decl_rep(p):
     ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
