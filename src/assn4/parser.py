@@ -1299,7 +1299,7 @@ def getCodeString(codeList):
     elif len_ == 1:
         return codeList[0] + ':'
     elif len_ == 2:
-        return '    goto: ' + codeList[1]
+        return '    ' + codeList[0] + ' ' + codeList[1]
     elif len_ == 3:
         op = codeList[0]
         if op == '=':
@@ -1397,6 +1397,9 @@ res = parser.parse(data)
 # Dubug Mode
 if isDebug in ['true', 't','T','True']:
     helper.debug()
+    print("===== 3AC ====")
+    for code in rootNode.code:
+        print(code)
 
 if compilation_errors.size() > 0:
     sys.exit()
@@ -1408,5 +1411,3 @@ for idx_ in range(len(rootNode.code)):
 
 code_file.close()
 in_file.close()
-for code in rootNode.code:
-    print(code)
