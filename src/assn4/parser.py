@@ -852,20 +852,22 @@ def p_unary_expr(p):
                 p[0].typeList = [p[2].typeList[0][1]]
                 p[0].sizeList = [4]
                 updateNeeded = False
+        if p[1].extra['opcode'] == '&':
+            ck = True
+            p[0].typeList = [['pointer', p[2].typeList[0]]]
+            p[0].sizeList = [4]
+            updateNeeded = False
         if p[2].typeList[0][0] not in p[1].extra and not ck:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
-            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
-            p[0].placeList = p[2].placeList
             if updateNeeded:
                 p[0].typeList = p[2].typeList
                 p[0].sizeList = p[2].sizeList
-            else:
-                p[0].placeList = [newVar]
-                p[0].identList = [newVar]
+            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
+            p[0].placeList = [newVar]
+            p[0].identList = [newVar]
             p[0].code = p[2].code
             p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
-
 
 def p_binary_op(p):
     '''BinaryOp : LOR
@@ -1031,7 +1033,7 @@ def p_assignment(p):
             elif (type_ != p[1].typeList[index_]) and bool_:
                 err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
-            elif type_[0] not in p[2].extra:
+            elif  p[2].extra['opcode'] != '=' and type_[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
     p[0].name = 'Assignment'
     p[0].code += p[3].code
@@ -1316,8 +1318,8 @@ def getCodeString(codeList):
             if codeList[2][0] in ['&', '*']:
                 operand_ = codeList[2][0] + '(' + codeList[2][1:] + ')'
             return '    ' + codeList[1] + ' = ' + operand_
-        elif op == '!':
-            return '    ' + codeList[1] + ' = !(' + codeList[2] + ')'
+        elif len(op) == 1:
+            return '    ' + codeList[1] + ' = ' + op + '(' + codeList[2] + ')'
         elif op == '++':
             return '    ' + codeList[1] + ' = ' + codeList[2] + ' +int 1'
         elif op == '--':
