@@ -1,0 +1,21 @@
+Program Start:
+factorial::
+    t0 = 0
+    t1 = n <int t0
+    if t1 == False goto label9 
+    t2 = 1
+    return t2
+    goto label10
+label9:
+label10:
+    t3 = 1
+    t4 = n -int t3
+    param t4
+    factorial call 1
+    t5 = n *int factorial(t4)
+    return t5
+main::
+    t6 = 10
+    param t6
+    factorial call 1
+    tenth_factorial = factorial(t6)

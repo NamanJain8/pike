@@ -1,0 +1,25 @@
+Program Start:
+fib::
+    t0 = 1
+    t1 = n <int t0
+    if t1 == False goto label9 
+    t2 = 1
+    return t2
+    goto label10
+label9:
+label10:
+    t3 = 1
+    t4 = n -int t3
+    param t4
+    fib call 1
+    t5 = 2
+    t6 = n -int t5
+    param t6
+    fib call 1
+    t7 = fib(t4) +int fib(t6)
+    return t7
+main::
+    t8 = 10
+    param t8
+    fib call 1
+    tenth_fibonacci = fib(t8)
