@@ -452,13 +452,11 @@ def p_type_def(p):
     '''TypeDef : IDENT Type'''
     p[0] = Node('Typedef')
 
-    if helper.checkType(p[1],'current'):
+    if helper.checkType(p[1]):
         compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "Type %s already declared"%p[1])
     else:
-        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[2].typeList[0], 'size': p[2].sizeList[0]}
-        size_mp[p[1]] = p[2].sizeList[0]
-
+        helper.type[p[1]] = helper.type[p[2].typeList[0]]
 # -------------------------------------------------------
 
 
@@ -472,12 +470,12 @@ def p_var_decl(p):
         p[0] = p[3]
     p[0].name = 'VarDecl'
     for index_ in range(len(p[0].identList)):
-        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
+        baseType = helper.getBaseType(p[0].typeList[index_])
+        sz       = helper.getSize(p[0].typeList[index_])
+        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], baseType)
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
-        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
-        helper.updateOffset(p[0].sizeList[index_])
-    # TODO
-    # Add the values from placeList in the code generation part, when the placeList[i] = 'nil', dont add any code
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', sz)
+        helper.updateOffset(sz)
 
 def p_var_spec_rep(p):
     '''VarSpecRep : VarSpecRep VarSpec SEMICOLON
@@ -488,7 +486,6 @@ def p_var_spec_rep(p):
         p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
-        p[0].sizeList += p[2].sizeList
         p[0].code += p[2].code
 
 def p_var_spec(p):
@@ -504,24 +501,19 @@ def p_var_spec(p):
         else:
             p[0].typeList = p[3].typeList
             p[0].placeList = p[3].placeList
-            p[0].sizeList = p[3].sizeList
             for idx_ in range(len(p[3].placeList)):
                 p[0].code.append(['=', p[1].identList[idx_], p[3].placeList[idx_]])
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
-            p[0].sizeList.append(p[2].sizeList[0])
 
-        if len(p[3].typeList) == 0:
-            tmpArr = ['nil']
-            p[0].placeList = tmpArr*len(p[0].identList)
-        elif len(p[3].typeList) != 0: # not going to empty
+        if len(p[3].typeList) != 0: # not going to empty
             if len(p[0].identList) != len(p[3].typeList):
                 err_ = str(len(p[0].identList)) + ' varaibles but ' + str(len(p[3].typeList)) + ' values'
                 compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
                 return
             for type_ in p[3].typeList:
-                if type_ != p[2].typeList[0]:
+                if not helper.compareType(type_, p[2].typeList[0]):
                     err_ = str(type_) + ' assign to ' + str(p[2].typeList[0]) 
                     compilation_errors.add('TypeMismatch', line_number.get()+1,err_)
                     return
