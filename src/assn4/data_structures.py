@@ -155,13 +155,17 @@ class Helper:
         return typeName
 
     def newVar(self, type_):
-        # this type_ should be in compact form, ie. a string name.
+        # this type_ can be in compact or base format.
         var = 't' + str(self.varCount)
+        if isinstance(type_, str):
+            size_ = self.getSize(type_)
+        else:
+            size_ = self.computeSize(type_)
         self.symbolTables[self.getScope()].add(var, type_)
-        size_ = self.getSize(type_)
         self.symbolTables[self.getScope()].update(var, 'size', size_)
         self.symbolTables[self.getScope()].update(var, 'offset', self.getOffset())
         self.updateOffset(size_)
+            
         self.varCount += 1
         return var
 
@@ -310,9 +314,11 @@ class Helper:
 
     def compareType(self, tp1, tp2):
         # given 2 types (in compact form), checks wheather they denote same type or not
+        if isinstance(tp1, str):
+            tp1 = self.getBaseType(tp1)
+        if isinstance(tp2, str):
+            tp2 = self.getBaseType(tp2)
         if tp1 == tp2:
-            return True
-        elif self.getBaseType(tp1) == self.getBaseType(tp2):
             return True
         else:
             return False
