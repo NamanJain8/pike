@@ -111,6 +111,8 @@ class Helper:
         self.type['string'] = {'size': 4, 'type': ['string']}
         self.type['float'] = {'size': 8, 'type': ['float']}
         # for structure type would be like 'type': ['struct', {'a': {'size': 4, 'type': ['int'], offset: 4}}]
+        # array would be like type['arr'] = {type: ['array', {'type': expanded form, 'len': 10}, 'size': }
+        # slices like type['slice'] = {type: ['slice', {'type': expanded form, 'len': 10}], size}
 
     def getSize(self, type_):
         # returns the size for the given type by indexing it in type map.
@@ -130,6 +132,9 @@ class Helper:
                 # enumerate the struct dictionary.
                 sz += self.computeSize(type_[1][key]['type'])
             return sz
+        elif type_[0] == 'array' or type_[0] == 'slice':
+            sz = self.computeSize(type_[1]['type'])
+            return (type_[1]['len'] * sz)
         else:
             # it must be a base type then.
             return self.type[type_[0]]['size']
@@ -213,7 +218,7 @@ class Helper:
                 return True
         return False
 
-    def checkType(self, identifier, type_='default'):
+    def checkType(self, identifier):
         if identifier in self.type:
             return True
         return False

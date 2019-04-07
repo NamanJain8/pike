@@ -80,15 +80,12 @@ def p_type_token(p):
                              | TYPE IDENT'''
     p[0] = Node('TypeToken')
     if len(p) == 2:
-        p[0].typeList.append([p[1]])
-        p[0].sizeList.append(size_mp[p[1]])
+        p[0].typeList.append(p[1])
     else:
-        tmpMap = helper.findInfo(p[2])
-        if tmpMap is None:
+        if not helper.checkType(p[2]):
             compilation_errors.add('Type Error', line_number.get()+1, 'undefined: '+p[2])
         else:
-            p[0].sizeList.append(tmpMap['size'])
-            p[0].typeList.append([p[2]])
+            p[0].typeList.append(p[2])
 
 def p_type_lit(p):
     '''TypeLit : ArrayType
@@ -106,14 +103,20 @@ def p_array_type(p):
     p[0] = Node('ArrayType')
     if p[2].extra['count'] == -208016:
         # slice
-        p[0].typeList.append(['slice', p[4].typeList[0], 0])
-        p[0].sizeList.append(0)
+        newSlice = helper.addUnNamedType(['slice', {
+            'type': helper.getBaseType(p[4].typeList[0]),
+            'len':  0
+        }])
+        p[0].typeList.append(newSlice)
     else:
         if p[2].extra['count'] < 0:
             compilation_errors.add('Size Error', line_number.get()+1, 'array bound must be non-negative')
             return
-        p[0].typeList.append(['array', p[4].typeList[0], p[2].extra['count']])
-        p[0].sizeList.append(int(p[2].extra['count']*p[4].sizeList[0]))
+        newArr = helper.addUnNamedType(['array', {
+            'type': helper.getBaseType(p[4].typeList[0]),
+            'len':  p[2].extra['count']
+        }])
+        p[0].typeList.append(newArr)
     p[0].name = 'ArrayType'
 
 def p_array_length(p):
@@ -144,19 +147,26 @@ def p_struct_type(p):
     dict_ = {}
     offset_ = 0
     for index_ in range(len(p[4].identList)):
-        dict_[p[4].identList[index_]] = {'type':p[4].typeList[index_], 'size': p[4].sizeList[index_], 'offset':offset_}
-        offset_ += p[4].sizeList[index_]
-    p[0].typeList = [['struct', dict_]]
-    p[0].sizeList = [sum(p[4].sizeList)]
+        baseType = helper.getBaseType(p[4].typeList[index_])
+        sz = helper.computeSize(baseType)
+        dict_[p[4].identList[index_]] = {
+            'type': baseType,
+            'size': sz,
+            'offset':offset_
+        }
+        offset_ += sz
+    newStruct = helper.addUnNamedType(['struct', dict_])
+    p[0].typeList = [newStruct]
+
+    p[0].name = 'StructType'
 
 def p_structInit(p):
     '''structInit : epsilon'''
-    helper.symbolTables[helper.getScope()].typeDefs[p[-3]] = {'type': ['struct', ['int']], 'size': [4]}
-    size_mp[p[-3]] = 4
+    helper.type[p[-3]] = {'type': ['struct', {}], 'size': 0}
 
 def p_structDeInit(p):
     '''structDeInit : epsilon'''
-    helper.symbolTables[helper.getScope()].typeDefs.pop(p[-6], None)
+    helper.type.pop(p[-6], None)
 
 def p_field_decl_rep(p):
     ''' FieldDeclRep : FieldDeclRep FieldDecl SEMICOLON
@@ -166,7 +176,6 @@ def p_field_decl_rep(p):
     if len(p) == 4:
         p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
-        p[0].sizeList += p[2].sizeList
 
 
 def p_field_decl(p):
@@ -174,8 +183,7 @@ def p_field_decl(p):
     p[0] = p[1]
     p[0].name = 'FieldDecl'
 
-    p[0].typeList = [p[2].typeList[0]]*len(p[1].identList)
-    p[0].sizeList = [p[2].sizeList[0]]*len(p[1].identList)
+    p[0].typeList = [p[2].typeList[0] for x in p[1].identList]
 
 # ---------------------------------------------------------
 
