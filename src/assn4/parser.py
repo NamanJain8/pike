@@ -154,7 +154,7 @@ def p_struct_type(p):
 
 def p_structInit(p):
     '''structInit : epsilon'''
-    helper.type[p[-3]] = {'type': ['struct', {}], 'size': 0}
+    helper.type[p[-3]] = {'type': ['struct', p[-3]], 'size': 0}
 
 def p_structDeInit(p):
     '''structDeInit : epsilon'''
@@ -1000,7 +1000,7 @@ def p_assignment(p):
                 info = []
             if 'is_const' in info:
                 compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
-            if p[2].extra != '=' and rawTp1[0] not in p[2].extra:
+            if p[2].extra['opcode'] != '=' and rawTp1[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
     p[0].name = 'Assignment'
     p[0].code += p[3].code

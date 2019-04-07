@@ -319,6 +319,22 @@ class Helper:
             tp1 = self.getBaseType(tp1)
         if isinstance(tp2, str):
             tp2 = self.getBaseType(tp2)
+        
+        # This cancer code is just to handle the case of linked list (pointer to struct)
+        try:
+            if tp1[0] == 'pointer' and tp1[1][0] == 'struct' and isinstance(tp1[1][1], str):
+                tp1 = ['pointer', ['struct', self.getBaseType(tp1[1][1])[1]]]
+        except:
+            print('lol')
+            print(self.getBaseType(tp1[1][1]))
+            pass
+        try:
+            if tp2[0] == 'pointer' and tp2[1][0] == 'struct' and isinstance(tp2[1][1], str):
+                tp2 = ['pointer'['struct', self.getBaseType(tp2[1][1])]]
+        except:
+            pass
+        # cancer ends, can do chemo now :P
+       
         if tp1 == tp2:
             return True
         else:

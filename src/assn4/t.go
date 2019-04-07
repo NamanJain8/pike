@@ -1,10 +1,13 @@
 package main;
 
-type foo = int;
-
-type address [10](*(type foo));
+type node struct {
+    a int;
+    b string;
+    next *(type node);
+};
 
 func main() {
-    var a type foo;
-    var b type address;
+    var listHead, n1, n2 (type node);
+    listHead.next = &n1;
+    n1.next = &n2;
 };
