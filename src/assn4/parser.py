@@ -20,14 +20,6 @@ CITE:
   package of golang: https://golang.org/src/go/token/token.go
 """
 
-size_mp = {}
-size_mp['float']   = 8
-size_mp['int']     = 4
-size_mp['bool']    = 1
-size_mp['complex'] = 8
-size_mp['string']  = 4
-size_mp['pointer'] = 4
-
 precedence = (
     ('right', 'ASSIGN', 'NOT'),
     ('left', 'LOR'),
@@ -387,7 +379,6 @@ def p_expr_list(p):
     p[0].name = 'ExpressionList'
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
-    # TODO: understand addrlist
     p[0].code += p[2].code
 
 def p_expr_rep(p):
@@ -400,7 +391,6 @@ def p_expr_rep(p):
         p[0].code += p[3].code
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
-    # TODO: understand addrlist
 
 # -------------------------------------------------------
 
@@ -606,8 +596,6 @@ def p_create_scope(p):
 def p_delete_scope(p):
     '''EndScope : '''
     p[0] = Node('EndScope')
-    for identifier in helper.symbolTables[helper.getScope()].typeDefs.keys():
-        del size_mp[identifier]
     helper.endScope()
 # ---------------------------------------------------------
 
@@ -1007,7 +995,7 @@ def p_assignment(p):
             if not helper.compareType(rawTp1, rawTp2):
                 err_ = str(rawTp1) + ' assigned to ' + str(rawTp2)
                 compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
-            info = helper.findInfo(p[1].placeList[index_])
+            info = helper.findInfo(p[1].placeList[idx])
             if info is None:
                 info = []
             if 'is_const' in info:
@@ -1342,7 +1330,8 @@ def generateCSV(filename):
         is_const = ['is_const' in symTable[key] for key in ident]
         rows = []
         for idx_,key in enumerate(ident):
-            row = [key,type_[idx_],size_[idx_],offset_[idx_],is_const[idx_]]
+            rawTp = helper.getBaseType(type_[idx_])
+            row = [key,rawTp,size_[idx_],offset_[idx_],is_const[idx_]]
             rows.append(row)
         writer.writerows(rows)
 
