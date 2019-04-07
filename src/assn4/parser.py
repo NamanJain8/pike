@@ -797,12 +797,12 @@ def p_expr(p):
     if len(p) == 2:
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
-        p[0].sizeList = p[1].sizeList
         p[0].code = p[1].code
     else:
-        if p[1].typeList[0] != p[3].typeList[0]:
+        tp = helper.getBaseType(p[1].typeList[0])
+        if not helper.compareType(p[1].typeList[0], p[3].typeList[0]):
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
-        elif p[1].typeList[0][0] not in p[2].extra:
+        elif tp[0] not in p[2].extra:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for binary expression')
         else:
             if len(p[2].typeList) > 0:
@@ -810,14 +810,13 @@ def p_expr(p):
                 p[0].typeList = p[2].typeList
             else:
                 p[0].typeList = p[1].typeList
-            newVar = helper.newVar(p[0].typeList[0], p[1].sizeList[0])
+            newVar = helper.newVar(p[0].typeList[0])
             p[0].code = p[1].code
             p[0].code += p[3].code
             if len(p[2].extra) < 3:
                 p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
             else:
                 p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
-            p[0].sizeList = p[1].sizeList
             p[0].placeList.append(newVar)
 
 def p_unary_expr(p):
@@ -828,17 +827,16 @@ def p_unary_expr(p):
     if len(p) == 2:
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
-        p[0].sizeList = p[1].sizeList
         p[0].code = p[1].code
     elif p[1] == '!':
-        if p[2].typeList[0] != ['bool']:
+        tp = helper.getBaseType(p[2].typeList[0])
+        if tp != ['bool']:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be boolean')
         else:
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
-            p[0].sizeList = p[2].sizeList
             p[0].code = p[2].code
-            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
+            newVar = helper.newVar(p[0].typeList[0])
             p[0].code.append(['!', newVar, p[2].placeList[0]])
     else:
         updateNeeded = True
