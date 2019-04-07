@@ -706,8 +706,7 @@ def p_prim_expr(p):
                 compilation_errors.add('Field Error', line_number.get()+1, err_)
 
             else:
-                # Doubt: a bug can arise since we are storing the base form of type in typeList
-                identType = baseType[1][ident]['type']
+                identType = helper.addUnNamedType(baseType[1][ident]['type'])
                 newVar1 = helper.newVar(identType)
                 p[0].code.append(['+', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
                 p[0].placeList = ['*' + newVar1]
@@ -724,10 +723,9 @@ def p_prim_expr(p):
         elif rawType[0] != 'array' and rawType[0] != 'pointer':
             compilation_errors.add('Invalid Operation', line_number.get()+1, 'type ' + str(p[1].typeList[0]) + ' does not support indexing')
         else:
-            # Doubt: this can be buggy since type is in expanded form
-            arrayElemtp = rawType[1]['type']
+            arrayElemtp = helper.addUnNamedType(rawType[1]['type'])
             newVar1 = helper.newVar(arrayElemtp)
-            arrayElemSz = helper.computeSize(arrayElemtp)
+            arrayElemSz = helper.type[arrayElemtp]['size']
             p[0].code.append(['*', newVar1, p[2].placeList[0], arrayElemSz])
             p[0].code.append(['+', newVar1, p[1].placeList[0], newVar1])
             p[0].placeList = ['*' + newVar1]
@@ -843,24 +841,26 @@ def p_unary_expr(p):
         ck = False
         if p[1].extra['opcode'] == '*':
             ck = True
-            if p[2].typeList[0][0] != 'pointer':
+            rawType = helper.getBaseType(p[2].typeList[0])
+            if rawType[0] != 'pointer':
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expected pointer type')
             else:
-                p[0].typeList = [p[2].typeList[0][1]]
-                p[0].sizeList = [4]
+                newType = helper.addUnNamedType(rawType[1])
+                p[0].typeList = [newType]
                 updateNeeded = False
         if p[1].extra['opcode'] == '&':
             ck = True
-            p[0].typeList = [['pointer', p[2].typeList[0]]]
-            p[0].sizeList = [4]
+            rawType = helper.getBaseType(p[2].typeList[0])
+            newType = helper.addUnNamedType(['pointer', rawType])
+            p[0].typeList = [newType]
             updateNeeded = False
-        if p[2].typeList[0][0] not in p[1].extra and not ck:
+        rawType = helper.getBaseType(p[2].typeList[0])
+        if rawType[0] not in p[1].extra and not ck:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid type for unary expression')
         else:
             if updateNeeded:
                 p[0].typeList = p[2].typeList
-                p[0].sizeList = p[2].sizeList
-            newVar = helper.newVar(p[0].typeList[0], p[0].sizeList[0])
+            newVar = helper.newVar(p[0].typeList[0])
             p[0].placeList = [newVar]
             p[0].identList = [newVar]
             p[0].code = p[2].code
@@ -876,10 +876,10 @@ def p_binary_op(p):
         p[0] = Node('BinaryOp')
         p[0].extra['opcode'] = p[1]
         p[0].extra['bool'] = True
-        p[0].typeList.append(['bool'])
+        p[0].typeList.append('bool')
     elif p[1].name == 'RelOp':
         p[0] = p[1]
-        p[0].typeList.append(['bool'])
+        p[0].typeList.append('bool')
     else:
         p[0] = p[1]
     p[0].name = 'BinaryOp'
@@ -940,12 +940,11 @@ def p_unary_op(p):
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = p[4]
-    newVar = helper.newVar(p[2].typeList[0], p[2].sizeList[0])
+    newVar = helper.newVar(p[2].typeList[0])
     p[0].code.append(['=', newVar, '(' + str(p[2].typeList[0]) + ')' + str(p[4].placeList[0])])
     p[0].name = 'Conversion'
     p[0].placeList = [newVar]
     p[0].typeList = p[2].typeList
-    p[0].sizeList = p[2].sizeList
 
 # ---------------------------------------------------------
 
@@ -988,49 +987,32 @@ def p_inc_dec(p):
                                    | Expression DEC '''
     p[0] = p[1]
     p[0].name = 'IncDecStmt'
-    if  p[1].typeList[0] != ['int']:
+    rawType = helper.getBaseType(p[1].typeList[0])
+    if  rawType[0] != 'int':
         err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
         compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
-    newVar = helper.newVar(['int'], size_mp['int'])
+    newVar = helper.newVar('int')
     p[0].code.append([p[2], newVar, p[1].placeList[0]])
 
 def p_assignment(p):
     ''' Assignment : ExpressionList assign_op ExpressionList'''
     p[0] = p[1]
-    if len(p[1].typeList) != len(p[3].placeList):
+    if len(p[1].typeList) != len(p[3].typeList):
         err_ = str(len(p[1].typeList)) + ' identifier on left, while ' + str(len(p[3].placeList)) + ' expression on right'
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
     else:
-        for index_,type_ in enumerate(p[3].typeList):
+        for idx in range(len(p[3].typeList)):
+            rawTp1 = helper.getBaseType(p[1].typeList[idx])
+            rawTp2 = helper.getBaseType(p[3].typeList[idx])
+            if not helper.compareType(rawTp1, rawTp2):
+                err_ = str(rawTp1) + ' assigned to ' + str(rawTp2)
+                compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
             info = helper.findInfo(p[1].placeList[index_])
-            bool_ = True
-            try:
-                tp_3 = helper.findInfo(type_[0])
-                if tp_3['type'] == p[1].typeList[index_]:
-                    bool_ = False
-            except:
-                pass
-            try:
-                tp_1 = helper.findInfo(p[1].typeList[index_][0])
-                if tp_1['type'] == type_:
-                    bool_ = False
-            except:
-                pass
-            try:
-                tp_1 = helper.findInfo(p[1].typeList[index_][0])
-                tp_3 = helper.findInfo(type_[0])
-                if tp_1['type'] == tp_3['type']:
-                    bool_ = False
-            except:
-                pass
             if info is None:
                 info = []
             if 'is_const' in info:
                 compilation_errors.add('ConstantAssignment', line_number.get()+1, 'Constant cannot be reassigned')
-            elif (type_ != p[1].typeList[index_]) and bool_:
-                err_ = str(type_) + ' assigned to ' + str(p[1].typeList[index_])
-                compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
-            elif  p[2].extra['opcode'] != '=' and type_[0] not in p[2].extra:
+            if p[2].extra != '=' and rawTp1[0] not in p[2].extra:
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
     p[0].name = 'Assignment'
     p[0].code += p[3].code
@@ -1068,7 +1050,8 @@ def p_AssignOp(p):
 def p_if_statement(p):
     ''' IfStmt : IF CreateScope Expression Block ElseOpt EndScope'''
     p[0] = p[3]
-    if p[3].typeList[0] != ['bool']:
+    rawType = helper.getBaseType(p[3].typeList[0])
+    if rawType[0] != 'bool':
         compilation_errors.add('TypeError',line_number.get()+1, 'Non-bool expression (%s) used as if condition'%p[3].typeList[0])
     # if x relopy gotoL
     newLabel1 = helper.newLabel()
@@ -1133,7 +1116,8 @@ def p_condition(p):
     p[0] = p[1]
     end = helper.symbolTables[helper.getScope()].metadata['end']
     p[0].code.append(['if', p[1].placeList[0], '==', 'False', 'goto', end])
-    if p[1].typeList[0] != ['bool']:
+    rawType = helper.getBaseType(p[1].typeList[0])
+    if rawType[0] != 'bool':
         compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expression type should be bool')
     p[0].name = 'Condition'
     update = helper.symbolTables[helper.getScope()].metadata['update']
@@ -1179,7 +1163,7 @@ def p_return(p):
     if len(typeList) != len(p[2].typeList):
         error_ = 'Expected ' + str(len(typeList)) + ' arguments got ' + str(len(p[2].typeList))
         compilation_errors.add('Type Mismatch', line_number.get()+1,error_)
-    elif len(typeList) != 0 and p[2].typeList[0] != typeList[0]:
+    elif len(typeList) != 0 and not helper.compareType(p[2].typeList[0], typeList[0]):
         compilation_errors.add('Type Error',line_number.get()+1, 'return type does not match')
     else:
         helper.updateRetVal(p[2].placeList[0])

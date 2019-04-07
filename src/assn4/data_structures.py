@@ -148,6 +148,7 @@ class Helper:
         this function adds this new type in type dictionary.
         This might be useful when the type does not have a explicit name.
         '''
+        assert(isinstance(type_, list))
         typeName = 'type' + str(self.typeincr)
         self.typeincr += 1
         sz = self.computeSize(type_)
