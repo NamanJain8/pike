@@ -120,6 +120,9 @@ class Helper:
 
     def getBaseType(self, type_):
         # returns the expanded form of type
+        if isinstance(type_, list):
+            # check if it's already in base form
+            return type_
         return self.type[type_]['type']
 
     def computeSize(self, type_):

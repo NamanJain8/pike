@@ -192,8 +192,9 @@ def p_field_decl(p):
 def p_point_type(p):
     '''PointerType : MUL BaseType'''
     p[0] = Node('PointerType')
-    p[0].typeList.append(['pointer', p[2].typeList[0]])
-    p[0].sizeList.append(4)
+    baseTp = helper.getBaseType(p[2].typeList[0])
+    newPointer = helper.addUnNamedType(['pointer', baseTp])
+    p[0].typeList.append(newPointer)
 
 
 def p_base_type(p):
@@ -209,9 +210,15 @@ def p_sign(p):
     '''Signature : LPAREN ParameterListOpt RPAREN ResultOpt'''
     # update the parameters in the function scope
     p[0] = Node('Signature')
+    # Doubt: this shouldn't be p[2].typeList[0]
+    # we store it as a list since we need to handle void functions as well.
     helper.updateSignature(p[2].typeList)
     helper.updateRetValType(p[4].typeList)
-    helper.updateSize(p[4].sizeList)
+
+    retValSize = []
+    for x in p[4].typeList:
+        retValSize.append(helper.type[p[4].typeList[x]]['size'])
+    helper.updateSize(retValSize)
 
 def p_result_opt(p):
     '''ResultOpt : Type
@@ -229,11 +236,13 @@ def p_param_list_opt(p):
         p[0] = p[1]
         p[0].name = 'ParameterListOpt'
         for index_ in range(len(p[1].typeList)):
-            helper.symbolTables[helper.getScope()].add(p[1].identList[index_], p[1].typeList[index_])
-            helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'size', p[1].sizeList[index_])
+            rawType = helper.getBaseType(p[1].typeList[index_])
+            sz = helper.getSize(p[1].typeList[index_])
+            helper.symbolTables[helper.getScope()].add(p[1].identList[index_], rawType)
+            helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'size', sz)
             helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'offset', helper.getOffset())
             helper.symbolTables[helper.getScope()].update(p[1].identList[index_], 'is_arg', True)
-            helper.updateOffset(p[0].sizeList[index_])
+            helper.updateOffset(sz)
 
 def p_param_decl_comma_rep(p):
     '''ParameterDeclCommaRep : ParameterDeclCommaRep COMMA ParameterDecl
@@ -245,7 +254,6 @@ def p_param_decl_comma_rep(p):
         p[0] = p[1]
         p[0].placeList += p[3].placeList
         p[0].identList += p[3].identList
-        p[0].sizeList += p[3].sizeList
         p[0].typeList += p[3].typeList
 
 
@@ -255,7 +263,6 @@ def p_param_decl(p):
     p[0].placeList = [p[1]]
     p[0].identList = [p[1]]
     p[0].typeList = p[2].typeList
-    p[0].sizeList = p[2].sizeList
 
 # ---------------------------------------------------------
 
@@ -310,13 +317,13 @@ def p_const_decl(p):
         p[0] = p[3]
     p[0].name = 'ConstDecl'
     for index_ in range(len(p[0].identList)):
-        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], p[0].typeList[index_])
+        rawType = helper.getBaseType(p[0].typeList[index_])
+        sz = helper.getSize(p[0].typeList[index_])
+        helper.symbolTables[helper.getScope()].add(p[0].identList[index_], rawType)
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'is_const', True)
         helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'offset', helper.getOffset())
-        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', p[0].sizeList[index_])
-        helper.updateOffset(p[0].sizeList[index_])
-    # TODO
-    # Assign value to the constants in the code generation process.
+        helper.symbolTables[helper.getScope()].update(p[0].identList[index_], 'size', sz)
+        helper.updateOffset(sz)
 
 
 def p_const_spec_rep(p):
@@ -328,7 +335,6 @@ def p_const_spec_rep(p):
         p[0].identList += p[2].identList
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
-        p[0].sizeList += p[2].sizeList
         p[0].code += p[2].code
 
 
@@ -338,12 +344,11 @@ def p_const_spec(p):
     p[0].code += p[4].code
     for i in range(len(p[1].identList)):
         p[0].typeList.append(p[2].typeList[0])
-        p[0].sizeList.append(p[2].sizeList[0])
     if len(p[1].identList) != len(p[4].typeList):
         err_ = str(len(p[1].identList)) + ' constants but ' + str(len(p[4].typeList)) + ' values'
         compilation_errors.add('Assignment Mismatch', line_number.get()+1, err_)
     for type_ in p[4].typeList:
-        if type_ != p[2].typeList[0]:
+        if not helper.compareType(type_, p[2].typeList[0]):
             err_ = str(type_) + 'assigned to ' + str(p[2].typeList[0])
             compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
     for idx_ in range(len(p[1].identList)):
@@ -375,6 +380,7 @@ def p_identifier_rep(p):
             "%s already declared"%p[1])
         else:
             p[0].identList.append(p[3])
+            p[0].placeList.append(p[3])
 
 
 def p_expr_list(p):
@@ -383,7 +389,6 @@ def p_expr_list(p):
     p[0].name = 'ExpressionList'
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
-    p[0].sizeList += p[2].sizeList
     # TODO: understand addrlist
     p[0].code += p[2].code
 
@@ -397,7 +402,6 @@ def p_expr_rep(p):
         p[0].code += p[3].code
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
-        p[0].sizeList += p[3].sizeList
     # TODO: understand addrlist
 
 # -------------------------------------------------------
@@ -435,12 +439,11 @@ def p_alias_decl(p):
     '''AliasDecl : IDENT ASSIGN Type'''
     p[0] = Node('AliasDecl')
 
-    if helper.checkType(p[1],'current'):
+    if helper.checkType(p[1]):
         compilation_errors.add("Redeclaration Error", line_number.get()+1,\
             "Alias %s already declared"%p[1])
     else:
-        helper.symbolTables[helper.getScope()].typeDefs[p[1]] = {'type': p[3].typeList[0], 'size': p[3].sizeList[0]}
-        size_mp[p[1]] = p[3].sizeList[0]
+        helper.type[p[1]] = helper.type[p[3].typeList[0]]
 # -------------------------------------------------------
 
 
