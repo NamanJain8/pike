@@ -378,6 +378,7 @@ class Node:
         self.name = name
         self.sizeList = []
         self.extra = {}
+        self.scopeInfo = []
 
 class LineCount:
     def __init__(self):

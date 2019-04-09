@@ -38,6 +38,7 @@ precedence = (
 helper = Helper()
 rootNode = Node('rootNode')
 rootNode.code.append([helper.newLabel()])
+rootNode.scopeInfo.append([''])
 helper.newScope()
 # ------------------------START----------------------------
 
@@ -48,6 +49,7 @@ def p_start(p):
     p[0].name = 'start'
     global rootNode
     rootNode.code += p[0].code
+    rootNode.scopeInfo += p[0].scopeInfo
 
 # -------------------------------------------------------
 
@@ -278,6 +280,7 @@ def p_stat_rep(p):
     p[0].name = 'StatementRep'
     if len(p) == 4:
         p[0].code += p[2].code
+        p[0].scopeInfo += p[2].scopeInfo
 
 # -------------------------------------------------------
 
@@ -326,12 +329,13 @@ def p_const_spec_rep(p):
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
         p[0].code += p[2].code
-
+        p[0].scopeInfo += p[2].scopeInfo
 
 def p_const_spec(p):
     '''ConstSpec : IdentifierList Type ASSIGN ExpressionList'''
     p[0] = p[1]
     p[0].code += p[4].code
+    p[0].scopeInfo += p[4].scopeInfo
     for i in range(len(p[1].identList)):
         p[0].typeList.append(p[2].typeList[0])
     if len(p[1].identList) != len(p[4].typeList):
@@ -343,6 +347,7 @@ def p_const_spec(p):
             compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
     for idx_ in range(len(p[1].identList)):
         p[0].code.append(['=', p[1].identList[idx_], p[4].placeList[idx_]])
+        p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[4].placeList[idx_])])
     p[0].placeList = p[4].placeList
     p[0].name = 'ConstSpec'
 
@@ -380,6 +385,7 @@ def p_expr_list(p):
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
     p[0].code += p[2].code
+    p[0].scopeInfo += p[2].scopeInfo
 
 def p_expr_rep(p):
     '''ExpressionRep : ExpressionRep COMMA Expression
@@ -389,6 +395,7 @@ def p_expr_rep(p):
     p[0].name = 'ExpressionRep'
     if len(p) == 4:
         p[0].code += p[3].code
+        p[0].scopeInfo += p[3].scopeInfo
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
 
@@ -474,12 +481,14 @@ def p_var_spec_rep(p):
         p[0].typeList += p[2].typeList
         p[0].placeList += p[2].placeList
         p[0].code += p[2].code
+        p[0].scopeInfo += p[2].scopeInfo
 
 def p_var_spec(p):
     '''VarSpec : IdentifierList Type ExpressionListOpt
                        | IdentifierList ASSIGN ExpressionList'''
     p[0] = p[1]
     p[0].code = p[3].code
+    p[0].scopeInfo = p[3].scopeInfo
     p[0].name = 'VarSpec'
     if p[2] == '=':
         if len(p[1].identList) != len(p[3].typeList):
@@ -490,6 +499,7 @@ def p_var_spec(p):
             p[0].placeList = p[3].placeList
             for idx_ in range(len(p[3].placeList)):
                 p[0].code.append(['=', p[1].identList[idx_], p[3].placeList[idx_]])
+                p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[3].placeList[idx_])])
     else:
         for i in range(len(p[1].identList)):
             p[0].typeList.append(p[2].typeList[0])
@@ -507,6 +517,7 @@ def p_var_spec(p):
             p[0].placeList = p[3].placeList
             for idx_ in range(len(p[3].placeList)):
                 p[0].code.append(['=', p[1].identList[idx_], p[3].placeList[idx_]])
+                p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[3].placeList[idx_])])
 
 def p_expr_list_opt(p):
     '''ExpressionListOpt : ASSIGN ExpressionList
@@ -537,7 +548,9 @@ def p_short_var_decl(p):
         helper.symbolTables[helper.getScope()].update(p[1], 'size', sz)
         helper.updateOffset(sz)
         p[0].code = p[3].code
+        p[0].scopeInfo = p[3].scopeInfo
         p[0].code.append(['=', p[1], p[3].placeList[0]])
+        p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[3].placeList[0])])
     except:
         pass
 # -------------------------------------------------------
@@ -551,6 +564,7 @@ def p_func_decl(p):
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
     p[0].code.insert(0,[p[2].extra['name']+':'])
+    p[0].scopeInfo.insert(0,[''])
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
@@ -628,6 +642,7 @@ def p_basic_lit_1(p):
     newVar = helper.newVar('int')
 
     p[0].code.append(['=', newVar, p[1]])
+    p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
     p[0].placeList.append(newVar)
 
 def p_basic_lit_2(p):
@@ -636,6 +651,7 @@ def p_basic_lit_2(p):
     p[0].typeList.append('float')
     newVar = helper.newVar('float')
     p[0].code.append(['=', newVar, p[1]])
+    p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
     p[0].placeList.append(newVar)
 
 def p_basic_lit_3(p):
@@ -644,6 +660,7 @@ def p_basic_lit_3(p):
     p[0].typeList.append('string')
     newVar = helper.newVar('string')
     p[0].code.append(['=', newVar, p[1]])
+    p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
     p[0].placeList.append(newVar)
 
 def p_basic_lit_4(p):
@@ -653,6 +670,7 @@ def p_basic_lit_4(p):
     p[0].typeList.append('bool')
     newVar = helper.newVar('bool')
     p[0].code.append(['=', newVar, p[1]])
+    p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
     p[0].placeList.append(newVar)
 
 # new rules finished
@@ -697,6 +715,7 @@ def p_prim_expr(p):
                 identType = helper.addUnNamedType(baseType[1][ident]['type'])
                 newVar1 = helper.newVar(identType)
                 p[0].code.append(['+', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
+                p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), 'offset'])
                 p[0].placeList = ['*' + newVar1]
                 p[0].typeList = [identType]
         except:
@@ -705,6 +724,7 @@ def p_prim_expr(p):
     elif p[2].name == 'Index':
         p[0] = p[1]
         p[0].code += p[2].code
+        p[0].scopeInfo += p[2].scopeInfo
         rawType = helper.getBaseType(p[1].typeList[0])
         if not helper.compareType(p[2].typeList[0], 'int'):
             return # error handling already done in Index : rule
@@ -715,7 +735,9 @@ def p_prim_expr(p):
             newVar1 = helper.newVar(arrayElemtp)
             arrayElemSz = helper.type[arrayElemtp]['size']
             p[0].code.append(['*', newVar1, p[2].placeList[0], arrayElemSz])
+            p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[2].placeList[0]), 'literal'])
             p[0].code.append(['+', newVar1, p[1].placeList[0], newVar1])
+            p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.getScope()])
             p[0].placeList = ['*' + newVar1]
             p[0].typeList = [arrayElemtp]
 
@@ -731,7 +753,9 @@ def p_prim_expr(p):
             else:
                 for arg in p[2].placeList:
                     p[0].code.append(['param', arg])
+                    p[0].scopeInfo.append(['', helper.findScope(arg)])
                 p[0].code.append(['call', p[1], len(p[2].placeList)])
+                p[0].scopeInfo.append(['', 'function', 'int'])
                 type_ = helper.getRetType(funcScope)
                 size_ = helper.getRetSize(funcScope)
                 p[0].typeList = type_
@@ -784,6 +808,7 @@ def p_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
+        p[0].scopeInfo = p[1].scopeInfo
     else:
         tp = helper.getBaseType(p[1].typeList[0])
         if not helper.compareType(p[1].typeList[0], p[3].typeList[0]):
@@ -798,12 +823,17 @@ def p_expr(p):
                 p[0].typeList = p[1].typeList
             newVar = helper.newVar(p[0].typeList[0])
             p[0].code = p[1].code
+            p[0].scopeInfo = p[1].scopeInfo
             p[0].code += p[3].code
+            p[0].scopeInfo += p[3].scopeInfo
             if len(p[2].extra) < 3:
                 p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
+                p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             else:
                 p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
+                p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             p[0].placeList.append(newVar)
+            p[0].extra['scope'] = helper.getScope()
 
 def p_unary_expr(p):
     '''UnaryExpr : PrimaryExpr
@@ -814,6 +844,7 @@ def p_unary_expr(p):
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
+        p[0].scopeInfo = p[1].scopeInfo
     elif p[1] == '!':
         tp = helper.getBaseType(p[2].typeList[0])
         if tp != ['bool']:
@@ -822,8 +853,10 @@ def p_unary_expr(p):
             p[0].typeList = p[2].typeList
             p[0].placeList = p[2].placeList
             p[0].code = p[2].code
+            p[0].scopeInfo = p[2].scopeInfo
             newVar = helper.newVar(p[0].typeList[0])
             p[0].code.append(['!', newVar, p[2].placeList[0]])
+            p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[2].placeList[0])])
     else:
         updateNeeded = True
         ck = False
@@ -852,7 +885,9 @@ def p_unary_expr(p):
             p[0].placeList = [newVar]
             p[0].identList = [newVar]
             p[0].code = p[2].code
+            p[0].scopeInfo = p[2].scopeInfo
             p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
+            p[0].scopeInfo.append(['',helper.getScope(),helper.findScope(p[2].placeList[0])])
 
 def p_binary_op(p):
     '''BinaryOp : LOR
@@ -930,6 +965,7 @@ def p_conversion(p):
     p[0] = p[4]
     newVar = helper.newVar(p[2].typeList[0])
     p[0].code.append(['=', newVar, '(' + str(p[2].typeList[0]) + ')' + str(p[4].placeList[0])])
+    p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[4].placeList[0])])
     p[0].name = 'Conversion'
     p[0].placeList = [newVar]
     p[0].typeList = p[2].typeList
@@ -983,6 +1019,7 @@ def p_inc_dec(p):
         compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
     newVar = helper.newVar('int')
     p[0].code.append([p[2], newVar, p[1].placeList[0]])
+    p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0])])
 
 def p_assignment(p):
     ''' Assignment : ExpressionList assign_op ExpressionList'''
@@ -1006,8 +1043,10 @@ def p_assignment(p):
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Invalid Type for operator %s'%p[2].extra['opcode'])
     p[0].name = 'Assignment'
     p[0].code += p[3].code
+    p[0].scopeInfo += p[3].scopeInfo
     for idx_ in range(len(p[3].typeList)):
         p[0].code.append([p[2].extra['opcode'], p[1].placeList[idx_], p[3].placeList[idx_]])
+        p[0].scopeInfo.append(['', helper.findScope(p[1].placeList[idx_]), helper.findScope(p[3].placeList[idx_])])
 
 def p_assign_op(p):
     ''' assign_op : AssignOp'''
@@ -1044,14 +1083,22 @@ def p_if_statement(p):
     if rawType[0] != 'bool':
         compilation_errors.add('TypeError',line_number.get()+1, 'Non-bool expression (%s) used as if condition'%p[3].typeList[0])
     # if x relopy gotoL
+
     newLabel1 = helper.newLabel()
     p[0].code.append(['if',p[3].placeList[0],'==','False', 'goto',newLabel1])
+    # Use extra information to get scope of expr because Last scope has been popped
+    p[0].scopeInfo.append(['', p[3].extra['scope'], '', '', '', ''])
     p[0].code += p[4].code
+    p[0].scopeInfo += p[4].scopeInfo
     newLabel2 = helper.newLabel()
     p[0].code.append(['goto', newLabel2])
+    p[0].scopeInfo.append(['',''])
     p[0].code.append([newLabel1])
+    p[0].scopeInfo.append([''])
     p[0].code += p[5].code
+    p[0].scopeInfo += p[5].scopeInfo
     p[0].code.append([newLabel2])
+    p[0].scopeInfo.append([''])
 
 def p_else_opt(p):
     ''' ElseOpt : ELSE CreateScope IfStmt EndScope
@@ -1067,13 +1114,15 @@ def p_else_opt(p):
 
 # ----------------------------------------------------------------
 
-
+# --------------- IO STATEMENTS ----------------------------------
+ 
 def p_print(p):
     '''PrintStmt : PRINT ExpressionList'''
     p[0] = p[2]
     p[0].name = 'PrintStmt'
     for var in p[2].placeList:
         p[0].code.append(['print', var])
+        p[0].scopeInfo.append(['', helper.findScope(var)])
 
 def p_scan(p):
     '''ScanStmt : SCAN ExpressionList'''
@@ -1081,6 +1130,7 @@ def p_scan(p):
     p[0].name = 'ScanStmt'
     for var in p[2].placeList:
         p[0].code.append(['scan', var])
+        p[0].scopeInfo.append(['', helper.findScope(var)])
 
 # -----------------------------------------------------------
 
@@ -1093,9 +1143,13 @@ def p_for(p):
     update = helper.symbolTables[helper.lastScope].metadata['update']
     end = helper.symbolTables[helper.lastScope].metadata['end']
     p[0].code += [[start]]
+    p[0].scopeInfo.append([''])
     p[0].code += p[4].code
+    p[0].scopeInfo += p[4].scopeInfo
     p[0].code += [['goto', update]]
+    p[0].scopeInfo.append(['', ''])
     p[0].code += [[end]]
+    p[0].scopeInfo.append([''])
     p[0].name = 'ForStmt'
 
 
@@ -1109,9 +1163,11 @@ def p_conditionblockopt(p):
     update = helper.symbolTables[helper.getScope()].metadata['update']
     if p[1].name != 'ForClause':
         p[0].code.insert(0, [condition])
+        p[0].scopeInfo.insert(0, [''])
     if p[1].name == 'epsilon':
         p[0].extra['isInfinite'] = True
         p[0].code += [[update]]
+        p[0].scopeInfo.append([''])
     p[0].name = 'ConditionBlockOpt'
 
 
@@ -1120,6 +1176,7 @@ def p_condition(p):
     p[0] = p[1]
     end = helper.symbolTables[helper.getScope()].metadata['end']
     p[0].code.append(['if', p[1].placeList[0], '==', 'False', 'goto', end])
+    p[0].scopeInfo.append(['', helper.findScope(p[1].placeList[0]), '', '', '',''])
     rawType = helper.getBaseType(p[1].typeList[0])
     if rawType[0] != 'bool':
         compilation_errors.add('TypeMismatch', line_number.get()+1, 'Expression type should be bool')
@@ -1134,11 +1191,17 @@ def p_forclause(p):
     update = helper.symbolTables[helper.getScope()].metadata['update']
     start = helper.symbolTables[helper.getScope()].metadata['start']
     p[0].code += [[condition]]
+    p[0].scopeInfo.append([''])
     p[0].code += p[3].code
+    p[0].scopeInfo += p[3].scopeInfo
     p[0].code += [['goto', start]]
+    p[0].scopeInfo.append(['', ''])
     p[0].code += [[update]]
+    p[0].scopeInfo.append([''])
     p[0].code += p[5].code
+    p[0].scopeInfo += p[5].scopeInfo
     p[0].code += [['goto', condition]]
+    p[0].scopeInfo.append(['',''])
     p[0].name = 'ForClause'
 
     p[0].extra = p[3].extra
@@ -1172,6 +1235,7 @@ def p_return(p):
     else:
         helper.updateRetVal(p[2].placeList[0])
     p[0].code = p[2].code + [['return', p[2].placeList[0]]]
+    p[0].scopeInfo = p[2].scopeInfo + [['', helper.findScope(p[2].placeList[0])]]
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
@@ -1188,6 +1252,7 @@ def p_break(p):
         return
     symTab = helper.symbolTables[scope_]
     p[0].code = [['goto', symTab.metadata['end']]]
+    p[0].scopeInfo = [['', '']]
 
 def p_continue(p):
     '''ContinueStmt : CONTINUE'''
@@ -1198,6 +1263,7 @@ def p_continue(p):
         return
     symTab = helper.symbolTables[scope_]
     p[0].code = [['goto', symTab.metadata['update']]]
+    p[0].scopeInfo = [['', '']]
 
 # -----------------------------------------------------------
 
@@ -1221,6 +1287,7 @@ def p_toplevel_decl_rep(p):
     p[0].name = 'TopLevelDeclRep'
     if len(p) != 2:
         p[0].code += p[2].code
+        p[0].scopeInfo += p[2].scopeInfo
 
 
 # --------------------------------------------------------
@@ -1395,8 +1462,11 @@ res = parser.parse(data)
 if isDebug in ['true', 't','T','True']:
     helper.debug()
     print("===== 3AC ====")
-    for code in rootNode.code:
-        print(code)
+    assert(len(rootNode.code)==len(rootNode.scopeInfo))
+    for idx in range(len(rootNode.code)):
+        print(rootNode.code[idx]),
+        print("-------------------------"),
+        print(rootNode.scopeInfo[idx])
 
 if compilation_errors.size() > 0:
     sys.exit()

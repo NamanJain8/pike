@@ -1,14 +1,20 @@
 package main;
 
-type node struct {
-    a int;
-    b string;
-    next *(type node);
-};
+// type node struct {
+//     a int;
+//     b string;
+//     next *(type node);
+// };
 
 func main() {
-    var listHead, n1, n2 (type node);
-    listHead.next = &n1;
-    n1.next = &n2;
-    print "Hello World", 2+3;
+	// var listHead, n1, n2 (type node);
+	// listHead.next = &n1;
+	// n1.next = &n2;
+	//var a, b int;
+	//for i := 0; i < 10; i++ {
+		var c int;
+		if c < 10 {
+			c = c;
+		};
+	//};
 };
