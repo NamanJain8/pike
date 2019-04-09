@@ -47,7 +47,9 @@ reserved = {
     'string': 'STRING',
     'bool': 'BOOL',
     'complex': 'COMPLEX',
-    'typecast': 'TYPECAST'
+    'typecast': 'TYPECAST',
+    'print' : 'PRINT',
+    'scan': 'SCAN'
 }
 
 

@@ -946,7 +946,9 @@ def p_statement(p):
                              | ContinueStmt
                              | CreateScope Block EndScope
                              | IfStmt
-                             | ForStmt '''
+                             | ForStmt 
+                             | PrintStmt
+                             | ScanStmt'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -1066,10 +1068,24 @@ def p_else_opt(p):
 # ----------------------------------------------------------------
 
 
+def p_print(p):
+    '''PrintStmt : PRINT ExpressionList'''
+    p[0] = p[2]
+    p[0].name = 'PrintStmt'
+    for var in p[2].placeList:
+        p[0].code.append(['print', var])
+
+def p_scan(p):
+    '''ScanStmt : SCAN ExpressionList'''
+    p[0] = p[2]
+    p[0].name = 'ScanStmt'
+    for var in p[2].placeList:
+        p[0].code.append(['scan', var])
+
 # -----------------------------------------------------------
 
 
-# --------- FOR STATEMENTS AND OTHERS (MANDAL) ---------------
+# --------- FOR STATEMENTS AND OTHERS ---------------
 def p_for(p):
     '''ForStmt : FOR CreateScope ConditionBlockOpt Block EndScope'''
     p[0] = p[3]

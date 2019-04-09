@@ -10,4 +10,5 @@ func main() {
     var listHead, n1, n2 (type node);
     listHead.next = &n1;
     n1.next = &n2;
+    print "Hello World", 2+3;
 };
