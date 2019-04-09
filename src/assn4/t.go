@@ -1,12 +1,13 @@
 package main;
 
-func fib(n int) int{
-	if n ==1{
-		return 1;
-	};
-	return fib(n-1)+fib(n-2);
+type node struct {
+    a int;
+    b string;
+    next *(type node);
 };
 
-func main(){
-	a := fib(10);
+func main() {
+    var listHead, n1, n2 (type node);
+    listHead.next = &n1;
+    n1.next = &n2;
 };

@@ -96,6 +96,7 @@ class SymbolTable:
 
 class Helper:
     def __init__(self):
+        # everything in type list is in compact form, ie they are strings.
         self.varCount = 0
         self.labelCount = 0
         self.scope = 0
@@ -103,13 +104,69 @@ class Helper:
         self.offsetStack = [0]
         self.symbolTables = []
         self.lastScope = 0
+        self.typeincr = 0
+        self.type = {}
+        self.type['int'] = {'size': 4, 'type': ['int']}
+        self.type['bool'] = {'size': 1, 'type': ['bool']}
+        self.type['string'] = {'size': 4, 'type': ['string']}
+        self.type['float'] = {'size': 8, 'type': ['float']}
+        # for structure type would be like 'type': ['struct', {'a': {'size': 4, 'type': ['int'], offset: 4}}]
+        # array would be like type['arr'] = {type: ['array', {'type': expanded form, 'len': 10}, 'size': }
+        # slices like type['slice'] = {type: ['slice', {'type': expanded form, 'len': 10}], size}
 
-    def newVar(self, type_, size_):
+    def getSize(self, type_):
+        # returns the size for the given type by indexing it in type map.
+        return self.type[type_]['size']
+
+    def getBaseType(self, type_):
+        # returns the expanded form of type
+        if isinstance(type_, list):
+            # check if it's already in base form
+            return type_
+        return self.type[type_]['type']
+
+    def computeSize(self, type_):
+        # computes size for a expanded type
+        if type_[0] == 'pointer':
+            return 4
+        elif type_[0] == 'struct':
+            sz = 0
+            for key in type_[1]:
+                # enumerate the struct dictionary.
+                sz += self.computeSize(type_[1][key]['type'])
+            return sz
+        elif type_[0] == 'array' or type_[0] == 'slice':
+            sz = self.computeSize(type_[1]['type'])
+            return (type_[1]['len'] * sz)
+        else:
+            # it must be a base type then.
+            return self.type[type_[0]]['size']
+
+    def addUnNamedType(self, type_):
+        r'''
+        Input: type in expanded form
+        this function adds this new type in type dictionary.
+        This might be useful when the type does not have a explicit name.
+        '''
+        assert(isinstance(type_, list))
+        typeName = 'type' + str(self.typeincr)
+        self.typeincr += 1
+        sz = self.computeSize(type_)
+        self.type[typeName] = {'size': sz, 'type': type_}
+        return typeName
+
+    def newVar(self, type_):
+        # this type_ can be in compact or base format.
         var = 't' + str(self.varCount)
+        if isinstance(type_, str):
+            size_ = self.getSize(type_)
+        else:
+            size_ = self.computeSize(type_)
         self.symbolTables[self.getScope()].add(var, type_)
         self.symbolTables[self.getScope()].update(var, 'size', size_)
         self.symbolTables[self.getScope()].update(var, 'offset', self.getOffset())
         self.updateOffset(size_)
+            
         self.varCount += 1
         return var
 
@@ -169,21 +226,9 @@ class Helper:
                 return True
         return False
 
-    def checkType(self, identifier, type_='default'):
-        if type_ == 'global':
-            if self.symbolTables[0].lookUpType(identifier) is True:
-                return True
-            return False
-        
-        if type_ == 'current':
-            if self.symbolTables[self.getScope()].lookUpType(identifier) is True:
-                return True
-            return False
-
-        # Default case
-        for scope in self.scopeStack[::-1]:
-            if self.symbolTables[scope].lookUpType(identifier) is True:
-                return True
+    def checkType(self, identifier):
+        if identifier in self.type:
+            return True
         return False
 
     def findInfo(self, identifier, type_='default'):
@@ -203,8 +248,8 @@ class Helper:
 
     def findScope(self, identifier):
         for scope in self.scopeStack[::-1]:
-                if self.symbolTables[scope].get(identifier) is not None:
-                    return scope
+            if self.symbolTables[scope].get(identifier) is not None:
+                return scope
 
     def getNearest(self, type_):
         # return nearest parent scope with name = type_(func, for), -1 if no such scope exist
@@ -229,17 +274,16 @@ class Helper:
         self.symbolTables[scope_].metadata['num_arg'] = len(typeList)
         self.symbolTables[scope_].metadata['signature'] = typeList
 
-    def updateRetValType(self, retval):
+    def updateRetValType(self, retvaltp):
         # needed when we do checking inside the function body, on return statement.
         # set the variable which stores the return value type in the symbol table of current scope
         scope_ = self.getNearest('func')
         assert(self.symbolTables[scope_].metadata['is_function'] == 1)
-        self.symbolTables[scope_].metadata['retvaltype'] = retval
+        self.symbolTables[scope_].metadata['retvaltype'] = retvaltp
 
     def updateRetVal(self, retval):
         # needed when we want to find the place holder of return value.
         # set the variable which stores the return value in the symbol table of current scope
-
         scope_ = self.getNearest('func')
         assert(self.symbolTables[scope_].metadata['is_function'] == 1)
         self.symbolTables[scope_].metadata['retval'] = retval
@@ -269,6 +313,33 @@ class Helper:
         else:
             return -1
 
+    def compareType(self, tp1, tp2):
+        # given 2 types (in compact form), checks wheather they denote same type or not
+        if isinstance(tp1, str):
+            tp1 = self.getBaseType(tp1)
+        if isinstance(tp2, str):
+            tp2 = self.getBaseType(tp2)
+        
+        # This cancer code is just to handle the case of linked list (pointer to struct)
+        try:
+            if tp1[0] == 'pointer' and tp1[1][0] == 'struct' and isinstance(tp1[1][1], str):
+                tp1 = ['pointer', ['struct', self.getBaseType(tp1[1][1])[1]]]
+        except:
+            print('lol')
+            print(self.getBaseType(tp1[1][1]))
+            pass
+        try:
+            if tp2[0] == 'pointer' and tp2[1][0] == 'struct' and isinstance(tp2[1][1], str):
+                tp2 = ['pointer'['struct', self.getBaseType(tp2[1][1])]]
+        except:
+            pass
+        # cancer ends, can do chemo now :P
+       
+        if tp1 == tp2:
+            return True
+        else:
+            return False
+
     def checkArguments(self, name, arguments):
         # checks for a given function name and argument type list, matches with the function signature
         # returns 'cool' if no error found
@@ -281,10 +352,11 @@ class Helper:
             return 'number of arguments do not match the function signature'
         
         for i in range(len(arguments)):
-            if arguments[i] != funcMeta['signature'][i]:
-                return 'Argument ' + str(i+1) + ' is expected to be ' + str(funcMeta['signature'][i]) + \
-                        ' but given ' + str(arguments[i])
-        
+            expectedTp = funcMeta['signature'][i]
+            if not self.compareType(arguments[i], expectedTp):
+                return 'Argument ' + str(i+1) + ' is expected to be ' + str(self.getBaseType(expectedTp)) + \
+                        ' but given ' + str(self.getBaseType(arguments[i]))
+    
         return 'cool'
 
     def debug(self):
