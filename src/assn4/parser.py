@@ -691,7 +691,6 @@ def p_operand_name(p):
 # ---------------------------------------------------------
 
 
-
 # ------------------PRIMARY EXPRESSIONS--------------------
 def p_prim_expr(p):
     '''PrimaryExpr : Operand
@@ -741,8 +740,9 @@ def p_prim_expr(p):
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[2].placeList[0]), 'literal'])
             p[0].code.append(['+', newVar1, p[1].placeList[0], newVar1])
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.getScope()])
-            p[0].placeList = ['*' + newVar1]
+            p[0].placeList = [newVar1]
             p[0].typeList = [arrayElemtp]
+            p[0].extra['isIndex'] = True
 
     elif p[2].name == 'Arguments':
         p[0] = p[2]
@@ -848,6 +848,12 @@ def p_unary_expr(p):
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
         p[0].scopeInfo = p[1].scopeInfo
+        if 'isIndex' in p[1].extra:
+            newVar = helper.newVar(p[0].typeList[0])
+            p[0].code.append(['=', newVar, '*'+ p[1].placeList[0]])
+            p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0])])
+            p[0].placeList = [newVar]
+
     elif p[1] == '!':
         tp = helper.getBaseType(p[2].typeList[0])
         if tp != ['bool']:
@@ -966,10 +972,15 @@ def p_unary_op(p):
 def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = p[4]
+    p[0].name = 'Conversion'
+    print(p[2].typeList[0][0], p[4].typeList[0][0])
+    if (p[2].typeList[0][0] not in ['f', 'i']) or (p[4].typeList[0][0] not in ['i', 'f']):
+        compilation_errors.add('TypeError', line_number.get()+1, 'Type conversion between only float/int allowed')
+        return
+
     newVar = helper.newVar(p[2].typeList[0])
     p[0].code.append(['=', newVar, '(' + str(p[2].typeList[0]) + ')' + str(p[4].placeList[0])])
     p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[4].placeList[0])])
-    p[0].name = 'Conversion'
     p[0].placeList = [newVar]
     p[0].typeList = p[2].typeList
 
