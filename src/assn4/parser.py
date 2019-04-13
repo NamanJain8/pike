@@ -206,12 +206,15 @@ def p_sign(p):
     p[0] = Node('Signature')
     # Doubt: this shouldn't be p[2].typeList[0]
     # we store it as a list since we need to handle void functions as well.
-    helper.updateSignature(p[2].typeList)
+    msg = helper.updateSignature(p[2].typeList)
+    if msg != 'cool':
+        compilation_errors.add('Redeclaration Error', line_number.get()+1, msg)
+        return
     helper.updateRetValType(p[4].typeList)
 
     retValSize = []
     for x in p[4].typeList:
-        retValSize.append(helper.type[p[4].typeList[x]]['size'])
+        retValSize.append(helper.type[x]['size'])
     helper.updateSize(retValSize)
 
 def p_result_opt(p):
@@ -563,15 +566,15 @@ def p_func_decl(p):
     '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope '''
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
-    p[0].code.insert(0,[p[2].extra['name']+':'])
+    print()
+    funcScope = helper.symbolTables[0].functions[p[2].extra['name']][-1]
+    p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+':'])
     p[0].scopeInfo.insert(0,[''])
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
     p[0] = Node('FunctionName')
     p[0].extra['name'] = p[1]
-    if p[1] in helper.symbolTables[0].functions.keys():
-        compilation_errors.add('Redeclaration Error',line_number.get()+1, 'Function %s redeclared'%p[1])
     helper.addFunc(p[1])
 
 def p_func(p):
@@ -594,7 +597,7 @@ def p_create_scope(p):
     elif isinstance(p[-1], Node):
         if p[-1].name == 'FunctionName':
             type_ = 'func'
-            helper.makeSymTabFunc()
+            helper.makeSymTabFunc(p[-1].extra['name'])
         
     label1 = helper.newLabel()
     label2 = helper.newLabel()
@@ -743,18 +746,18 @@ def p_prim_expr(p):
 
     elif p[2].name == 'Arguments':
         p[0] = p[2]
-        isValid = helper.checkArguments(p[1],p[2].typeList)
-        if isValid != 'cool':
-            compilation_errors.add('Type Error',line_number.get()+1, isValid)
+        msg = helper.checkArguments(p[1],p[2].typeList)
+        if msg[0] == 'a':
+            compilation_errors.add('Type Error',line_number.get()+1, msg)
         else:
-            funcScope = helper.lookUpfunc(p[1])
+            funcScope = int(msg)
             if funcScope == -1:
                 compilation_errors.add('Declaration Error', line_number.get()+1, 'Function %s not defined'%p[1])
             else:
                 for arg in p[2].placeList:
                     p[0].code.append(['param', arg])
                     p[0].scopeInfo.append(['', helper.findScope(arg)])
-                p[0].code.append(['call', p[1], len(p[2].placeList)])
+                p[0].code.append(['call', p[1] + str(funcScope), len(p[2].placeList)])
                 p[0].scopeInfo.append(['', 'function', 'int'])
                 type_ = helper.getRetType(funcScope)
                 size_ = helper.getRetSize(funcScope)

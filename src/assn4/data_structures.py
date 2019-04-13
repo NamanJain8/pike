@@ -260,32 +260,48 @@ class Helper:
 
     def addFunc(self, name):
         # add the name in the current(global for now :P) symbol table with its scope
-        self.symbolTables[0].functions[name] = self.scope
+        if name not in self.symbolTables[0].functions:
+            self.symbolTables[0].functions[name] = [self.scope]
+        else:
+            self.symbolTables[0].functions[name].append(self.scope)
 
-    def makeSymTabFunc(self):
+    def makeSymTabFunc(self, name):
         # make the current symbol table as a function symbol table
-        self.symbolTables[self.getScope()].metadata['is_function'] = 1
+        self.symbolTables[self.getScope()].metadata['is_function'] = name
 
     def updateSignature(self, typeList):
         # update the signature in function symbol table
         # signature is stored as a list of argument types
         scope_ = self.getNearest('func')
-        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        assert(isinstance(self.symbolTables[scope_].metadata['is_function'], str))
+        fname = self.symbolTables[scope_].metadata['is_function']
+        funcscope = self.symbolTables[0].functions[fname]
+
+        sameSig = 0
+        for idx in range(len(funcscope)-1):
+            if self.symbolTables[funcscope[idx]].metadata['signature'] == typeList:
+                sameSig += 1
+        
+        if sameSig > 0:
+            return 'function ' + fname + ' redeclared'
+
         self.symbolTables[scope_].metadata['num_arg'] = len(typeList)
         self.symbolTables[scope_].metadata['signature'] = typeList
+
+        return 'cool'
 
     def updateRetValType(self, retvaltp):
         # needed when we do checking inside the function body, on return statement.
         # set the variable which stores the return value type in the symbol table of current scope
         scope_ = self.getNearest('func')
-        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        assert(isinstance(self.symbolTables[scope_].metadata['is_function'], str))
         self.symbolTables[scope_].metadata['retvaltype'] = retvaltp
 
     def updateRetVal(self, retval):
         # needed when we want to find the place holder of return value.
         # set the variable which stores the return value in the symbol table of current scope
         scope_ = self.getNearest('func')
-        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        assert(isinstance(self.symbolTables[scope_].metadata['is_function'], str))
         self.symbolTables[scope_].metadata['retval'] = retval
 
     def getRetType(self, scope):
@@ -297,7 +313,7 @@ class Helper:
         # update the signature in function symbol table
         # signature is stored as a list of argument size
         scope_ = self.getNearest('func')
-        assert(self.symbolTables[scope_].metadata['is_function'] == 1)
+        assert(isinstance(self.symbolTables[scope_].metadata['is_function'], str))
         self.symbolTables[scope_].metadata['retvalsize'] = sizeList
     
     def getRetSize(self,scope):
@@ -347,17 +363,19 @@ class Helper:
         if funcScope == -1:
             return 'function ' + name + ' not declared'
         
-        funcMeta = self.symbolTables[funcScope].metadata
-        if len(arguments) != funcMeta['num_arg']:
-            return 'number of arguments do not match the function signature'
+        valid = False
+        for scp in funcScope:
+            funcMeta = self.symbolTables[scp].metadata
+            val = 1
+            for i in range(len(arguments)):
+                expectedTp = funcMeta['signature'][i]
+                if not self.compareType(arguments[i], expectedTp):
+                    val = 0
+            if val:
+                valid = True
+                return str(scp)
         
-        for i in range(len(arguments)):
-            expectedTp = funcMeta['signature'][i]
-            if not self.compareType(arguments[i], expectedTp):
-                return 'Argument ' + str(i+1) + ' is expected to be ' + str(self.getBaseType(expectedTp)) + \
-                        ' but given ' + str(self.getBaseType(arguments[i]))
-    
-        return 'cool'
+        return 'arguments do not match any function signature'
 
     def debug(self):
         print('varCount:',self.varCount)
