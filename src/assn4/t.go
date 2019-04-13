@@ -1,7 +1,6 @@
 package main;
 
 func main() {
-		var c int;
-		c = typecast string ( c );
-		a := c+3;
+	var c [10][20][20]float;
+	a := c[2][3][4];
 };
