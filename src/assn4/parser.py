@@ -1492,3 +1492,7 @@ for idx_ in range(len(rootNode.code)):
 
 code_file.close()
 in_file.close()
+
+import pickle as pkl
+pkl.dump(rootNode, open('rootNode.p', 'wb'))
+pkl.dump(helper.symbolTables, open('symTables.p', 'wb'))
