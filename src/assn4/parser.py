@@ -644,8 +644,8 @@ def p_basic_lit_1(p):
     p[0].typeList.append('int')
     newVar = helper.newVar('int')
 
-    p[0].code.append(['=', newVar, p[1]])
-    p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
+    p[0].code.append(['=', newVar, int(p[1])])
+    p[0].scopeInfo.append(['', helper.getScope() , 'int_literal'])
     p[0].placeList.append(newVar)
 
 def p_basic_lit_2(p):
@@ -653,7 +653,7 @@ def p_basic_lit_2(p):
     p[0] = Node('FloatLit')
     p[0].typeList.append('float')
     newVar = helper.newVar('float')
-    p[0].code.append(['=', newVar, p[1]])
+    p[0].code.append(['=', newVar, float(p[1])])
     p[0].scopeInfo.append(['', helper.getScope() , 'literal'])
     p[0].placeList.append(newVar)
 
