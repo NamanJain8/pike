@@ -1,0 +1,6 @@
+Program Start:
+main1::
+    t0 = 2
+    t1 = 3
+    t2 = t0 +int t1
+    a = t2

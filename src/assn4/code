@@ -1,11 +1,26 @@
 Program Start:
 fg1::
-return:
-main2::
-    t0 = "hello"
-    tmp = t0
+    t0 = 0
+    i = t0
+label8:
     t1 = 10
-    t2 = 20
-    param t1
-    param t2
+    t2 = i <int t1
+    if t2 == False goto label6 
+    goto label5
+label7:
+    i = i +int 1
+    goto label8
+label5:
+    t3 = 2
+    i = i + t3
+    goto label7
+label6:
+return:
+main3::
+    t4 = "hello"
+    tmp = t4
+    t5 = 10
+    t6 = 20
+    param t5
+    param t6
     fg1 call 2

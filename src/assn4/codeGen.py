@@ -1,5 +1,6 @@
 import pickle as pkl
 from data_structures import Helper, Node
+import copy
 
 asmCode = []
 
@@ -17,28 +18,9 @@ class CodeGenerator:
         self.scopeInfo = rootNode.scopeInfo
         self.code = rootNode.code
 
-
-    def addFunc(self,name):
-        funcScope = self.helper.symTables[0].functions[name]
-        funcCode = []
-
-        self.codeIndex += 1
-        while True:
-            curr = self.code[self.codeIndex]
-            if len(curr) == 1 and curr[0][:-2] == '::':
-                break
-            funcCode.append(curr)
-            self.codeIndex += 1
-
-        # standard prologue
-        self.add_prologue()
-
-        # update stack pointer to store all the varaibles in current sym table
-        self.asmCode.append('sub esp, '+str(helper.getWidth(funcScope)))
-
-        # after every return statement call epilogue
-        paramSize = # get from naman's code
-        addrMap = {}
+    def ebpOffset(self, ident, identScope, funcScope):
+        paramSize = helper.getParamWidth(funcScope)
+        paramSizeCopy = copy(paramSize)
 
         # subtract the size of first param
         for x in self.helper.symTables[funcScope].table:
@@ -47,10 +29,43 @@ class CodeGenerator:
                 paramSize -= self.helper.symTables[funcScope].table[x]['size']
                 break
 
+        offset = 0
+        if 'is_arg' in self.helper.symTables[funcScope].table[ident]:
+            offset = 8 + paramSize - self.helper.symTables[funcScope].table[ident]['offset']
+        else:
+            offset = -(self.helper.symTables[funcScope].table[ident]['offset'] - paramSizeCopy)
+        if offset > 0:
+            return '+'+str(offset)
+        return str(offset)
+            
+    def addFunc(self,name):
+        funcScope = self.helper.symTables[0].functions[name]
+        
+        # add function label
+        self.asmCode.append(name+':')
 
+        # standard prologue
+        self.add_prologue()
 
-        # get all the parameter values from stack
+        # update stack pointer to store all the varaibles(except parameters) in current sym table
+        self.asmCode.append('sub esp, '+str(helper.getParamWidth(funcScope)))
 
+        self.codeIndex += 1
+        while True:
+            curr = self.code[self.codeIndex]
+            if len(curr) == 1 and curr[0][:-2] == '::':
+                break
+            code_ = self.genCode(self.codeIndex, funcScope)
+            if len(code_) == 0:
+                # then it should be a return statement
+                if len(self.code[self.codeIndex] != 1):
+                    # this represents a non void function hence return value needs to be updated in eax
+                    retValOffset = self.ebpOffset(self.code[self.codeIndex][1])
+                    self.asmCode.append('lea eax, [ebp'+str(retValOffset) + ']')
+                self.add_epilogue()
+            else:
+                self.asmCode += code_
+            self.codeIndex += 1
 
         # standard epilogue
         self.add_epilogue()
