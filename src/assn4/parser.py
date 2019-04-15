@@ -1139,8 +1139,8 @@ def p_scan(p):
     '''ScanStmt : SCAN ExpressionList'''
     p[0] = p[2]
     p[0].name = 'ScanStmt'
-    for var in p[2].placeList:
-        p[0].code.append(['scan', var])
+    for idx, var in enumerate(p[2].placeList):
+        p[0].code.append(['scan_' + str(helper.getBaseType(p[2].typeList[idx])[0]), var])
         p[0].scopeInfo.append(['', helper.findScope(var)])
 
 # -----------------------------------------------------------
