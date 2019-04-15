@@ -65,49 +65,73 @@ class CodeGenerator:
         self.asmCode.append('pop ebp')
         self.asmCode.append('ret')
 
-    def add_op(self, dst, src1, src2, dstScope, src1Scope, src2Scope):
+    def add_op(self, instr, scopeInfo, funcScope):
         # load into registers
-        src1Offset = helper.symTables[int(src1Scope)].get(src1)['offset']
-        src2Offset = helper.symTables[int(src2Scope)].get(src2)['offset']
-        dstOffset = helper.symTables[int(dstScope)].get(dst)['offset']
-        self.asmCode.append('mov -' + str(src1Offset) + '(%ebp), %eax')
-        self.asmCode.append('mov -' + str(src2Offset) + '(%ebp), %ebx')
-        self.asmCode.append('add %ebx, %ebx')
-        self.asmCode.append('mov %eax, -' + str(dstOffset) + '(%ebp)')
-        
-    
-    def mul_op(self, dst, src1, src2, dstScope, src1Scope, src2Scope):
-        # load into registers
-        src1Offset = helper.symTables[src1Scope].get(src1)['offset']
-        print(src1Offset)
-    
-    def assign_op(self, dst, src1, dstScope, src1Scope):
-        # load into registers
-        if isinstance(src1Scope, int):
-            src1Offset = helper.symTables[int(src1Scope)].get(src1)['offset']
-            dstOffset = helper.symTables[int(dstScope)].get(dst)['offset']
-            self.asmCode.append('mov -' + str(src1Offset) + '(%ebp), %eax')
-            self.asmCode.append('mov %eax, -' + str(dstOffset) + '(%ebp)')
-        else:
-            dstOffset = helper.symTables[int(dstScope)].get(dst)['offset']
-            self.asmCode.append('mov $' + str(src1) + ', %eax')
-            self.asmCode.append('mov %eax, -' + str(dstOffset) + '(%ebp)')
-    
 
-    def genCode(self, instr, scopeInfo):
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+        code = []
+        code.append('mov edi, [ebp +' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp +' + str(src2Offset) + ']')
+        code.append('add edi, esi')
+        code.append('mov [ebp + ' + str(dstOffset) + '], edi')
+        return code
+    
+    def mul_op(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+        code = []
+        code.append('mov edi, [ebp +' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp +' + str(src2Offset) + ']')
+        code.append('imul edi, esi')
+        code.append('mov [ebp + ' + str(dstOffset) + '], edi')
+        return code
+    
+    def assign_op(self, instr, scopeInfo, funcScope):
+        # load into registers
+
+        dst = instr[1]
+        src = instr[2]
+        code = []
+
+        if isinstance(scopeInfo[2], int):
+            dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+            srcOffset = self.ebpOffset(src, scopeInfo[2], funcScope)
+            code.append('mov edi, [ebp' + srcOffset + ']')
+            code.append('mov [ebp' + dstOffset + '], edi')
+        else:
+            dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+            code.append('mov esi, ' + str(src1))
+            code.append('mov [ebp' + dstOffset + '], edi')
+        return code
+
+    def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
-        # If label and is function:
-        if instr[0][:4] == 'main':
-            # pass scope of function
-            self.add_prologue(1)
+        instr = self.code[idx]
+        scopeInfo = self.scopeInfo[idx]
+
         if instr[0] == 'return':
-            self.add_epilogue(1)
-        if instr[0] == '+i':
-            self.add_op(instr[1], instr[2], instr[3], scopeInfo[1], scopeInfo[2], scopeInfo[3])
-        if instr[0] == '*':
-            self.mul_op(instr[1], instr[2], instr[3], scopeInfo[1], scopeInfo[2], scopeInfo[3])
+            return []
+        if len(instr) == 1:
+            return [instr[0]+':']
+        if instr[0] == '+int':
+            return self.add_op(instr, scopeInfo, funcScope)
+        if instr[0] == '*int':
+            return self.mul_op(instr, scopeInfo, funcScope)
         if instr[0] == '=':
-            self.assign_op(instr[1], instr[2], scopeInfo[1], scopeInfo[2])
+            return self.assign_op(instr, scopeInfo, funcScope)
         
 if __name__=='__main__':
     # Load files
