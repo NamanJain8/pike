@@ -1,13 +1,12 @@
 import pickle as pkl
 from data_structures import Helper, Node
-import copy
 
 asmCode = []
 
 class CodeGenerator:
     def __init__(self, helper, rootNode):
         self.asmCode = []
-        self.asmCode.append('.global main')
+        self.asmCode.append('global main')
         self.asmCode.append('section .data')
         self.asmCode.append('print_int db "%i ", 0x00')
         self.asmCode.append('print_line db "", 0x0a, 0x00')
@@ -20,26 +19,26 @@ class CodeGenerator:
 
     def ebpOffset(self, ident, identScope, funcScope):
         paramSize = helper.getParamWidth(funcScope)
-        paramSizeCopy = copy(paramSize)
+        paramSizeCopy = paramSize
 
         # subtract the size of first param
-        for x in self.helper.symTables[funcScope].table:
-            if ('is_arg' in self.helper.symTables[funcScope].table[x]) and \
-                self.helper.symTables[funcScope].table[x]['offset'] == 0:
-                paramSize -= self.helper.symTables[funcScope].table[x]['size']
+        for x in self.helper.symbolTables[funcScope].table:
+            if ('is_arg' in self.helper.symbolTables[funcScope].table[x]) and \
+                self.helper.symbolTables[funcScope].table[x]['offset'] == 0:
+                paramSize -= self.helper.symbolTables[funcScope].table[x]['size']
                 break
 
         offset = 0
-        if 'is_arg' in self.helper.symTables[funcScope].table[ident]:
-            offset = 8 + paramSize - self.helper.symTables[funcScope].table[ident]['offset']
+        if 'is_arg' in self.helper.symbolTables[funcScope].table[ident]:
+            offset = 8 + paramSize - self.helper.symbolTables[funcScope].table[ident]['offset']
         else:
-            offset = -(self.helper.symTables[funcScope].table[ident]['offset'] - paramSizeCopy)
-        if offset > 0:
+            offset = -(self.helper.symbolTables[funcScope].table[ident]['offset'] - paramSizeCopy)
+        if offset >= 0:
             return '+'+str(offset)
         return str(offset)
             
     def addFunc(self,name):
-        funcScope = self.helper.symTables[0].functions[name]
+        funcScope = self.helper.symbolTables[0].functions[name]
         
         # add function label
         self.asmCode.append(name+':')
@@ -52,8 +51,10 @@ class CodeGenerator:
 
         self.codeIndex += 1
         while True:
+            if self.codeIndex >= len(self.code):
+                break
             curr = self.code[self.codeIndex]
-            if len(curr) == 1 and curr[0][:-2] == '::':
+            if (len(curr) == 1 and curr[0][-2:] == '::'):
                 break
             code_ = self.genCode(self.codeIndex, funcScope)
             if len(code_) == 0:
@@ -71,11 +72,11 @@ class CodeGenerator:
         self.add_epilogue()
 
 
-    def add_prologue(self, scope):
+    def add_prologue(self):
         self.asmCode.append('push ebp')
         self.asmCode.append('mov ebp, esp')
 
-    def add_epilogue(self, scope):
+    def add_epilogue(self):
         self.asmCode.append('mov esp, ebp')
         self.asmCode.append('pop ebp')
         self.asmCode.append('ret')
@@ -92,10 +93,10 @@ class CodeGenerator:
         src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
 
         code = []
-        code.append('mov edi, [ebp +' + str(src1Offset) + ']')
-        code.append('mov esi, [ebp +' + str(src2Offset) + ']')
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp' + str(src2Offset) + ']')
         code.append('add edi, esi')
-        code.append('mov [ebp + ' + str(dstOffset) + '], edi')
+        code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
     
     def mul_op(self, instr, scopeInfo, funcScope):
@@ -108,10 +109,10 @@ class CodeGenerator:
         src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
 
         code = []
-        code.append('mov edi, [ebp +' + str(src1Offset) + ']')
-        code.append('mov esi, [ebp +' + str(src2Offset) + ']')
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp' + str(src2Offset) + ']')
         code.append('imul edi, esi')
-        code.append('mov [ebp + ' + str(dstOffset) + '], edi')
+        code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
     
     def assign_op(self, instr, scopeInfo, funcScope):
@@ -128,7 +129,7 @@ class CodeGenerator:
             code.append('mov [ebp' + dstOffset + '], edi')
         else:
             dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
-            code.append('mov esi, ' + str(src1))
+            code.append('mov edi, ' + str(src))
             code.append('mov [ebp' + dstOffset + '], edi')
         return code
 
@@ -147,7 +148,15 @@ class CodeGenerator:
             return self.mul_op(instr, scopeInfo, funcScope)
         if instr[0] == '=':
             return self.assign_op(instr, scopeInfo, funcScope)
-        
+
+    def getCode(self):
+        while True:
+            if self.codeIndex >= len(self.code):
+                break
+            funcName = self.code[self.codeIndex][0].split(':')
+            self.addFunc(funcName[0])
+        return self.asmCode
+
 if __name__=='__main__':
     # Load files
     rootNode = pkl.load(open('rootNode.p', 'rb'))
@@ -157,11 +166,18 @@ if __name__=='__main__':
     # print(rootNode.scopeInfo)
     # Now can use helper class functions
     
-    x86_code = CodeGenerator(helper, rootNode)
-
-    for idx, instr in enumerate(rootNode.code):
-        x86_code.genCode(instr, rootNode.scopeInfo[idx])
+    codeGen = CodeGenerator(helper, rootNode)
 
     outfile = open('assembly.asm', 'w')
-    for code in x86_code.asmCode:
-        outfile.write(code + '\n')
+    x86Code = codeGen.getCode()
+
+    for code_ in x86Code:
+        if code_.split(' ')[0] in ['global', 'section']:
+            outfile.write(code_ + '\n')
+        elif code_[-1:] == ':' and code_[0] == 'm':
+            outfile.write('main:\n')
+        elif code_[-1:] == ':':
+            outfile.write(code_ + '\n')
+        else:
+            outfile.write('    '+code_+'\n')
+    outfile.close()

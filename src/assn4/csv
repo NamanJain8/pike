@@ -12,28 +12,8 @@ Identifier,Type,Size,Offset,is_Constant
 ,,,,
 a,['int'],4,0,False
 b,['int'],4,4,False
-,,,,
-======,======,======,======,======
-,,,,
-,,,,
-======,Symbol Table Number:2,======,======,======
-,,,,
 t0,['int'],4,8,False
-i,['int'],4,12,False
-t1,['int'],4,16,False
-t2,['bool'],1,20,False
-a,['int'],4,21,False
-t3,['int'],4,25,False
-,,,,
-======,======,======,======,======
-,,,,
-,,,,
-======,Symbol Table Number:3,======,======,======
-,,,,
-t4,['string'],4,0,False
-tmp,['string'],4,4,False
-t5,['int'],4,8,False
-t6,['int'],4,12,False
+t1,['int'],4,12,False
 ,,,,
 ======,======,======,======,======
 ,,,,

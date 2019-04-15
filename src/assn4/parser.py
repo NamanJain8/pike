@@ -37,8 +37,6 @@ precedence = (
 # declarations
 helper = Helper()
 rootNode = Node('rootNode')
-rootNode.code.append([helper.newLabel()])
-rootNode.scopeInfo.append([''])
 helper.newScope()
 # ------------------------START----------------------------
 
@@ -569,6 +567,7 @@ def p_func_decl(p):
     funcScope = helper.symbolTables[0].functions[p[2].extra['name']][-1]
     p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+':'])
     p[0].scopeInfo.insert(0,[''])
+    helper.symbolTables[0].functions[p[2].extra['name']+str(funcScope)] = funcScope
 
 def p_func_name(p):
     '''FunctionName : IDENT'''
