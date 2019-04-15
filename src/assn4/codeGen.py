@@ -17,25 +17,18 @@ class CodeGenerator:
         self.codeIndex = 0
         self.asmCode.append('section .text')
         self.helper = helper
+        self.counter = 0
         self.scopeInfo = rootNode.scopeInfo
         self.code = rootNode.code
 
     def ebpOffset(self, ident, identScope, funcScope):
         paramSize = helper.getParamWidth(funcScope)
-        paramSizeCopy = paramSize
-
-        # subtract the size of first param
-        for x in self.helper.symbolTables[funcScope].table:
-            if ('is_arg' in self.helper.symbolTables[funcScope].table[x]) and \
-                self.helper.symbolTables[funcScope].table[x]['offset'] == 0:
-                paramSize -= self.helper.symbolTables[funcScope].table[x]['size']
-                break
 
         offset = 0
-        if 'is_arg' in self.helper.symbolTables[funcScope].table[ident]:
-            offset = 8 + paramSize - self.helper.symbolTables[funcScope].table[ident]['offset']
+        if 'is_arg' in self.helper.symbolTables[identScope].table[ident]:
+            offset = 8 + paramSize - 4
         else:
-            offset = -(self.helper.symbolTables[funcScope].table[ident]['offset'] - paramSizeCopy)
+            offset = -(self.helper.symbolTables[identScope].table[ident]['offset'] + 4 - paramSize)
         if offset >= 0:
             return '+'+str(offset)
         return str(offset)
@@ -62,9 +55,9 @@ class CodeGenerator:
             code_ = self.genCode(self.codeIndex, funcScope)
             if len(code_) == 0:
                 # then it should be a return statement
-                if len(self.code[self.codeIndex] != 1):
+                if len(self.code[self.codeIndex]) != 1:
                     # this represents a non void function hence return value needs to be updated in eax
-                    retValOffset = self.ebpOffset(self.code[self.codeIndex][1])
+                    retValOffset = self.ebpOffset(self.code[self.codeIndex][1], self.scopeInfo[self.codeIndex][1], funcScope)
                     self.asmCode.append('lea eax, [ebp'+str(retValOffset) + ']')
                 self.add_epilogue()
             else:
@@ -125,6 +118,27 @@ class CodeGenerator:
         src = instr[2]
         code = []
 
+        # if src is eax then we should assign the returned value
+        if src == 'eax':
+            data_ = helper.symbolTables[scopeInfo[1]].get(instr[1])
+            baseType = helper.getBaseType(data_['type'])
+            offset = self.ebpOffset(instr[1], scopeInfo[1], funcScope)
+
+            self.counter += 1
+            label = 'looping' + str(self.counter)
+            iters = int(data_['size'] / 4)
+            code_ = ['mov esi, ebp']
+            code_.append('add esi, '+offset)
+            code_.append('mov cx, '+str(iters))
+            code_.append(label + ':')
+            code_.append('mov edx, [eax]')
+            code_.append('mov [esi], edx')
+            code_.append('sub esi, 4')
+            code_.append('sub eax, 4')
+            code_.append('dec cx')
+            code_.append('jnz '+label)
+            return code_
+
         if isinstance(scopeInfo[2], int):
             dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
             srcOffset = self.ebpOffset(src, scopeInfo[2], funcScope)
@@ -159,6 +173,30 @@ class CodeGenerator:
         code.append('pop esi')
         code.append('pop esi')
         return code
+    
+    def param(self, instr, scopeInfo, funcScope):
+        data_ = helper.symbolTables[scopeInfo[1]].get(instr[1])
+        baseType = helper.getBaseType(data_['type'])
+        offset = self.ebpOffset(instr[1], scopeInfo[1], funcScope)
+        if baseType[0] in ['int', 'bool', 'float', 'string']:
+
+            return ['mov edx, [ebp' + offset + ']', 'push edx']
+        else:
+            self.counter += 1
+            label = 'looping' + str(self.counter)
+            iters = data_['size'] / 4
+            code_ = ['mov esi, ebp']
+            code_.append('add esi, '+offset)
+            code_.append('mov cx, '+str(iters))
+            code_.append(label + ':')
+            code_.append('mov edx, [esi]')
+            code_.append('push edx')
+            code_.append('sub esi, 4')
+            code_.append('dec cx')
+            code_.append('jnz '+label)
+            return code_
+        
+
 
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
@@ -167,18 +205,23 @@ class CodeGenerator:
 
         if instr[0] == 'return':
             return []
-        if len(instr) == 1:
+        elif len(instr) == 1:
             return [instr[0]+':']
-        if instr[0] == '+int':
+        elif instr[0] == '+int':
             return self.add_op(instr, scopeInfo, funcScope)
-        if instr[0] == '*int':
+        elif instr[0] == '*int':
             return self.mul_op(instr, scopeInfo, funcScope)
-        if instr[0] == '=':
+        elif instr[0] == '=':
             return self.assign_op(instr, scopeInfo, funcScope)
-        if instr[0] == 'print_int':
+        elif instr[0] == 'print_int':
             return self.print_int(instr, scopeInfo, funcScope)
-        if instr[0] == 'scan_int':
+        elif instr[0] == 'scan_int':
             return self.scan_int(instr, scopeInfo, funcScope)
+        elif instr[0] == 'param':
+            return self.param(instr, scopeInfo, funcScope)
+        elif instr[0] == 'call':
+            # function call
+            return ['call '+instr[1]]
 
     def getCode(self):
         while True:

@@ -565,7 +565,7 @@ def p_func_decl(p):
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
     funcScope = helper.symbolTables[0].functions[p[2].extra['name']][-1]
-    p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+':'])
+    p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+'::'])
     p[0].scopeInfo.insert(0,[''])
     helper.symbolTables[0].functions[p[2].extra['name']+str(funcScope)] = funcScope
 
@@ -765,7 +765,7 @@ def p_prim_expr(p):
                 for arg in p[2].placeList:
                     argList += str(arg) + ', '
                 argList = argList[:-2]
-                p[0].identList = [p[1] + '(' + argList + ')']
+                p[0].identList = ['eax']
                 p[0].sizeList = size_
                 p[0].placeList = p[0].identList
                 # TODO: see what can be there
