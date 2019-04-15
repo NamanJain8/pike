@@ -20,6 +20,7 @@ class CodeGenerator:
         self.counter = 0
         self.scopeInfo = rootNode.scopeInfo
         self.code = rootNode.code
+        self.relops = ['==int', '!=int', '<=int', '>=int', '>int', '<int']
 
     def ebpOffset(self, ident, identScope, funcScope):
         paramSize = helper.getParamWidth(funcScope)
@@ -217,22 +218,35 @@ class CodeGenerator:
         return self.div_op(instr, scopeInfo, funcScope)
 
 
-    # def eq_cmp(self, instr, scopeInfo, funcScope):
-    #     dst = instr[1]
-    #     src1 = instr[2]
-    #     src2 = instr[3]
+    def relops_cmp(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
 
-    #     dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
-    #     src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
-    #     src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
 
-    #     code = []
-    #     code.append('mov edi, [ebp' + str(src1Offset) + ']')
-    #     code.append('mov esi, [ebp' + str(src2Offset) + ']')
-    #     code.append('cmp edi, esi')
-    #     code.append('lahf')
-    #     code.append('popf ed')
-    #     return code
+        code = []
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp' + str(src2Offset) + ']')
+        code.append('xor eax, eax')
+        code.append('cmp edi, esi')
+        if instr[0] == '==int':
+            code.append('sete al')
+        elif instr[0] == '!=int':
+            code.append('setne al')
+        elif instr[0] == '<int':
+            code.append('setl al')
+        elif instr[0] == '>int':
+            code.append('setg al')
+        elif instr[0] == '<=int':
+            code.append('setle al')
+        elif instr[0] == '>=int':
+            code.append('setge al')
+        code.append('mov [ebp' + str(dstOffset) + '], eax')
+
+        return code
 
     def print_int(self, instr, scopeInfo, funcScope):
         src = instr[1]
@@ -279,9 +293,45 @@ class CodeGenerator:
             code_.append('dec cx')
             code_.append('jnz '+label)
             return code_
+
+    def if_op(self, instr, scopeInfo, funcScope):
+        var = instr[1]
+        jLabel = instr[5]
+        code = []
+
+        varOffset = self.ebpOffset(var, scopeInfo[1], funcScope)
+        code.append('mov edi, [ebp' + varOffset + ']')
+        code.append('cmp edi, 0')
+        code.append('je ' + jLabel)
+
+        return code
+
+    def goto_op(self, instr, scopeInfo, funcScope):
+        jLabel = instr[1]
+        code = []
+
+        code.append('jmp ' + jLabel)
+        return code
+
+    def logical(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+        code = []
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp' + str(src2Offset) + ']')
+        if instr[0] == '||':
+            code.append('or edi, esi')
+        elif instr[0] == '&&':
+            code.append('and edi, esi')
+        code.append('mov [ebp' + str(dstOffset) + '], edi')
+        return code
         
-
-
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
         instr = self.code[idx]
@@ -316,18 +366,16 @@ class CodeGenerator:
         if instr[0] == '/=':
             return self.div_assign_op(instr, scopeInfo, funcScope)
 
-        if instr[0] == '==int':
-            return self.eq_cmp(instr, scopeInfo, funcScope)
-        if instr[0] == '!=int':
-            return self.neq_cmp(instr, scopeInfo, funcScope)
-        if instr[0] == '<int':
-            return self.lss_cmp(instr, scopeInfo, funcScope)
-        if instr[0] == '>int':
-            return self.gtr_cmp(instr, scopeInfo, funcScope)
-        if instr[0] == '<=int':
-            return self.leq_cmp(instr, scopeInfo, funcScope)
-        if instr[0] == '>=int':
-            return self.geq_cmp(instr, scopeInfo, funcScope)
+        if instr[0] in self.relops:
+            return self.relops_cmp(instr, scopeInfo, funcScope)
+
+        if instr[0] == 'if':
+            return self.if_op(instr, scopeInfo, funcScope)
+        if instr[0] == 'goto':
+            return self.goto_op(instr, scopeInfo, funcScope)
+
+        if instr[0] in [ '||' , '&&']:
+            return self.logical(instr, scopeInfo, funcScope)
 
         if instr[0] == 'print_int':
             return self.print_int(instr, scopeInfo, funcScope)
