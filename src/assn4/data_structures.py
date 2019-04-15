@@ -107,9 +107,9 @@ class Helper:
         self.typeincr = 0
         self.type = {}
         self.type['int'] = {'size': 4, 'type': ['int']}
-        self.type['bool'] = {'size': 1, 'type': ['bool']}
+        self.type['bool'] = {'size': 4, 'type': ['bool']}
         self.type['string'] = {'size': 4, 'type': ['string']}
-        self.type['float'] = {'size': 8, 'type': ['float']}
+        self.type['float'] = {'size': 4, 'type': ['float']}
         # for structure type would be like 'type': ['struct', {'a': {'size': 4, 'type': ['int'], offset: 4}}]
         # array would be like type['arr'] = {type: ['array', {'type': expanded form, 'len': 10}, 'size': }
         # slices like type['slice'] = {type: ['slice', {'type': expanded form, 'len': 10}], size}

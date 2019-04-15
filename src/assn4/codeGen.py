@@ -84,8 +84,21 @@ class CodeGenerator:
         self.asmCode.append('pop ebp')
         self.asmCode.append('ret')
 
+    def unary_minus(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        src1 = instr[2]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+
+        code = []
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, 0')
+        code.append('sub esi, edi')
+        code.append('mov [ebp' + str(dstOffset) + '], esi')
+        return code
+
     def add_op(self, instr, scopeInfo, funcScope):
-        # load into registers
 
         dst = instr[1]
         src1 = instr[2]
@@ -99,6 +112,23 @@ class CodeGenerator:
         code.append('mov edi, [ebp' + str(src1Offset) + ']')
         code.append('mov esi, [ebp' + str(src2Offset) + ']')
         code.append('add edi, esi')
+        code.append('mov [ebp' + str(dstOffset) + '], edi')
+        return code
+    
+    def sub_op(self, instr, scopeInfo, funcScope):
+
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+        code = []
+        code.append('mov edi, [ebp' + str(src1Offset) + ']')
+        code.append('mov esi, [ebp' + str(src2Offset) + ']')
+        code.append('sub edi, esi')
         code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
     
@@ -117,9 +147,25 @@ class CodeGenerator:
         code.append('imul edi, esi')
         code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
+
+    def div_op(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        src1 = instr[2]
+        src2 = instr[3]
+
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+        src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+        code = []
+        code.append('xor edx, edx')
+        code.append('mov eax, [ebp' + str(src1Offset) + ']')
+        code.append('mov ebx, [ebp' + str(src2Offset) + ']')
+        code.append('idiv ebx')
+        code.append('mov [ebp' + str(dstOffset) + '], eax')
+        return code
     
     def assign_op(self, instr, scopeInfo, funcScope):
-        # load into registers
 
         dst = instr[1]
         src = instr[2]
@@ -135,6 +181,44 @@ class CodeGenerator:
             code.append('mov edi, ' + str(src))
             code.append('mov [ebp' + dstOffset + '], edi')
         return code
+
+    def add_assign_op(self, instr, scopeInfo, funcScope):
+        instr.insert(2,instr[1])
+        scopeInfo.insert(2, scopeInfo[1])
+        return self.add_op(instr, scopeInfo, funcScope)
+    
+    def sub_assign_op(self, instr, scopeInfo, funcScope):
+        instr.insert(2,instr[1])
+        scopeInfo.insert(2, scopeInfo[1])
+        return self.sub_op(instr, scopeInfo, funcScope)
+    
+    def mul_assign_op(self, instr, scopeInfo, funcScope):
+        instr.insert(2,instr[1])
+        scopeInfo.insert(2, scopeInfo[1])
+        return self.mul_op(instr, scopeInfo, funcScope)
+    
+    def div_assign_op(self, instr, scopeInfo, funcScope):
+        instr.insert(2,instr[1])
+        scopeInfo.insert(2, scopeInfo[1])
+        return self.div_op(instr, scopeInfo, funcScope)
+
+
+    # def eq_cmp(self, instr, scopeInfo, funcScope):
+    #     dst = instr[1]
+    #     src1 = instr[2]
+    #     src2 = instr[3]
+
+    #     dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+    #     src1Offset = self.ebpOffset(src1, scopeInfo[2], funcScope)
+    #     src2Offset = self.ebpOffset(src2, scopeInfo[3], funcScope)
+
+    #     code = []
+    #     code.append('mov edi, [ebp' + str(src1Offset) + ']')
+    #     code.append('mov esi, [ebp' + str(src2Offset) + ']')
+    #     code.append('cmp edi, esi')
+    #     code.append('lahf')
+    #     code.append('popf ed')
+    #     return code
 
     def print_int(self, instr, scopeInfo, funcScope):
         src = instr[1]
@@ -171,10 +255,41 @@ class CodeGenerator:
             return [instr[0]+':']
         if instr[0] == '+int':
             return self.add_op(instr, scopeInfo, funcScope)
+        if instr[0] == '-int':
+            if len(instr) == 4:
+                return self.sub_op(instr, scopeInfo, funcScope)
+            else:
+                return self.unary_minus(instr, scopeInfo, funcScope)
         if instr[0] == '*int':
             return self.mul_op(instr, scopeInfo, funcScope)
+        if instr[0] == '/int':
+            return self.div_op(instr, scopeInfo, funcScope)
+
+
         if instr[0] == '=':
             return self.assign_op(instr, scopeInfo, funcScope)
+        if instr[0] == '+=':
+            return self.add_assign_op(instr, scopeInfo, funcScope)
+        if instr[0] == '-=':
+            return self.sub_assign_op(instr, scopeInfo, funcScope)
+        if instr[0] == '*=':
+            return self.mul_assign_op(instr, scopeInfo, funcScope)
+        if instr[0] == '/=':
+            return self.div_assign_op(instr, scopeInfo, funcScope)
+
+        if instr[0] == '==int':
+            return self.eq_cmp(instr, scopeInfo, funcScope)
+        if instr[0] == '!=int':
+            return self.neq_cmp(instr, scopeInfo, funcScope)
+        if instr[0] == '<int':
+            return self.lss_cmp(instr, scopeInfo, funcScope)
+        if instr[0] == '>int':
+            return self.gtr_cmp(instr, scopeInfo, funcScope)
+        if instr[0] == '<=int':
+            return self.leq_cmp(instr, scopeInfo, funcScope)
+        if instr[0] == '>=int':
+            return self.geq_cmp(instr, scopeInfo, funcScope)
+
         if instr[0] == 'print_int':
             return self.print_int(instr, scopeInfo, funcScope)
         if instr[0] == 'scan_int':
