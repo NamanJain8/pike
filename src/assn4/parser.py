@@ -566,7 +566,6 @@ def p_func_decl(p):
     '''FunctionDecl : FUNC FunctionName CreateScope Function EndScope '''
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
-    print()
     funcScope = helper.symbolTables[0].functions[p[2].extra['name']][-1]
     p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+':'])
     p[0].scopeInfo.insert(0,[''])
@@ -716,9 +715,10 @@ def p_prim_expr(p):
             else:
                 identType = helper.addUnNamedType(baseType[1][ident]['type'])
                 newVar1 = helper.newVar(identType)
-                p[0].code.append(['+', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
+                p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), 'offset'])
-                p[0].placeList = ['*' + newVar1]
+                # p[0].placeList = ['*' + newVar1]
+                p[0].placeList = [newVar1]
                 p[0].typeList = [identType]
         except:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
@@ -731,14 +731,14 @@ def p_prim_expr(p):
         if not helper.compareType(p[2].typeList[0], 'int'):
             return # error handling already done in Index : rule
         elif rawType[0] != 'array' and rawType[0] != 'pointer':
-            compilation_errors.add('Invalid Operation', line_number.get()+1, 'type ' + str(p[1].typeList[0]) + ' does not support indexing')
+            compilation_errors.add('Invalid Operation', line_number.get()+1, 'type ' + str(helper.getBaseType(p[1].typeList[0])) + ' does not support indexing')
         else:
             arrayElemtp = helper.addUnNamedType(rawType[1]['type'])
             newVar1 = helper.newVar(arrayElemtp)
             arrayElemSz = helper.type[arrayElemtp]['size']
-            p[0].code.append(['*', newVar1, p[2].placeList[0], arrayElemSz])
+            p[0].code.append(['*' + 'int', newVar1, p[2].placeList[0], arrayElemSz])
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[2].placeList[0]), 'literal'])
-            p[0].code.append(['+', newVar1, p[1].placeList[0], newVar1])
+            p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], newVar1])
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.getScope()])
             p[0].placeList = [newVar1]
             p[0].typeList = [arrayElemtp]
@@ -833,7 +833,7 @@ def p_expr(p):
                 p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             else:
-                p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0][0], newVar, p[1].placeList[0], p[3].placeList[0]])
+                p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0], newVar, p[1].placeList[0], p[3].placeList[0]])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             p[0].placeList.append(newVar)
             p[0].extra['scope'] = helper.getScope()
@@ -895,7 +895,7 @@ def p_unary_expr(p):
             p[0].identList = [newVar]
             p[0].code = p[2].code
             p[0].scopeInfo = p[2].scopeInfo
-            p[0].code.append([p[1].extra['opcode'], newVar, p[2].placeList[0]])
+            p[0].code.append([p[1].extra['opcode'] + str(p[2].typeList[0]), newVar, p[2].placeList[0]])
             p[0].scopeInfo.append(['',helper.getScope(),helper.findScope(p[2].placeList[0])])
 
 def p_binary_op(p):
@@ -973,7 +973,6 @@ def p_conversion(p):
     '''Conversion : TYPECAST Type LPAREN Expression RPAREN'''
     p[0] = p[4]
     p[0].name = 'Conversion'
-    print(p[2].typeList[0][0], p[4].typeList[0][0])
     if (p[2].typeList[0][0] not in ['f', 'i']) or (p[4].typeList[0][0] not in ['i', 'f']):
         compilation_errors.add('TypeError', line_number.get()+1, 'Type conversion between only float/int allowed')
         return
@@ -1031,8 +1030,7 @@ def p_inc_dec(p):
     if  rawType[0] != 'int':
         err_ = str(p[1].typeList[0]) + 'cannot be incremented/decremented'
         compilation_errors.add('TypeMismatch', line_number.get()+1, err_)
-    newVar = helper.newVar('int')
-    p[0].code.append([p[2], newVar, p[1].placeList[0]])
+    p[0].code.append([p[2], p[1].placeList[0], p[1].placeList[0]])
     p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0])])
 
 def p_assignment(p):
@@ -1246,10 +1244,13 @@ def p_return(p):
         compilation_errors.add('Type Mismatch', line_number.get()+1,error_)
     elif len(typeList) != 0 and not helper.compareType(p[2].typeList[0], typeList[0]):
         compilation_errors.add('Type Error',line_number.get()+1, 'return type does not match')
-    else:
+    elif len(p[2].placeList) != 0:
         helper.updateRetVal(p[2].placeList[0])
-    p[0].code = p[2].code + [['return', p[2].placeList[0]]]
-    p[0].scopeInfo = p[2].scopeInfo + [['', helper.findScope(p[2].placeList[0])]]
+        p[0].code = p[2].code + [['return', p[2].placeList[0]]]
+        p[0].scopeInfo = p[2].scopeInfo + [['', helper.findScope(p[2].placeList[0])]]
+    else:
+        p[0].code = p[2].code + [['return']]
+        p[0].scopeInfo = p[2].scopeInfo + [['']]
 
 def p_expressionlist_pure_opt(p):
     '''ExpressionListPureOpt : ExpressionList
@@ -1478,8 +1479,8 @@ if isDebug in ['true', 't','T','True']:
     print("===== 3AC ====")
     assert(len(rootNode.code)==len(rootNode.scopeInfo))
     for idx in range(len(rootNode.code)):
-        print(rootNode.code[idx]),
-        print("-------------------------"),
+        print("-------------------------")
+        print(rootNode.code[idx])
         print(rootNode.scopeInfo[idx])
 
 if compilation_errors.size() > 0:
