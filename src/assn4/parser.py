@@ -512,7 +512,7 @@ def p_var_spec(p):
                 return
             for type_ in p[3].typeList:
                 if not helper.compareType(type_, p[2].typeList[0]):
-                    err_ = str(type_) + ' assign to ' + str(p[2].typeList[0]) 
+                    err_ = str(type_) + ' assign to ' + str(p[2].typeList[0])
                     compilation_errors.add('TypeMismatch', line_number.get()+1,err_)
                     return
             p[0].placeList = p[3].placeList
@@ -565,7 +565,7 @@ def p_func_decl(p):
     p[0] = p[4]
     p[0].name = 'FunctionDecl'
     funcScope = helper.symbolTables[0].functions[p[2].extra['name']][-1]
-    p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+':'])
+    p[0].code.insert(0,[p[2].extra['name']+str(funcScope)+'::'])
     p[0].scopeInfo.insert(0,[''])
     helper.symbolTables[0].functions[p[2].extra['name']+str(funcScope)] = funcScope
 
@@ -596,7 +596,7 @@ def p_create_scope(p):
         if p[-1].name == 'FunctionName':
             type_ = 'func'
             helper.makeSymTabFunc(p[-1].extra['name'])
-        
+
     label1 = helper.newLabel()
     label2 = helper.newLabel()
     label3 = helper.newLabel()
@@ -606,7 +606,7 @@ def p_create_scope(p):
     helper.symbolTables[helper.getScope()].updateMetadata('name', type_)
     helper.symbolTables[helper.getScope()].updateMetadata('update',label3)
     helper.symbolTables[helper.getScope()].updateMetadata('condition', label4)
-    
+
 
 def p_delete_scope(p):
     '''EndScope : '''
@@ -765,7 +765,7 @@ def p_prim_expr(p):
                 for arg in p[2].placeList:
                     argList += str(arg) + ', '
                 argList = argList[:-2]
-                p[0].identList = [p[1] + '(' + argList + ')']
+                p[0].identList = ['eax']
                 p[0].sizeList = size_
                 p[0].placeList = p[0].identList
                 # TODO: see what can be there
@@ -902,7 +902,7 @@ def p_binary_op(p):
                             | LAND
                             | RelOp
                             | AddMulOp'''
-    
+
     if isinstance(p[1], str):
         p[0] = Node('BinaryOp')
         p[0].extra['opcode'] = p[1]
@@ -930,9 +930,9 @@ def p_rel_op(p):
         p[0].extra['string'] = True
         p[0].extra['float'] = True
     else:
-        p[0].extra['int'] = True 
-        p[0].extra['float'] = True 
-        p[0].extra['string'] = True 
+        p[0].extra['int'] = True
+        p[0].extra['float'] = True
+        p[0].extra['string'] = True
 
 
 def p_add_mul_op(p):
@@ -994,7 +994,7 @@ def p_statement(p):
                              | ContinueStmt
                              | CreateScope Block EndScope
                              | IfStmt
-                             | ForStmt 
+                             | ForStmt
                              | PrintStmt
                              | ScanStmt'''
     if len(p) == 2:
@@ -1126,7 +1126,7 @@ def p_else_opt(p):
 # ----------------------------------------------------------------
 
 # --------------- IO STATEMENTS ----------------------------------
- 
+
 def p_print(p):
     '''PrintStmt : PRINT ExpressionList'''
     p[0] = p[2]
@@ -1168,7 +1168,7 @@ def p_conditionblockopt(p):
     '''ConditionBlockOpt : epsilon
                            | Condition
                            | ForClause'''
-    
+
     p[0] = p[1]
     condition = helper.symbolTables[helper.getScope()].metadata['condition']
     update = helper.symbolTables[helper.getScope()].metadata['update']
@@ -1236,7 +1236,7 @@ def p_return(p):
     if scope_ == -1:
         compilation_errors.add('Scope Error', line_number.get()+1, 'return is not in a function')
         return
-    
+
     typeList = helper.getRetType(scope_)
     if len(typeList) != len(p[2].typeList):
         error_ = 'Expected ' + str(len(typeList)) + ' arguments got ' + str(len(p[2].typeList))
