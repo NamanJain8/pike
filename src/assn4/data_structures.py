@@ -376,6 +376,22 @@ class Helper:
                 return str(scp)
         
         return 'arguments do not match any function signature'
+    
+    def getWidth(self, scope):
+        symTable = self.symbolTables[scope]
+        width = 0
+        for ident in symTable.table:
+            width += self.type[symTable.get(ident)['type']]['size']
+        return width
+    
+    def getParamWidth(self, scope):
+        symTable = self.symbolTables[scope]
+        width = 0
+        for ident in symTable.table:
+            info = symTable.get(ident)
+            if 'is_arg' in info.keys():
+                width += self.type[info['type']]['size']
+        return width
 
     def debug(self):
         print('varCount:',self.varCount)

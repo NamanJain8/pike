@@ -1496,4 +1496,4 @@ in_file.close()
 
 import pickle as pkl
 pkl.dump(rootNode, open('rootNode.p', 'wb'))
-pkl.dump(helper.symbolTables, open('symTables.p', 'wb'))
+pkl.dump(helper, open('helper.p', 'wb'))

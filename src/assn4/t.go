@@ -1,21 +1,16 @@
 package main;
 
-func p(a int) int {
-    return 1;
+type person struct{
+	a int;
+	b float;
 };
 
-func p(a string) int {
-    return -1;
+func foo(a int, b float, c type person) int{
+	name := "Naman";
 };
 
-func p(b int) int {
-    return 10;
-};
-
-func main() {
-    tmp := "hello";
-    p(tmp);
-    a := 1;
-
-    p(a);
+func main(){
+	var p type person;
+	var a, b int;
+	return;
 };
