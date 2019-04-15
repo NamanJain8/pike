@@ -7,6 +7,7 @@ class CodeGenerator:
     def __init__(self, helper, rootNode):
         self.asmCode = []
         self.asmCode.append('global main')
+        self.asmCode.append('extern printf')
         self.asmCode.append('section .data')
         self.asmCode.append('print_int db "%i ", 0x00')
         self.asmCode.append('print_line db "", 0x0a, 0x00')
@@ -133,6 +134,18 @@ class CodeGenerator:
             code.append('mov [ebp' + dstOffset + '], edi')
         return code
 
+    def print_int(self, instr, scopeInfo, funcScope):
+        src = instr[1]
+        srcOffset = self.ebpOffset(src, scopeInfo[1], funcScope)
+        code = []
+        code.append('mov esi, [ebp' + srcOffset + ']')
+        code.append('push esi')
+        code.append('push print_int')
+        code.append('call printf')
+        code.append('pop esi')
+        code.append('pop esi')
+        return code
+
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
         instr = self.code[idx]
@@ -148,6 +161,8 @@ class CodeGenerator:
             return self.mul_op(instr, scopeInfo, funcScope)
         if instr[0] == '=':
             return self.assign_op(instr, scopeInfo, funcScope)
+        if instr[0] == 'print_int':
+            return self.print_int(instr, scopeInfo, funcScope)
 
     def getCode(self):
         while True:
@@ -172,7 +187,7 @@ if __name__=='__main__':
     x86Code = codeGen.getCode()
 
     for code_ in x86Code:
-        if code_.split(' ')[0] in ['global', 'section']:
+        if code_.split(' ')[0] in ['global', 'section', 'extern']:
             outfile.write(code_ + '\n')
         elif code_[-1:] == ':' and code_[0] == 'm':
             outfile.write('main:\n')

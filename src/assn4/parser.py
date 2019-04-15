@@ -1131,8 +1131,8 @@ def p_print(p):
     '''PrintStmt : PRINT ExpressionList'''
     p[0] = p[2]
     p[0].name = 'PrintStmt'
-    for var in p[2].placeList:
-        p[0].code.append(['print', var])
+    for idx, var in enumerate(p[2].placeList):
+        p[0].code.append(['print_' + str(helper.getBaseType(p[2].typeList[idx])[0]), var])
         p[0].scopeInfo.append(['', helper.findScope(var)])
 
 def p_scan(p):
