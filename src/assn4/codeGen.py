@@ -1,24 +1,68 @@
 import pickle as pkl
 from data_structures import Helper, Node
 
+asmCode = []
+
 class CodeGenerator:
-    def __init__(self):
+    def __init__(self, helper, rootNode):
         self.asmCode = []
+        self.asmCode.append('.global main')
+        self.asmCode.append('section .data')
+        self.asmCode.append('print_int db "%i ", 0x00')
+        self.asmCode.append('print_line db "", 0x0a, 0x00')
+        self.dataIndex = 4
+        self.codeIndex = 0
         self.asmCode.append('section .text')
-        self.asmCode.append('   .global _start')
+        self.helper = helper
+        self.scopeInfo = rootNode.scopeInfo
+        self.code = rootNode.code
+
+
+    def addFunc(self,name):
+        funcScope = self.helper.symTables[0].functions[name]
+        funcCode = []
+
+        self.codeIndex += 1
+        while True:
+            curr = self.code[self.codeIndex]
+            if len(curr) == 1 and curr[0][:-2] == '::':
+                break
+            funcCode.append(curr)
+            self.codeIndex += 1
+
+        # standard prologue
+        self.add_prologue()
+
+        # update stack pointer to store all the varaibles in current sym table
+        self.asmCode.append('sub esp, '+str(helper.getWidth(funcScope)))
+
+        # after every return statement call epilogue
+        paramSize = # get from naman's code
+        addrMap = {}
+
+        # subtract the size of first param
+        for x in self.helper.symTables[funcScope].table:
+            if ('is_arg' in self.helper.symTables[funcScope].table[x]) and \
+                self.helper.symTables[funcScope].table[x]['offset'] == 0:
+                paramSize -= self.helper.symTables[funcScope].table[x]['size']
+                break
+
+
+
+        # get all the parameter values from stack
+
+
+        # standard epilogue
+        self.add_epilogue()
+
 
     def add_prologue(self, scope):
-        self.asmCode.append('push %esp')
-        self.asmCode.append('mov %esp, %ebp')
-        self.asmCode.append('sub $' + str(100) + ', %esp')
-        self.asmCode.append('push %edi')
-        self.asmCode.append('push %esi')
+        self.asmCode.append('push ebp')
+        self.asmCode.append('mov ebp, esp')
 
     def add_epilogue(self, scope):
-        self.asmCode.append('pop %esi')
-        self.asmCode.append('pop %edi')
-        self.asmCode.append('mov %ebp, %esp')
-        self.asmCode.append('pop %ebp')
+        self.asmCode.append('mov esp, ebp')
+        self.asmCode.append('pop ebp')
         self.asmCode.append('ret')
 
     def add_op(self, dst, src1, src2, dstScope, src1Scope, src2Scope):
@@ -69,18 +113,16 @@ if __name__=='__main__':
     # Load files
     rootNode = pkl.load(open('rootNode.p', 'rb'))
     assert(len(rootNode.code) == len(rootNode.scopeInfo))
-    symTables = pkl.load(open('symTables.p', 'rb'))
+    helper = pkl.load(open('helper.p', 'rb'))
 
-    print(rootNode.scopeInfo)
+    # print(rootNode.scopeInfo)
     # Now can use helper class functions
-    helper = Helper()
-    helper.symTables = symTables
     
-    x86_code = CodeGenerator()
+    x86_code = CodeGenerator(helper, rootNode)
 
     for idx, instr in enumerate(rootNode.code):
         x86_code.genCode(instr, rootNode.scopeInfo[idx])
 
-    outfile = open('assembly.s', 'w')
+    outfile = open('assembly.asm', 'w')
     for code in x86_code.asmCode:
         outfile.write(code + '\n')

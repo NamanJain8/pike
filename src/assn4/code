@@ -1,0 +1,11 @@
+Program Start:
+fg1::
+return:
+main2::
+    t0 = "hello"
+    tmp = t0
+    t1 = 10
+    t2 = 20
+    param t1
+    param t2
+    fg1 call 2
