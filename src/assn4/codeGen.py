@@ -48,7 +48,7 @@ class CodeGenerator:
         self.add_prologue()
 
         # update stack pointer to store all the varaibles(except parameters) in current sym table
-        self.asmCode.append('sub esp, '+str(helper.getParamWidth(funcScope)))
+        self.asmCode.append('sub esp, '+str(helper.getWidth(funcScope) - helper.getParamWidth(funcScope)))
 
         self.codeIndex += 1
         while True:
