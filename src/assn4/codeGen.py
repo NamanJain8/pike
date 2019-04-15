@@ -8,10 +8,12 @@ class CodeGenerator:
         self.asmCode = []
         self.asmCode.append('global main')
         self.asmCode.append('extern printf')
+        self.asmCode.append('extern scanf')
         self.asmCode.append('section .data')
         self.asmCode.append('print_int db "%i ", 0x00')
         self.asmCode.append('print_line db "", 0x0a, 0x00')
-        self.dataIndex = 4
+        self.asmCode.append('scan_int db "%d", 0')
+        self.dataIndex = 7
         self.codeIndex = 0
         self.asmCode.append('section .text')
         self.helper = helper
@@ -146,6 +148,18 @@ class CodeGenerator:
         code.append('pop esi')
         return code
 
+    def scan_int(self, instr, scopeInfo, funcScope):
+        src = instr[1]
+        srcOffset = self.ebpOffset(src, scopeInfo[1], funcScope)
+        code = []
+        code.append('lea esi, [ebp' + srcOffset + ']')
+        code.append('push esi')
+        code.append('push scan_int')
+        code.append('call scanf')
+        code.append('pop esi')
+        code.append('pop esi')
+        return code
+
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
         instr = self.code[idx]
@@ -163,6 +177,8 @@ class CodeGenerator:
             return self.assign_op(instr, scopeInfo, funcScope)
         if instr[0] == 'print_int':
             return self.print_int(instr, scopeInfo, funcScope)
+        if instr[0] == 'scan_int':
+            return self.scan_int(instr, scopeInfo, funcScope)
 
     def getCode(self):
         while True:
