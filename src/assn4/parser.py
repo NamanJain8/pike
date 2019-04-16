@@ -761,11 +761,14 @@ def p_prim_expr(p):
                 type_ = helper.getRetType(funcScope)
                 size_ = helper.getRetSize(funcScope)
                 p[0].typeList = type_
+                newVar1 = helper.newVar(type_)
+                p[0].code.append(['retval', newVar1, 'eax'])
+                p[0].scopeInfo.append(['', helper.findScope(newVar1), ''])
                 argList = ''
                 for arg in p[2].placeList:
                     argList += str(arg) + ', '
                 argList = argList[:-2]
-                p[0].identList = ['eax']
+                p[0].identList = [newVar1]
                 p[0].sizeList = size_
                 p[0].placeList = p[0].identList
                 # TODO: see what can be there

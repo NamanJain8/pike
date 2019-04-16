@@ -27,7 +27,7 @@ class CodeGenerator:
 
         offset = 0
         if 'is_arg' in self.helper.symbolTables[identScope].table[ident]:
-            offset = 8 + paramSize - 4
+            offset = 8 + paramSize - 4 - self.helper.symbolTables[identScope].table[ident]['offset']
         else:
             offset = -(self.helper.symbolTables[identScope].table[ident]['offset'] + 4 - paramSize)
         if offset >= 0:
@@ -331,6 +331,27 @@ class CodeGenerator:
             code.append('and edi, esi')
         code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
+
+    def getRetVal(self, instr, scopeInfo, funcScope):
+        data_ = helper.symbolTables[scopeInfo[1]].get(instr[1])
+        baseType = helper.getBaseType(data_['type'])
+        offset = self.ebpOffset(instr[1], scopeInfo[1], funcScope)
+
+        self.counter += 1
+        label = 'looping' + str(self.counter)
+        iters = int(data_['size'] / 4)
+        code_ = ['mov esi, ebp']
+        code_.append('add esi, '+offset)
+        code_.append('mov cx, '+str(iters))
+        code_.append(label + ':')
+        code_.append('mov edx, [eax]')
+        code_.append('mov [esi], edx')
+        code_.append('sub esi, 4')
+        code_.append('sub eax, 4')
+        code_.append('dec cx')
+        code_.append('jnz '+label)
+        return code_
+
         
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
@@ -365,6 +386,9 @@ class CodeGenerator:
             return self.mul_assign_op(instr, scopeInfo, funcScope)
         if instr[0] == '/=':
             return self.div_assign_op(instr, scopeInfo, funcScope)
+
+        if instr[0] == 'retval':
+            return self.getRetVal(instr, scopeInfo, funcScope)
 
         if instr[0] in self.relops:
             return self.relops_cmp(instr, scopeInfo, funcScope)
@@ -412,7 +436,7 @@ if __name__=='__main__':
     for code_ in x86Code:
         if code_.split(' ')[0] in ['global', 'section', 'extern']:
             outfile.write(code_ + '\n')
-        elif code_[-1:] == ':' and code_[0] == 'm':
+        elif code_[-1:] == ':' and 'main' in code_:
             outfile.write('main:\n')
         elif code_[-1:] == ':':
             outfile.write(code_ + '\n')

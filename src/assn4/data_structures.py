@@ -127,6 +127,8 @@ class Helper:
 
     def computeSize(self, type_):
         # computes size for a expanded type
+        if isinstance(type_, str):
+            return self.type[type_]['size']
         if type_[0] == 'pointer':
             return 4
         elif type_[0] == 'struct':
@@ -341,8 +343,6 @@ class Helper:
             if tp1[0] == 'pointer' and tp1[1][0] == 'struct' and isinstance(tp1[1][1], str):
                 tp1 = ['pointer', ['struct', self.getBaseType(tp1[1][1])[1]]]
         except:
-            print('lol')
-            print(self.getBaseType(tp1[1][1]))
             pass
         try:
             if tp2[0] == 'pointer' and tp2[1][0] == 'struct' and isinstance(tp2[1][1], str):
@@ -381,7 +381,8 @@ class Helper:
         symTable = self.symbolTables[scope]
         width = 0
         for ident in symTable.table:
-            width += self.type[symTable.get(ident)['type']]['size']
+            size_ = self.computeSize(symTable.get(ident)['type'])
+            width += size_
         return width
     
     def getParamWidth(self, scope):

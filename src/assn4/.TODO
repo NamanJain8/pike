@@ -18,6 +18,7 @@ Addressing mode.
 
 expand the code gen for struct assignment, to do element by element assignment
 
+Need to add functionality to print the function return value directly (print fib(10); should work)
 
 
 
