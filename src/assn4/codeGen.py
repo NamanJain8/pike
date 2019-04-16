@@ -44,7 +44,7 @@ class CodeGenerator:
         self.add_prologue()
 
         # update stack pointer to store all the varaibles(except parameters) in current sym table
-        self.asmCode.append('sub esp, '+str(helper.getWidth(funcScope) - helper.getParamWidth(funcScope)))
+        self.asmCode.append('sub esp, '+str(helper.getWidth(funcScope) - helper.getParamWidth(funcScope) + helper.getLargest(funcScope)))
 
         self.codeIndex += 1
         while True:
@@ -331,6 +331,19 @@ class CodeGenerator:
             code.append('and edi, esi')
         code.append('mov [ebp' + str(dstOffset) + '], edi')
         return code
+
+    def inc_dec(self, instr, scopeInfo, funcScope):
+        dst = instr[1]
+        dstOffset = self.ebpOffset(dst, scopeInfo[1], funcScope)
+        
+        code = []
+        code.append('mov esi, [ebp' + dstOffset + ']')
+        if instr[0] == '++':
+            code.append('inc esi')
+        else:
+            code.append('dec esi')
+        code.append('mov [ebp' + dstOffset + '], esi')
+        return code
         
     def genCode(self, idx, funcScope):
         # Check instruction type and call function accordingly
@@ -376,6 +389,9 @@ class CodeGenerator:
 
         if instr[0] in [ '||' , '&&']:
             return self.logical(instr, scopeInfo, funcScope)
+
+        if instr[0] in ['--', '++']:
+            return self.inc_dec(instr, scopeInfo, funcScope)
 
         if instr[0] == 'print_int':
             return self.print_int(instr, scopeInfo, funcScope)
