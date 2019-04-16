@@ -1,0 +1,5 @@
+*.p
+t.go
+*.pyc
+*csv
+*code

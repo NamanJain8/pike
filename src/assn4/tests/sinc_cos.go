@@ -1,7 +1,8 @@
 package main;
 
 func sin(x float) float{
-    y := x*0.0174;
+    x = x*0.0174;
+    y := ((x) - ((x*x)/6.0) + ((x*x*x*x*x)/120.0));
     return y;
 };
 
@@ -12,6 +13,7 @@ func cos(x float) float{
 };
 
 func main(){
-    x := 15.0;
-    print sin(x), cos(x);
+    x := 30.0;
+    print sin(x);
+    print cos(x);
 };

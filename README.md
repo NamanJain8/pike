@@ -21,3 +21,5 @@ make clean
 *The first command is not mandatory but it is useful as it would remove the ___pycache___ folder from the `src/parser` directory and would also delete the previously created out1.dot, out2.dot etc. and out1.ps, out2.ps etc.*
 
 This will take 10 input `.go` files from the `tests/input2` and will create 10 corresponding `.dot` and `.ps` files in the `tests/output2` directory.
+
+Project Completed..
