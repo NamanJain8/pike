@@ -4,7 +4,7 @@ class Errors:
         self.types = ['KeyError', 'Lexical Error']
         self.error = []
         self.counter = 0
-    
+
     def add(self, type_, lineno, string):
         self.counter += 1
         err_ = {}
@@ -36,7 +36,7 @@ class Errors:
 
 
 class SymbolTable:
-    
+
     def __init__(self, parent=None):
         self.typeDefs = {} # this is a dictionary of dictionary, in which each type name is key
                            # for each key, all the declarations are key in the new dict, with type, size tuple
@@ -62,7 +62,7 @@ class SymbolTable:
     # Checks whether "id" lies in the symbol table
     def lookUp(self, id):
         return (id in self.table.keys())
-    
+
     def lookUpType(self,id):
         return (id in self.typeDefs.keys())
 
@@ -134,6 +134,8 @@ class Helper:
             return 4
         elif type_[0] == 'struct':
             sz = 0
+            if isinstance(type_[1], str):
+                return self.computeSize(type_[1])
             for key in type_[1]:
                 # enumerate the struct dictionary.
                 sz += self.computeSize(type_[1][key]['type'])
@@ -169,7 +171,7 @@ class Helper:
         self.symbolTables[self.getScope()].update(var, 'size', size_)
         self.symbolTables[self.getScope()].update(var, 'offset', self.getOffset())
         self.updateOffset(size_)
-            
+
         self.varCount += 1
         return var
 
@@ -218,12 +220,12 @@ class Helper:
     def checkId(self,identifier, type_='default'):
         if identifier in self.symbolTables[0].functions.keys():
             return True
-            
+
         if type_ == 'global':
             if self.symbolTables[0].lookUp(identifier) is True:
                 return True
             return False
-        
+
         if type_ == "current":
             if self.symbolTables[self.getScope()].lookUp(identifier) is True:
                 return True
@@ -244,7 +246,7 @@ class Helper:
         if type_ == 'global':
             if self.symbolTables[0].get(identifier) is not None:
                 return self.symbolTables[0].get(identifier)
-        
+
         else:
             for scope in self.scopeStack[::-1]:
                 if self.symbolTables[scope].get(identifier) is not None:
@@ -290,7 +292,7 @@ class Helper:
         for idx in range(len(funcscope)-1):
             if self.symbolTables[funcscope[idx]].metadata['signature'] == typeList:
                 sameSig += 1
-        
+
         if sameSig > 0:
             return 'function ' + fname + ' redeclared'
 
@@ -324,7 +326,7 @@ class Helper:
         scope_ = self.getNearest('func')
         assert(isinstance(self.symbolTables[scope_].metadata['is_function'], str))
         self.symbolTables[scope_].metadata['retvalsize'] = sizeList
-    
+
     def getRetSize(self,scope):
         # returns the return size of a function provided the scope number of that function
         funcMeta = self.symbolTables[scope].metadata
@@ -344,7 +346,7 @@ class Helper:
             tp1 = self.getBaseType(tp1)
         if isinstance(tp2, str):
             tp2 = self.getBaseType(tp2)
-        
+
         # This cancer code is just to handle the case of linked list (pointer to struct)
         try:
             if tp1[0] == 'pointer' and tp1[1][0] == 'struct' and isinstance(tp1[1][1], str):
@@ -357,7 +359,7 @@ class Helper:
         except:
             pass
         # cancer ends, can do chemo now :P
-       
+
         if tp1 == tp2:
             return True
         else:
@@ -367,23 +369,25 @@ class Helper:
         # checks for a given function name and argument type list, matches with the function signature
         # returns 'cool' if no error found
         funcScope = self.lookUpfunc(name)
+        # print(funcScope)
         if funcScope == -1:
             return 'function ' + name + ' not declared'
-        
+
         valid = False
         for scp in funcScope:
             funcMeta = self.symbolTables[scp].metadata
             val = 1
-            for i in range(len(arguments)):
-                expectedTp = funcMeta['signature'][i]
-                if not self.compareType(arguments[i], expectedTp):
-                    val = 0
-            if val:
-                valid = True
-                return str(scp)
-        
+            if funcMeta['num_arg'] == len(arguments):
+                for i in range(len(arguments)):
+                    expectedTp = funcMeta['signature'][i]
+                    if not self.compareType(arguments[i], expectedTp):
+                        val = 0
+                if val:
+                    valid = True
+                    return str(scp)
+
         return 'arguments do not match any function signature'
-    
+
     def getWidth(self, scope):
         symTable = self.symbolTables[scope]
         width = 0
@@ -391,7 +395,7 @@ class Helper:
             size_ = self.computeSize(symTable.get(ident)['type'])
             width += size_
         return width
-    
+
     def getParamWidth(self, scope):
         symTable = self.symbolTables[scope]
         width = 0
@@ -407,6 +411,7 @@ class Helper:
         print('scope:',self.scope)
         print('scopeStack:',self.scopeStack)
         print('offsetStack:',self.offsetStack)
+        print(self.type)
         for table in range(len(self.symbolTables)):
             print('symbolTable %d:'%table,self.symbolTables[table])
 

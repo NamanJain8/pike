@@ -386,6 +386,7 @@ def p_expr_list(p):
     p[0].placeList += p[2].placeList
     p[0].typeList += p[2].typeList
     p[0].code += p[2].code
+    p[0].extra['deref'] += p[2].extra['deref']
     p[0].scopeInfo += p[2].scopeInfo
 
 def p_expr_rep(p):
@@ -399,6 +400,9 @@ def p_expr_rep(p):
         p[0].scopeInfo += p[3].scopeInfo
         p[0].placeList += p[3].placeList
         p[0].typeList += p[3].typeList
+        p[0].extra['deref'] += p[3].extra['deref']
+    else:
+        p[0].extra['deref'] = []
 
 # -------------------------------------------------------
 
@@ -701,24 +705,28 @@ def p_prim_expr(p):
         p[0] = p[1]
     elif p[2].name == 'Selector':
         p[0] = p[1]
-        try:
+        if True:
             baseType = helper.getBaseType(p[1].typeList[0])
+            print(baseType)
             ident = p[2].extra['ident']
-
+            if isinstance(baseType[1], str):
+                baseType[1] = helper.getBaseType(baseType[1])[1]
             if baseType[0] != 'struct':
                 compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before the period we must have struct type')
             elif ident not in baseType[1]:
-                err_ = 'Name ' + name_ + ' has no field, or method called ' + ident
+                err_ = 'Name ' + str(baseType[1]) + ' has no field, or method called ' + ident
                 compilation_errors.add('Field Error', line_number.get()+1, err_)
 
             else:
                 identType = helper.addUnNamedType(baseType[1][ident]['type'])
-                newVar1 = helper.newVar(identType)
-                p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
+                newVar1 = helper.newVar('int')
+                p[0].code.append(['+int', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), 'offset'])
                 p[0].placeList = [newVar1]
+                p[0].identList = p[0].placeList
                 p[0].typeList = [identType]
-        except:
+                helper.symbolTables[helper.getScope()].update(newVar1, 'reference', True)
+        else:
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Before period we must have struct')
 
     elif p[2].name == 'Index':
@@ -733,13 +741,15 @@ def p_prim_expr(p):
         else:
             arrayElemtp = helper.addUnNamedType(rawType[1]['type'])
             newVar1 = helper.newVar(arrayElemtp)
+            newVar2 = helper.newVar('int')
             arrayElemSz = helper.type[arrayElemtp]['size']
-            p[0].code.append(['*' + 'int', newVar1, p[2].placeList[0], arrayElemSz])
+            p[0].code.append(['*' + 'int', newVar2, p[2].placeList[0], arrayElemSz])
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[2].placeList[0]), 'literal'])
-            p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], newVar1])
+            p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], newVar2])
             p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.getScope()])
             p[0].placeList = [newVar1]
             p[0].typeList = [arrayElemtp]
+            helper.symbolTables[helper.getScope()].update(newVar1, 'reference', True)
             p[0].extra['isIndex'] = True
 
     elif p[2].name == 'Arguments':
@@ -813,8 +823,11 @@ def p_expr(p):
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
         p[0].scopeInfo = p[1].scopeInfo
+        print(p[1].extra)
+        p[0].extra['deref'] = p[1].extra['deref']
         p[0].extra['scope'] = helper.getScope()
     else:
+        p[0].extra['deref'] = ['no']
         tp = helper.getBaseType(p[1].typeList[0])
         if not helper.compareType(p[1].typeList[0], p[3].typeList[0]):
             compilation_errors.add('TypeMismatch', line_number.get()+1, 'Type should be same across binary operator')
@@ -823,7 +836,7 @@ def p_expr(p):
         else:
             if len(p[2].typeList) > 0:
                 # for boolean
-                p[0].typeList = p[2].typeList 
+                p[0].typeList = p[2].typeList
             else:
                 p[0].typeList = p[1].typeList
             newVar = helper.newVar(p[0].typeList[0])
@@ -835,7 +848,8 @@ def p_expr(p):
                 p[0].code.append([p[2].extra['opcode'], newVar, p[1].placeList[0], p[3].placeList[0]])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             else:
-                p[0].code.append([p[2].extra['opcode'] + p[1].typeList[0], newVar, p[1].placeList[0], p[3].placeList[0]])
+                baseType = helper.getBaseType(p[1].typeList[0])
+                p[0].code.append([p[2].extra['opcode'] + baseType[0], newVar, p[1].placeList[0], p[3].placeList[0]])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), helper.findScope(p[3].placeList[0])])
             p[0].placeList.append(newVar)
             p[0].extra['scope'] = helper.getScope()
@@ -845,16 +859,12 @@ def p_unary_expr(p):
                              | UnaryOp UnaryExpr
                              | NOT UnaryExpr'''
     p[0] = Node('UnaryExpr')
+    p[0].extra['deref'] = ['no']
     if len(p) == 2:
         p[0].typeList = p[1].typeList
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
         p[0].scopeInfo = p[1].scopeInfo
-        if 'isIndex' in p[1].extra:
-            newVar = helper.newVar(p[0].typeList[0])
-            p[0].code.append(['=', newVar, '*'+ p[1].placeList[0]])
-            p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0])])
-            p[0].placeList = [newVar]
 
     elif p[1] == '!':
         tp = helper.getBaseType(p[2].typeList[0])
@@ -892,6 +902,9 @@ def p_unary_expr(p):
         else:
             if updateNeeded:
                 p[0].typeList = p[2].typeList
+                p[0].extra['deref'] = ['no']
+            else:
+                p[0].extra['deref'] = [p[1].extra['opcode'] + p[2].placeList[0]]
             newVar = helper.newVar(p[0].typeList[0])
             p[0].placeList = [newVar]
             p[0].identList = [newVar]
@@ -935,7 +948,7 @@ def p_rel_op(p):
     else:
         p[0].extra['int'] = True
         p[0].extra['float'] = True
-        p[0].extra['string'] = True
+        # p[0].extra['string'] = True
 
 
 def p_add_mul_op(p):
@@ -964,7 +977,8 @@ def p_unary_op(p):
     p[0] = Node('UnaryOp')
     p[0].extra['int'] = True
     p[0].extra['float'] = True
-    p[0].extra['string'] = True
+    if p[1] == '+':
+        p[0].extra['string'] = True
     p[0].extra['opcode'] = p[1]
 
 # -------------------------------------------------------
@@ -1059,7 +1073,10 @@ def p_assignment(p):
     p[0].code += p[3].code
     p[0].scopeInfo += p[3].scopeInfo
     for idx_ in range(len(p[3].typeList)):
-        p[0].code.append([p[2].extra['opcode'], p[1].placeList[idx_], p[3].placeList[idx_]])
+        if p[1].extra['deref'][idx_] == 'no':
+            p[0].code.append([p[2].extra['opcode'], p[1].placeList[idx_], p[3].placeList[idx_]])
+        else:
+            p[0].code.append([p[2].extra['opcode'], p[1].extra['deref'][idx_], p[3].placeList[idx_]])
         p[0].scopeInfo.append(['', helper.findScope(p[1].placeList[idx_]), helper.findScope(p[3].placeList[idx_])])
 
 def p_assign_op(p):
