@@ -716,7 +716,6 @@ def p_prim_expr(p):
                 newVar1 = helper.newVar(identType)
                 p[0].code.append(['+' + 'int', newVar1, p[1].placeList[0], baseType[1][ident]['offset']])
                 p[0].scopeInfo.append(['', helper.getScope(), helper.findScope(p[1].placeList[0]), 'offset'])
-                # p[0].placeList = ['*' + newVar1]
                 p[0].placeList = [newVar1]
                 p[0].typeList = [identType]
         except:
@@ -814,6 +813,7 @@ def p_expr(p):
         p[0].placeList = p[1].placeList
         p[0].code = p[1].code
         p[0].scopeInfo = p[1].scopeInfo
+        p[0].extra['scope'] = helper.getScope()
     else:
         tp = helper.getBaseType(p[1].typeList[0])
         if not helper.compareType(p[1].typeList[0], p[3].typeList[0]):
@@ -823,7 +823,7 @@ def p_expr(p):
         else:
             if len(p[2].typeList) > 0:
                 # for boolean
-                p[0].typeList = p[2].typeList
+                p[0].typeList = p[2].typeList 
             else:
                 p[0].typeList = p[1].typeList
             newVar = helper.newVar(p[0].typeList[0])
@@ -897,7 +897,7 @@ def p_unary_expr(p):
             p[0].identList = [newVar]
             p[0].code = p[2].code
             p[0].scopeInfo = p[2].scopeInfo
-            p[0].code.append([p[1].extra['opcode'] + str(p[2].typeList[0]), newVar, p[2].placeList[0]])
+            p[0].code.append([p[1].extra['opcode'] + helper.getBaseType(p[2].typeList[0])[0], newVar, p[2].placeList[0]])
             p[0].scopeInfo.append(['',helper.getScope(),helper.findScope(p[2].placeList[0])])
 
 def p_binary_op(p):

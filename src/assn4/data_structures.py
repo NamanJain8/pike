@@ -46,6 +46,7 @@ class SymbolTable:
         self.parent = parent
         self.metadata = {}
         self.metadata['name'] = 'global'
+        self.metadata['largest'] = 0
 
         # metadata has a key 'is_function' to check if the current symbol table is activation record.
 
@@ -205,8 +206,14 @@ class Helper:
         return self.scopeStack[-1]
 
     def endScope(self):
+        scope = self.getNearest('func')
+        if scope != -1:
+            self.symbolTables[scope].metadata['largest'] += self.getWidth(self.getScope())
         self.lastScope = self.scopeStack.pop()
         self.popOffset()
+
+    def getLargest(self, scope):
+        return self.symbolTables[scope].metadata['largest']
 
     def checkId(self,identifier, type_='default'):
         if identifier in self.symbolTables[0].functions.keys():
