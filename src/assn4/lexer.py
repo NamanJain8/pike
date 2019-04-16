@@ -18,23 +18,11 @@ reserved = {
     'true': 'TRUE',
     'false': 'FALSE',
     'break':    'BREAK',
-    'default':    'DEFAULT',
-    'select':    'SELECT',
     'func':    'FUNC',
-    'case':    'CASE',
-    'interface':    'INTERFACE',
-    'defer':    'DEFER',
-    'go':    'GO',
     'struct':    'STRUCT',
-    'goto':    'GOTO',
-    'chan':    'CHAN',
     'else':    'ELSE',
-    'map':    'MAP',
-    'fallthrough':    'FALLTHROUGH',
     'package':    'PACKAGE',
-    'switch':    'SWITCH',
     'const':    'CONST',
-    'range':    'RANGE',
     'type':    'TYPE',
     'if':    'IF',
     'continue':    'CONTINUE',
@@ -46,7 +34,6 @@ reserved = {
     'float': 'FLOAT',
     'string': 'STRING',
     'bool': 'BOOL',
-    'complex': 'COMPLEX',
     'typecast': 'TYPECAST',
     'print' : 'PRINT',
     'scan': 'SCAN'
@@ -59,8 +46,6 @@ tokens = [
     'IDENT',            # main
     'INT_LITERAL',              # 123
     'FLOAT_LITERAL',            # 123.4
-    'IMAG',             # 123.4i
-    'CHAR',             # 'a'
     'STRING_LITERAL',           # "abc"
 
     # operator
@@ -82,18 +67,15 @@ tokens = [
     'XOR',              # ^
     'SHL',              # <<
     'SHR',              # >>
-    'AND_NOT',          # &^
 
     'AND_ASSIGN',       # &=
     'OR_ASSIGN',        # |=
     'XOR_ASSIGN',       # ^=
     'SHL_ASSIGN',       # <<=
     'SHR_ASSIGN',       # >>=
-    'AND_NOT_ASSIGN',   # &^=
 
     'LAND',             # &&
     'LOR',              # ||
-    'ARROW',            # <-
     'INC',              # ++
     'DEC',              # --
 
@@ -107,7 +89,6 @@ tokens = [
     'LEQ',              # <=
     'GEQ',              # >=
     'DEFINE',           # :=
-    'ELLIPSIS',         # ...
 
     'LPAREN',           # (
     'LBRACK',           # [
@@ -119,7 +100,6 @@ tokens = [
     'RBRACK',           # ]
     'RBRACE',           # }
     'SEMICOLON',        # ;
-    'COLON',            # :
 
 ] + list(reserved.values())
 
@@ -142,18 +122,15 @@ t_OR = r"\|"
 t_XOR = r"\^"
 t_SHL = r"<<"
 t_SHR = r">>"
-t_AND_NOT = r"&\^"
 
 AND_ASSIGN = r"&="
 OR_ASSIGN = r"!="
 XOR_ASSIGN = r"\^="
 SHL_ASSIGN = r"<<="
 SHR_ASSIGN = r">>="
-AND_NOT_ASSIGN = r"&\^="
 
 t_LAND = r"&&"
 t_LOR = r"\|\|"
-t_ARROW = r"<-"
 t_INC = r"\+\+"
 t_DEC = r"--"
 
@@ -167,7 +144,6 @@ t_NEQ = r"!="
 t_LEQ = r"<="
 t_GEQ = r">="
 t_DEFINE = r":="
-t_ELLIPSIS = r"\.\.\."
 
 t_LPAREN = r"\("
 t_LBRACK = r"\["
@@ -179,7 +155,6 @@ t_RPAREN = r"\)"
 t_RBRACK = r"\]"
 t_RBRACE = r"\}"
 t_SEMICOLON = r";"
-t_COLON = r":"
 
 letter = r"[_A-Za-z]"
 decimal_digit = r"[0-9]"
@@ -197,8 +172,6 @@ decimals = decimal_digit + r"(" + decimal_digit + r")*"
 exponent = r"(e|E)" + r"(\+|-)?" + decimals
 t_FLOAT_LITERAL = r"(" + decimals + r"\.(" + decimals + r")?(" + exponent + r")?" + r")|(" + decimals + exponent + r")|("+ \
     r"\." + decimals + r"(" + exponent + r")?" + r")"
-
-t_IMAG = r"(" + decimals + r"|" + t_FLOAT_LITERAL + r")" + r"i"
 
 t_ignore = " \t"
 
