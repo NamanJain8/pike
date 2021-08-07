@@ -7,6 +7,32 @@ Compiler Design Project (Golang to X86 compiler written in Python3)
 |    Naman Jain   |  160427 |  namanj@iitk.ac.in  |
 |  Raghukul Raman |  160538 | raghukul@iitk.ac.in |
 
+## Features:
+### Basic features:
+- Native data types: Int, Char, Float
+- Variables and Expressions
+- Conditional: if, if-else
+- Loops: for
+- Break, Continue
+- Arrays: Single and multidimensional
+- Input, output
+- Functions, recursion
+- Pointers: Single and multilevel
+- Simple library functions
+- Arithmetic operators
+- Logical and bitwise operators
+- Multiple assignments in single line (a, b, c := 1,2,3)
+- Thorough type checking
+
+### Additional features
+- Function overloading
+- Auto-type inference
+- Short variable declaration
+- Alias, typedefs
+- Structural equivalence
+- Global variables
+- Array returning from functions
+
 
 <!-- Note: Before pushing run `clean.sh` to delete tmp files. -->
 
