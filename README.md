@@ -1,4 +1,4 @@
-# CS335-Project
+# Pike: Go Compiler
 Compiler Design Project (Golang to X86 compiler written in Python3)
 
 |       Name      | Roll No |        Email        |
